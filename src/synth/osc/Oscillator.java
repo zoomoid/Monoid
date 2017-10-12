@@ -1,0 +1,169 @@
+package synth.osc;
+
+import net.beadsproject.beads.core.AudioContext;
+import net.beadsproject.beads.ugens.Gain;
+
+public abstract class Oscillator {
+
+    /**
+     * The frequency the oscillation is happening at
+     */
+    float frequency;
+    /**
+     * Oscillator output device
+     */
+    Gain output;
+
+    /**
+     * The AudioContext the oscillator is working in
+     */
+    AudioContext ac;
+
+    /**
+     * Pause boolean. This flag gets set as soon as an Oscillator is paused
+     */
+    boolean isPaused;
+    /**
+     * Change boolean. This flag gets set by setters in child classes as soon as major changes occur
+     */
+    boolean hasChanged;
+    /**
+     * Initialisation boolean. This prevents setup from being called more than once on a certain oscillator
+     */
+    private boolean isInitialised;
+
+    /**
+     * Creates an empty oscillator frame
+     * @param ac AudioContext
+     */
+    public Oscillator(AudioContext ac){
+        this(ac, 0f);
+    }
+
+    /**
+     * Creates a new Oscillator frame
+     * @param ac AudioContext
+     * @param frequency Oscillator frequency
+     */
+    public Oscillator(AudioContext ac, float frequency){
+        this.ac = ac;
+        this.output = new Gain(ac, 1, 1f);
+        this.frequency = frequency;
+        pause();
+        isPaused = true;
+        hasChanged = false;
+        isInitialised = false;
+    }
+
+    /*
+    KEY METHODS FOR EACH OSCILLATOR. THESE MUST BE PROVIDED.
+     */
+
+    /**
+     * Creates the voice(s) of the oscillator
+     */
+    abstract void createOscillator();
+
+    /**
+     * Sets the frequency / frequencies of the voice(s)
+     */
+    abstract void updateFrequency();
+
+    /**
+     * Routes the sound to the output(s)
+     */
+    abstract void patchOutputs();
+
+    /**
+     * Returns the current frequency of the oscillation
+     * @return frequency
+     */
+    public float getFrequency(){
+        return this.frequency;
+    }
+
+    /**
+     * Set the frequency of the oscillation
+     * @param frequency frequency in Hz
+     */
+    public void setFrequency(float frequency){
+        this.hasChanged = true;
+        this.frequency = frequency;
+        this.changed();
+    }
+
+    /**
+     * Set the gain of the oscillator output
+     * @param gain relative gain in [0,1]
+     */
+    public void setOutput(float gain){
+        if(gain <= 1f && gain >= 0f)
+            this.output.setGain(gain);
+    }
+
+    /**
+     * Returns the output of the Oscillator
+     * @return output device
+     */
+    public Gain output(){
+        return output;
+    }
+
+    /**
+     * Whether the oscillator is paused or not
+     * @return isPaused
+     */
+    public boolean isPaused(){
+        return isPaused;
+    }
+
+    public boolean isInitialised() {
+        return isInitialised;
+    }
+
+    /**
+     * Setup handler
+     * To be called when a new oscillator shall start. Creates voices and routes them to the output
+     */
+    public void setup(){
+        if(!isInitialised){
+            createOscillator();
+            updateFrequency();
+            patchOutputs();
+            start();
+            isInitialised = true;
+        }
+    }
+
+    /**
+     * Change handler
+     * To be called whether a major change happends to the Oscillator like switching the buffer or
+     * (not for {@link SmartOscillator}) change of the unison voice amount. Kills the currently running oscillator
+     * voices and creates fresh ones.
+     */
+    public void changed(){
+        if(hasChanged){
+            kill();
+            createOscillator();
+            updateFrequency();
+            patchOutputs();
+            start();
+        }
+    }
+
+    /**
+     * Starts the oscillator
+     */
+    public abstract void start();
+
+    /**
+     * Pauses the oscillator while keeping its state
+     */
+    public abstract void pause();
+
+    /**
+     * Kills the oscillator voices
+     */
+    public abstract void kill();
+
+}

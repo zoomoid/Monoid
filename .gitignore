@@ -1,0 +1,11 @@
+.idea/
+out/
+Monoid.iml
+src/synth/auxilliary/MIDIInputDevice.java
+beads/bin
+beads/tutorial
+beads/.classpath
+beads/.project
+beads/README.txt
+beads/release_notes.txt
+beads/audio
