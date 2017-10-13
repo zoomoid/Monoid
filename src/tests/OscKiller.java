@@ -29,7 +29,7 @@ public class OscKiller {
 
     public OscKiller(){
         ac.start();
-        osc = new SmartOscillator(ac, 220f, Buffer.SAW, 1, 2f, 1f);
+        osc = new SmartOscillator(ac, 55f, Buffer.SAW, 1, 2f, 1f);
         limiter = new RangeLimiter(ac, 2);
         Panner panner = new Panner(ac, 0f);
         panner.addInput(osc.output());

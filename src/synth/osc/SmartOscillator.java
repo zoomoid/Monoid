@@ -3,7 +3,6 @@ package synth.osc;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.ugens.Gain;
-import net.beadsproject.beads.ugens.OscillatorBank;
 import net.beadsproject.beads.ugens.WavePlayer;
 
 public class SmartOscillator extends Oscillator {
@@ -12,8 +11,6 @@ public class SmartOscillator extends Oscillator {
     private int voices;
     private float blend;
     private float spreadFunction;
-
-    private float unisonGainCompensation;
 
     private Buffer wave;
 
@@ -53,7 +50,6 @@ public class SmartOscillator extends Oscillator {
         this.blend = blend;
         unison = null;
         center = null;
-        this.unisonGainCompensation = 1 / (float)voices;
     }
 
 
@@ -93,7 +89,7 @@ public class SmartOscillator extends Oscillator {
         if(blend <= 1 && blend >= 0){
             // no need for super.hasChanged here, since it is just adjusting volume of two existing outputs
             this.blend = blend;
-            cGain.setGain((float)(1-0.5*this.blend) * this.unisonGainCompensation);
+            cGain.setGain((float)(1-0.5*this.blend));
             sGain.setGain((float)(0.5*this.blend));
         }
     }
@@ -117,7 +113,6 @@ public class SmartOscillator extends Oscillator {
             // this needs super.hasChanged since oscillators need to be recreated.
             hasChanged = true;
             this.voices = voices;
-            this.unisonGainCompensation = 1 / (float)voices;
             super.changed();
         }
     }
@@ -201,12 +196,15 @@ public class SmartOscillator extends Oscillator {
         // note: case "voices = 1" is covered by this, so no need for compensation as in WaveOscillator
         for(int i = 0; i < voices; i++){
             r[i] = (float)(x + (i/Math.pow(voices-1f, spreadFunction)) * 2 * spread);
-            System.out.print(r[i] + " Hz\t");
         }
-        System.out.print("\n");
         return r;
     }
 
+    /**
+     * Kills the voices and pauses the output
+     * TODO leave this to UGens to handle. Therefore fit Oscillator.update() and Oscillator.setup() to new workflow
+     */
+    @Override
     public void kill(){
         if(center != null){
             center.kill();
@@ -220,15 +218,29 @@ public class SmartOscillator extends Oscillator {
         isPaused = true;
     }
 
+    /**
+     * Shortcut for pause(false)
+     * TODO leave this to UGens to handle. Therefore fit Oscillator.update() and Oscillator.setup() to new workflow
+     */
     public void start(){
         this.pause(false);
     }
 
+    /**
+     * Shortcut for pause(true)
+     * TODO leave this to UGens to handle. Therefore fit Oscillator.update() and Oscillator.setup() to new workflow
+     */
     public void pause(){
         this.pause(true);
     }
 
-    private void pause(boolean paused){
+    /**
+     * {@see UGen}
+     * TODO leave this to UGens to handle. Therefore fit Oscillator.update() and Oscillator.setup() to new workflow
+     * @param paused pause or play
+     */
+    @Override
+    public void pause(boolean paused){
         if(isPaused != paused){
             if(center != null)
                 center.pause(paused);

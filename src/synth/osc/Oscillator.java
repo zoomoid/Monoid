@@ -1,9 +1,10 @@
 package synth.osc;
 
 import net.beadsproject.beads.core.AudioContext;
+import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.ugens.Gain;
 
-public abstract class Oscillator {
+public abstract class Oscillator extends UGen {
 
     /**
      * The frequency the oscillation is happening at
@@ -46,6 +47,7 @@ public abstract class Oscillator {
      * @param frequency Oscillator frequency
      */
     public Oscillator(AudioContext ac, float frequency){
+        super(ac);
         this.ac = ac;
         this.output = new Gain(ac, 1, 1f);
         this.frequency = frequency;
@@ -166,4 +168,11 @@ public abstract class Oscillator {
      */
     public abstract void kill();
 
+    @Override
+    public void calculateBuffer(){
+        zeroOuts();
+        for(int i = 0; i < outs; i++){
+            bufOut[i] = output.getOutBuffer(i);
+        }
+    }
 }
