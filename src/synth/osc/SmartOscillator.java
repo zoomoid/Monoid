@@ -3,7 +3,6 @@ package synth.osc;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.ugens.Gain;
-import net.beadsproject.beads.ugens.OscillatorBank;
 import net.beadsproject.beads.ugens.WavePlayer;
 
 public class SmartOscillator extends Oscillator {
