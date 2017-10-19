@@ -52,7 +52,7 @@ public class JFrameKeyboard extends JFrame{
      * @param e the pressed Key, the method handles
      */
     public void handleKeyPressed(KeyEvent e) {
-        this.playing = true;
+        setPlaying(true);
         int id = e.getID();
         char c = '0';
         if(id == KeyEvent.KEY_TYPED) {
@@ -61,10 +61,42 @@ public class JFrameKeyboard extends JFrame{
         letterToFrequency(c);
     }
 
-    public void handleKeyReleased(Key Event e) {
-        
+    public void handleKeyReleased(KeyEvent e) {
+        setPlaying(false);
     }
 
+    public void handleKeyTyped(KeyEvent e) {
+        setPlaying(true);
+        int id = e.getID();
+        char c = '0';
+        if(id == KeyEvent.KEY_TYPED) {
+            c = e.getKeyChar();
+        }
+        letterToFrequency(c);
+    }
 
+    /**
+     * Set frequency
+     * @param newFreq new frequency
+     */
+    public void setFrequency(float newFreq) {
+        frequency = newFreq;
+    }
+
+    /**
+     * Changes status playing
+     * @param p sets playing true or false
+     */
+    public void setPlaying(boolean p) {
+        playing = p;
+    }
+
+    /**
+     * Returns true, when the keys are playing and false else
+     * @return
+     */
+    public boolean getPlaying() {
+        return playing;
+    }
 
 }

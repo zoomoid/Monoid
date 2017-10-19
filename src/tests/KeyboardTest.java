@@ -50,6 +50,11 @@ public class KeyboardTest {
         while(true) {
             osc.setFrequency(frame.getFrequency());
             System.out.println("Playing " + frame.getFrequency() + " Hz");
+            if(!frame.getPlaying()) {
+                osc.pause();
+            } else {
+                osc.start();
+            }
         }
     }
 }
