@@ -2,36 +2,48 @@ package synth.osc;
 
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
+import net.beadsproject.beads.ugens.Envelope;
 import net.beadsproject.beads.ugens.Gain;
+import synth.midi.MidiInput;
 
-public abstract class Oscillator extends UGen {
+public abstract class Oscillator extends UGen implements MidiInput {
 
     /**
      * The frequency the oscillation is happening at
      */
-    float frequency;
+    protected float frequency;
     /**
      * Oscillator output device
      */
-    Gain output;
+    protected Gain output;
 
     /**
      * The AudioContext the oscillator is working in
      */
-    AudioContext ac;
+    protected AudioContext ac;
+
+    /**
+     * Volume Envelope
+     */
+    protected Envelope volumeEnvelope;
+
+    /**
+     * Frequency Envelope
+     */
+    protected Envelope frequencyEnvelope;
 
     /**
      * Pause boolean. This flag gets set as soon as an Oscillator is paused
      */
-    boolean isPaused;
+    protected boolean isPaused;
     /**
      * Change boolean. This flag gets set by setters in child classes as soon as major changes occur
      */
-    boolean hasChanged;
+    protected boolean hasChanged;
     /**
      * Initialisation boolean. This prevents setup from being called more than once on a certain oscillator
      */
-    private boolean isInitialised;
+    protected boolean isInitialised;
 
     /**
      * Creates an empty oscillator frame
@@ -174,5 +186,23 @@ public abstract class Oscillator extends UGen {
         for(int i = 0; i < outs; i++){
             bufOut[i] = output.getOutBuffer(i);
         }
+    }
+
+    /**
+     * @see MidiInput
+     * @param midiKeyCode key code of the midi event
+     * @param midiVelocity key velocity
+     */
+    public void noteTriggerOn(int midiKeyCode, int midiVelocity){
+
+    }
+
+    /**
+     * @see MidiInput
+     * @param midiKeyCode key code
+     * @param midiVelocity key velocity
+     */
+    public void noteTriggerOff(int midiKeyCode, int midiVelocity){
+        // handle note release:
     }
 }

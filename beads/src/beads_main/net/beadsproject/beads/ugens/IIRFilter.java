@@ -8,7 +8,7 @@ import net.beadsproject.beads.core.UGen;
 
 /**
  * An abstract class that provides methods for analyzing infinite impulse
- * response (IIR) filters. IIR filters built on this class should implement
+ * response (IIR) filter. IIR filter built on this class should implement
  * {@link #getFilterResponse(float)} appropriately.
  * 
  * @beads.category filter

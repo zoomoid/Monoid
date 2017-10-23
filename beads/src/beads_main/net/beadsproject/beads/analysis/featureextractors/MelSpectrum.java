@@ -45,7 +45,7 @@ public class MelSpectrum extends FeatureExtractor<float[], float[]>  {
 	 * @param sampleRate
 	 *            the sample rate in samples per second.
 	 * @param numCoeffs
-	 *            the number of filters to use (number of features).
+	 *            the number of filter to use (number of features).
 	 */
 	public MelSpectrum(float sampleRate, int numCoeffs) {
 		this.sampleRate = sampleRate;

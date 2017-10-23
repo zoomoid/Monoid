@@ -64,7 +64,7 @@
                   <borderPainted value="true"/>
                   <contentAreaFilled value="false"/>
                   <icon value="synth/ui/assets/square.png"/>
-                  <opaque value="true"/>
+                  <opaque value="false"/>
                   <text value=""/>
                 </properties>
               </component>

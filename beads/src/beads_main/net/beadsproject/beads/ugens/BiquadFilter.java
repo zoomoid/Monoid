@@ -12,7 +12,7 @@ import net.beadsproject.beads.data.DataBeadReceiver;
 /**
  * A simple implementation of a multi-channel biquad filter. It calculates
  * coefficients based on three parameters (frequency, Q, and gain - the latter
- * only relevant for EQ and shelving filters), each of which may be specified by
+ * only relevant for EQ and shelving filter), each of which may be specified by
  * a static float or by the output of a UGen.
  * <p>
  * Filter parameters may be set with individual setter functions (
