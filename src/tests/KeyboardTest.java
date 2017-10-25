@@ -11,10 +11,12 @@ import synth.osc.SmartOscillator;
 import synth.controller.*;
 
 import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 public class KeyboardTest {
 
-    private JPanel container = new JPanel();
+    private static JPanel container;
 
     public static AudioContext ac = new AudioContext(new AudioServerIO.JavaSound("Primärer Soundtreiber"), 4096, new IOAudioFormat(44100, 24, 0, 2));
 
@@ -24,7 +26,7 @@ public class KeyboardTest {
 
     public RangeLimiter limiter;
 
-    static Keys keys = new Keys(osc);
+    static Keys keys;
 
 
     /**
@@ -51,37 +53,43 @@ public class KeyboardTest {
      */
     public static void setupPanelMaps(JPanel panel) {
         panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("A"), "a");
-        panel.getActionMap("a", keys.midiMessage('a'));
+        panel.getActionMap().put("a", new KeyAction('a', keys));
         panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("W"), "w");
-        panel.getActionMap("w", keys.midiMessage('w'));
+        panel.getActionMap().put("w", new KeyAction('w', keys));
         panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("S"), "s");
-        panel.getActionMap("s", keys.midiMessage('s'));
+        panel.getActionMap().put("s", new KeyAction('s', keys));
         panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("E"), "e");
-        panel.getActionMap("e", keys.midiMessage('e'));
+        panel.getActionMap().put("e", new KeyAction('e', keys));
         panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("D"), "d");
-        panel.getActionMap("d", keys.midiMessage('d'));
+        panel.getActionMap().put("d", new KeyAction('d', keys));
         panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("F"), "f");
-        panel.getActionMap("f", keys.midiMessage('f'));
+        panel.getActionMap().put("f", new KeyAction('f', keys));
         panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("T"), "t");
-        panel.getActionMap("t", keys.midiMessage('t'));
+        panel.getActionMap().put("t", new KeyAction('t', keys));
         panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("G"), "g");
-        panel.getActionMap("g", keys.midiMessage('g'));
+        panel.getActionMap().put("g", new KeyAction('g', keys));
         panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("Z"), "z");
-        panel.getActionMap("z", keys.midiMessage('z'));
+        panel.getActionMap().put("z", new KeyAction('z', keys));
         panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("H"), "h");
-        panel.getActionMap("h", keys.midiMessage('h'));
+        panel.getActionMap().put("h", new KeyAction('h', keys));
         panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("U"), "u");
-        panel.getActionMap("u", keys.midiMessage('u'));
+        panel.getActionMap().put("u", new KeyAction('u', keys));
         panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("J"), "j");
-        panel.getActionMap("j", keys.midiMessage('j'));
+        panel.getActionMap().put("j", new KeyAction('j', keys));
         panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("K"), "k");
-        panel.getActionMap("k", keys.midiMessage('k'));
+        panel.getActionMap().put("k", new KeyAction('k', keys));
+        panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("Y"), "y");
+        panel.getActionMap().put("y", new KeyAction('y', keys));
+        panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("X"), "x");
+        panel.getActionMap().put("x", new KeyAction('x', keys));
     }
 
     public static void main(String[] args) {
+        container = new JPanel();
         JFrame frame = new JFrame("KeyboardTest");
-        setupPanelMaps(container);
         frame.setContentPane(new KeyboardTest().container);
+        keys = new Keys(osc);
+        setupPanelMaps(container);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
         frame.setVisible(true);
