@@ -4,9 +4,14 @@ import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.ugens.Envelope;
 import net.beadsproject.beads.ugens.Gain;
+import synth.auxilliary.MIDIUtils;
 import synth.midi.MidiInput;
 
-public abstract class Oscillator extends UGen implements MidiInput {
+import javax.sound.midi.Receiver;
+import javax.sound.midi.ShortMessage;
+import javax.sound.midi.Synthesizer;
+
+public abstract class Oscillator extends UGen implements Synthesizer {
 
     /**
      * The frequency the oscillation is happening at
@@ -16,7 +21,6 @@ public abstract class Oscillator extends UGen implements MidiInput {
      * Oscillator output device
      */
     protected Gain output;
-
     /**
      * The AudioContext the oscillator is working in
      */
@@ -31,6 +35,16 @@ public abstract class Oscillator extends UGen implements MidiInput {
      * Frequency Envelope
      */
     protected Envelope frequencyEnvelope;
+
+    /**
+     * Whether Oscillator is velocity sensitive or not
+     */
+    protected boolean isVelocitySensitive;
+    /**
+     * Factor by which the linear velocity falloff gets multiplied
+     * By default this is 1 meaning: velocity / 127 * output.gain();
+     */
+    protected float velocityFactor;
 
     /**
      * Pause boolean. This flag gets set as soon as an Oscillator is paused
@@ -67,6 +81,8 @@ public abstract class Oscillator extends UGen implements MidiInput {
         isPaused = true;
         hasChanged = false;
         isInitialised = false;
+        velocityFactor = 1;
+        isVelocitySensitive = false;
     }
 
     /*
@@ -188,21 +204,67 @@ public abstract class Oscillator extends UGen implements MidiInput {
         }
     }
 
-    /**
-     * @see MidiInput
-     * @param midiKeyCode key code of the midi event
-     * @param midiVelocity key velocity
+    /*
+        Velocity functions
      */
-    public void noteTriggerOn(int midiKeyCode, int midiVelocity){
-
+    /**
+     * Enable or disable oscillator velocity sensitivity
+     * meaning whether the key velocity by a MIDI event should
+     * affect the volume of the oscillator by a constant factor (velocityFactor)
+     * @param isSensitive boolean whether to enable or disable velocity sensitivity
+     */
+    public void setVelocitySensitivity(boolean isSensitive){
+        this.isVelocitySensitive = isSensitive;
     }
 
     /**
-     * @see MidiInput
-     * @param midiKeyCode key code
-     * @param midiVelocity key velocity
+     * Whether the oscillator is velocity sensitive
+     * @return true, if sensitive, false otherwise
      */
-    public void noteTriggerOff(int midiKeyCode, int midiVelocity){
-        // handle note release:
+    public boolean isVelocitySensitive() {
+        return isVelocitySensitive;
+    }
+
+    /**
+     * Sets the velocityFactor which is applied to the volume
+     * Note: The new factor gets applied as soon as a new MIDI note on command is received
+     *
+     * Note: Clipping is to be prevented by the user, either by using a limiter
+     *       (RangeLimiter Beads UGen, when implementing a chain) otherwise, for factors greateer
+     *       than 1, clipping may occur, when velocity/127 * velocityFactor * gain is greater than 1
+     * @param velocityFactor constant factor to be applid onto the volume
+     */
+    public void setVelocityFactor(float velocityFactor) {
+        this.velocityFactor = velocityFactor;
+    }
+
+    /**
+     * Gets the current velocity factor
+     * @return constant velocity factor as float
+     */
+    public float getVelocityFactor() {
+        return velocityFactor;
+    }
+
+    /**
+     * Implements the MIDI Synthesizer method send, which is called by a transmitter (Sequencer) to
+     * send MIDI data to a synthesizer
+     * @param message MIDI data as ShortMessage type
+     * @param timeStamp (currently not implemented) used to calculate offset for delay compensation
+     *                  Since delay is an issue for the whole synthesizer, this is a minor problem
+     *                  with which can be dealt later on
+     */
+    public void send(ShortMessage message, long timeStamp){
+        if(message.getCommand() == ShortMessage.NOTE_OFF){
+            this.pause();
+        } else {
+            // call for the static function translating the MIDI key to frequency range
+            this.setFrequency(MIDIUtils.midi2frequency(message.getData1()));
+            // if oscillator is velocity sensitive, adjust volume
+            if(this.isVelocitySensitive){
+                this.output.setGain(message.getData2() / 127f * this.output.getGain());
+            }
+            this.start();
+        }
     }
 }
