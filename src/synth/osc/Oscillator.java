@@ -1,36 +1,63 @@
 package synth.osc;
 
 import net.beadsproject.beads.core.AudioContext;
+import net.beadsproject.beads.core.UGen;
+import net.beadsproject.beads.ugens.Envelope;
 import net.beadsproject.beads.ugens.Gain;
+import synth.auxilliary.MIDIUtils;
+import synth.midi.MidiInput;
 
-public abstract class Oscillator {
+import javax.sound.midi.Receiver;
+import javax.sound.midi.ShortMessage;
+import javax.sound.midi.Synthesizer;
+
+public abstract class Oscillator extends UGen implements Synthesizer {
 
     /**
      * The frequency the oscillation is happening at
      */
-    float frequency;
+    protected float frequency;
     /**
      * Oscillator output device
      */
-    Gain output;
-
+    protected Gain output;
     /**
      * The AudioContext the oscillator is working in
      */
-    AudioContext ac;
+    protected AudioContext ac;
+
+    /**
+     * Volume Envelope
+     */
+    protected Envelope volumeEnvelope;
+
+    /**
+     * Frequency Envelope
+     */
+    protected Envelope frequencyEnvelope;
+
+    /**
+     * Whether Oscillator is velocity sensitive or not
+     */
+    protected boolean isVelocitySensitive;
+    /**
+     * Factor by which the linear velocity falloff gets multiplied
+     * By default this is 1 meaning: velocity / 127 * output.gain();
+     */
+    protected float velocityFactor;
 
     /**
      * Pause boolean. This flag gets set as soon as an Oscillator is paused
      */
-    boolean isPaused;
+    protected boolean isPaused;
     /**
      * Change boolean. This flag gets set by setters in child classes as soon as major changes occur
      */
-    boolean hasChanged;
+    protected boolean hasChanged;
     /**
      * Initialisation boolean. This prevents setup from being called more than once on a certain oscillator
      */
-    private boolean isInitialised;
+    protected boolean isInitialised;
 
     /**
      * Creates an empty oscillator frame
@@ -46,6 +73,7 @@ public abstract class Oscillator {
      * @param frequency Oscillator frequency
      */
     public Oscillator(AudioContext ac, float frequency){
+        super(ac);
         this.ac = ac;
         this.output = new Gain(ac, 1, 1f);
         this.frequency = frequency;
@@ -53,6 +81,8 @@ public abstract class Oscillator {
         isPaused = true;
         hasChanged = false;
         isInitialised = false;
+        velocityFactor = 1;
+        isVelocitySensitive = false;
     }
 
     /*
@@ -166,4 +196,75 @@ public abstract class Oscillator {
      */
     public abstract void kill();
 
+    @Override
+    public void calculateBuffer(){
+        zeroOuts();
+        for(int i = 0; i < outs; i++){
+            bufOut[i] = output.getOutBuffer(i);
+        }
+    }
+
+    /*
+        Velocity functions
+     */
+    /**
+     * Enable or disable oscillator velocity sensitivity
+     * meaning whether the key velocity by a MIDI event should
+     * affect the volume of the oscillator by a constant factor (velocityFactor)
+     * @param isSensitive boolean whether to enable or disable velocity sensitivity
+     */
+    public void setVelocitySensitivity(boolean isSensitive){
+        this.isVelocitySensitive = isSensitive;
+    }
+
+    /**
+     * Whether the oscillator is velocity sensitive
+     * @return true, if sensitive, false otherwise
+     */
+    public boolean isVelocitySensitive() {
+        return isVelocitySensitive;
+    }
+
+    /**
+     * Sets the velocityFactor which is applied to the volume
+     * Note: The new factor gets applied as soon as a new MIDI note on command is received
+     *
+     * Note: Clipping is to be prevented by the user, either by using a limiter
+     *       (RangeLimiter Beads UGen, when implementing a chain) otherwise, for factors greateer
+     *       than 1, clipping may occur, when velocity/127 * velocityFactor * gain is greater than 1
+     * @param velocityFactor constant factor to be applid onto the volume
+     */
+    public void setVelocityFactor(float velocityFactor) {
+        this.velocityFactor = velocityFactor;
+    }
+
+    /**
+     * Gets the current velocity factor
+     * @return constant velocity factor as float
+     */
+    public float getVelocityFactor() {
+        return velocityFactor;
+    }
+
+    /**
+     * Implements the MIDI Synthesizer method send, which is called by a transmitter (Sequencer) to
+     * send MIDI data to a synthesizer
+     * @param message MIDI data as ShortMessage type
+     * @param timeStamp (currently not implemented) used to calculate offset for delay compensation
+     *                  Since delay is an issue for the whole synthesizer, this is a minor problem
+     *                  with which can be dealt later on
+     */
+    public void send(ShortMessage message, long timeStamp){
+        if(message.getCommand() == ShortMessage.NOTE_OFF){
+            this.pause();
+        } else {
+            // call for the static function translating the MIDI key to frequency range
+            this.setFrequency(MIDIUtils.midi2frequency(message.getData1()));
+            // if oscillator is velocity sensitive, adjust volume
+            if(this.isVelocitySensitive){
+                this.output.setGain(message.getData2() / 127f * this.output.getGain());
+            }
+            this.start();
+        }
+    }
 }

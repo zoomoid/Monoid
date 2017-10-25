@@ -308,7 +308,7 @@ public class WaveOscillator extends Oscillator {
         this.pause(false);
     }
 
-    private void pause(boolean paused){
+    public void pause(boolean paused){
         for(WavePlayer p : voices){
             p.pause(paused);
         }

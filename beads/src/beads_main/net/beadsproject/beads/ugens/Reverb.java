@@ -57,7 +57,7 @@ public class Reverb extends UGenChain implements DataBeadReceiver {
 		// start with a minor low-pass filter.
 		src = new OnePoleFilter(context, 4000);
 
-		// Early reflections unit: start with a delay, then 3 allpass filters in
+		// Early reflections unit: start with a delay, then 3 allpass filter in
 		// series. Takes input from the source filter src.
 		earlyTapIn = new TapIn(context, 125);
 		earlyTapOut = new TapOut(context, earlyTapIn, 10);
@@ -70,7 +70,7 @@ public class Reverb extends UGenChain implements DataBeadReceiver {
 		Gain earlyGainEcho = new Gain(context, 1, -.3f);
 		// The early reflections output gets fed back in at the top...
 
-		// Late reverb unit: 4 allpass filters in series.
+		// Late reverb unit: 4 allpass filter in series.
 		// Takes input from the source filter src, the early reflections output
 		// earlyGainEcho, and an echo of itself
 		lAPF1 = new AllpassFilter(context, (int) (140f * sampsPerMS), 19, .72f);

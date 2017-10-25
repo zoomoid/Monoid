@@ -21,10 +21,10 @@ import net.beadsproject.beads.data.DataBeadReceiver;
  * <li>3: High-pass of input 1</li>
  * </ul>
  * <p>
- * A key feature of Linkwitz-Riley filters is that the low- and high-pass bands
+ * A key feature of Linkwitz-Riley filter is that the low- and high-pass bands
  * added together produce a flat frequency response, making them particularly
- * useful as crossover filters. A 4th-order version is equivalent to cascading
- * two identical 2nd-order Butterworth filters.
+ * useful as crossover filter. A 4th-order version is equivalent to cascading
+ * two identical 2nd-order Butterworth filter.
  * 
  * @beads.category filter
  * @author Benito Crawford
@@ -134,7 +134,7 @@ public class CrossoverFilter extends UGen implements DataBeadReceiver {
 
 				for (int i = 0; i < bufferSize; i++) {
 
-					// low-pass part - two identical butterworth filters
+					// low-pass part - two identical butterworth filter
 					ly[0] = (lb0 * (bi[i] + x[2]) + lb1 * x[1] - a1 * ly[1] - a2
 							* ly[2])
 							/ a0;
@@ -143,7 +143,7 @@ public class CrossoverFilter extends UGen implements DataBeadReceiver {
 							/ a0;
 
 					// optimized high-pass part - two identical butterworth
-					// filters
+					// filter
 					hy[0] = (bi[i] - 2f * x[1] + x[2] - a1 * hy[1] - a2 * hy[2])
 							/ a0;
 					hi[i] = (hy[0] - 2f * hy[1] + hy[2] - a1 * hz[1] - a2
@@ -174,14 +174,14 @@ public class CrossoverFilter extends UGen implements DataBeadReceiver {
 
 			for (int i = 0; i < bufferSize; i++) {
 
-				// low-pass part - two identical butterworth filters
+				// low-pass part - two identical butterworth filter
 				ly0 = (lb0 * (bi[i] + x2) + lb1 * x1 - a1 * ly1 - a2 * ly2)
 						/ a0;
 				lo[i] = (lb0 * (ly0 + ly2) + lb1 * ly1 - a1 * lz1 - a2 * lz2)
 						/ a0;
 
 				// optimized high-pass part - two identical butterworth
-				// filters
+				// filter
 				hy0 = (bi[i] - 2 * x1 + x2 - a1 * hy1 - a2 * hy2) / a0;
 				hi[i] = (hy0 - 2 * hy1 + hy2 - a1 * hz1 - a2 * hz2) / a0;
 

@@ -1,12 +1,15 @@
 package synth.ui;
 
-import synth.osc.OscillatorManager;
+import synth.osc.Oscillator;
+import synth.osc.OscillatorController;
 import net.beadsproject.beads.data.Buffer;
+import synth.osc.SmartOscillator;
+
 import javax.swing.*;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
+// TODO Port Swing usage to JavaFX with new components
 public class OscillatorUI {
     private JPanel OscMainFrame;
     private JButton triangle;
@@ -37,15 +40,22 @@ public class OscillatorUI {
     private JComboBox oscillatorTypeSelector;
     private JLabel waveshapesLabel;
 
-    OscillatorManager oscManager;
+    OscillatorController oscillatorController;
+    SmartOscillator assignedOsc;
+
+    UIController context;
 
     /**
      * Default UI constructor
      */
-    public OscillatorUI(){
-        oscManager = new OscillatorManager();
+    public OscillatorUI(UIController context, int oscID){
+        this.context = context;
+        oscillatorController = this.context.getContext().getOscs();
 
-        oscManager.setup(oscillatorPitch.getValue());
+        oscillatorController.getOsc(oscID);
+
+        assignedOsc.setFrequency(oscillatorPitch.getValue());
+        assignedOsc.setup();
 
         unisonCheckBox.addActionListener(new ActionListener() {
             @Override
@@ -62,75 +72,59 @@ public class OscillatorUI {
                 } else {
                     System.out.println("Disabled Unison");
                 }
-                oscManager.getOsc().setVoices(1);
+                assignedOsc.setVoices(1);
             }
         });
         sine.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                oscManager.getOsc().setWave(Buffer.SINE);
+                assignedOsc.setWave(Buffer.SINE);
                 System.out.println("Updated Wave Type to SINE");
             }
         });
         triangle.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                oscManager.getOsc().setWave(Buffer.TRIANGLE);
+                assignedOsc.setWave(Buffer.TRIANGLE);
                 System.out.println("Updated Wave Type to TRIANGLE");
             }
         });
         saw.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                oscManager.getOsc().setWave(Buffer.SAW);
+                assignedOsc.setWave(Buffer.SAW);
                 System.out.println("Updated Wave Type to SAW");
             }
         });
         square.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                oscManager.getOsc().setWave(Buffer.SQUARE);
+                assignedOsc.setWave(Buffer.SQUARE);
                 System.out.println("Updated Wave Type to SQUARE");
             }
         });
         adjustUnison.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                oscManager.getOsc().setVoices(Math.max(1, unisonVoices.getValue()));
-                oscManager.getOsc().setBlend(unisonBlend.getValue()/100f);
-                oscManager.getOsc().setSpread(unisonPitchSpread.getValue());
+                assignedOsc.setVoices(Math.max(1, unisonVoices.getValue()));
+                assignedOsc.setBlend(unisonBlend.getValue()/100f);
+                assignedOsc.setSpread(unisonPitchSpread.getValue());
                 System.out.println("Updated Unison to " + unisonVoices.getValue() + " Voices and Pitch Spread to " + unisonPitchSpread.getValue() + "Hz");
             }
         });
         adjustVolume.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                oscManager.getMaster().setGain(masterVolume.getValue()/100f);
+                assignedOsc.setOutput(masterVolume.getValue()/100f);
                 System.out.println("Updated Master Volume to " + masterVolume.getValue()/100f);
             }
         });
         adjustFrequency.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                oscManager.getOsc().setFrequency(oscillatorPitch.getValue());
+                assignedOsc.setFrequency(oscillatorPitch.getValue());
                 System.out.println("Updated frequency to " + oscillatorPitch.getValue() + "Hz");
             }
         });
-    }
-
-    public static void main(String[] args) {
-        try {
-            UIManager.setLookAndFeel( UIManager.getSystemLookAndFeelClassName() );
-        } catch ( Exception e ) {
-            e.printStackTrace();
-        }
-        JFrame frame = new JFrame("OscillatorUI");
-
-        OscillatorUI ui = new OscillatorUI();
-
-        frame.setContentPane(ui.OscMainFrame);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.pack();
-        frame.setVisible(true);
     }
 }

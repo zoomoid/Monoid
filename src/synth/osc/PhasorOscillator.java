@@ -223,7 +223,7 @@ public class PhasorOscillator extends Oscillator {
         this.pause(false);
     }
 
-    private void pause(boolean paused){
+    public void pause(boolean paused){
         for(Phasor v : voices){
             v.pause(paused);
         }

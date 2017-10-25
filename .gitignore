@@ -9,3 +9,5 @@ beads/.project
 beads/README.txt
 beads/release_notes.txt
 beads/audio
+*.html
+doc/
