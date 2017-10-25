@@ -7,8 +7,8 @@ import net.beadsproject.beads.ugens.Gain;
 import net.beadsproject.beads.ugens.Panner;
 import net.beadsproject.beads.ugens.RangeLimiter;
 import org.jaudiolibs.beads.AudioServerIO;
-import synth.controller.JFrameKeyboard;
 import synth.osc.SmartOscillator;
+import synth.controller.*;
 
 import javax.swing.*;
 
@@ -23,6 +23,9 @@ public class KeyboardTest {
     public static SmartOscillator osc;
 
     public RangeLimiter limiter;
+
+    static Keys keys = new Keys(osc);
+
 
     /**
      * Constructor for setting up simple UI to control a SmartOscillator
@@ -41,20 +44,47 @@ public class KeyboardTest {
 
     }
 
+    /**
+     * Method for setting up actions for pressed Keys in the Keys-Section from the Keyboard
+     * (Keys = Klaviatur (ger), Keyboard = Tastatur (ger))
+     * @param panel JPanel of this class
+     */
+    public static void setupPanelMaps(JPanel panel) {
+        panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("A"), "a");
+        panel.getActionMap("a", keys.midiMessage('a'));
+        panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("W"), "w");
+        panel.getActionMap("w", keys.midiMessage('w'));
+        panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("S"), "s");
+        panel.getActionMap("s", keys.midiMessage('s'));
+        panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("E"), "e");
+        panel.getActionMap("e", keys.midiMessage('e'));
+        panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("D"), "d");
+        panel.getActionMap("d", keys.midiMessage('d'));
+        panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("F"), "f");
+        panel.getActionMap("f", keys.midiMessage('f'));
+        panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("T"), "t");
+        panel.getActionMap("t", keys.midiMessage('t'));
+        panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("G"), "g");
+        panel.getActionMap("g", keys.midiMessage('g'));
+        panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("Z"), "z");
+        panel.getActionMap("z", keys.midiMessage('z'));
+        panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("H"), "h");
+        panel.getActionMap("h", keys.midiMessage('h'));
+        panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("U"), "u");
+        panel.getActionMap("u", keys.midiMessage('u'));
+        panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("J"), "j");
+        panel.getActionMap("j", keys.midiMessage('j'));
+        panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("K"), "k");
+        panel.getActionMap("k", keys.midiMessage('k'));
+    }
+
     public static void main(String[] args) {
-        JFrameKeyboard frame = new JFrameKeyboard();
+        JFrame frame = new JFrame("KeyboardTest");
+        setupPanelMaps(container);
         frame.setContentPane(new KeyboardTest().container);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
         frame.setVisible(true);
-        while(true) {
-            osc.setFrequency(frame.getFrequency());
-            System.out.println("Playing " + frame.getFrequency() + " Hz");
-            if(!frame.getPlaying()) {
-                osc.pause();
-            } else {
-                osc.start();
-            }
-        }
+
     }
 }

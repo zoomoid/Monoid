@@ -11,7 +11,7 @@ import javax.sound.midi.Receiver;
 import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Synthesizer;
 
-public abstract class Oscillator extends UGen implements Synthesizer {
+public abstract class Oscillator extends UGen{
 
     /**
      * The frequency the oscillation is happening at
