@@ -5,6 +5,7 @@ import synth.osc.Oscillator;
 import javax.sound.midi.*;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.ShortMessage;
+import java.util.LinkedList;
 
 public class Keys{
     /**
@@ -31,6 +32,8 @@ public class Keys{
         this.osc = osc;
         fillCharArray();
     }
+
+    LinkedList<Integer> active = new LinkedList<Integer>();
 
     /**
      * transforming the key on the keyboard into a key of a piano and creating a ShortMessage(MIDI)
@@ -76,7 +79,8 @@ public class Keys{
                     break;
                 case 'k':
                     octave++;
-                    osc.send(createShortMessage('a'), -1);
+                    ShortMessage shortMessage = createShortMessage('a');
+                    osc.send(shortMessage, -1);
                     octave--;
                     break;
                 case 'y':
@@ -93,16 +97,26 @@ public class Keys{
     }
 
     /**
-     * creates a ShortMessage for the plyaed in Key in the current octave
+     * creates a ShortMessage for the played in Key in the current octave
+     * if note is on, it turns note off
      * @param key the played key
      * @return ShortMessage(MIDI), default: middle a
      */
     public ShortMessage createShortMessage(char key) {
-        System.out.println(octave);
+        //calculates midi value from given key, accounts current octave
         int midiCode = charToMidiNumber(key) + (octave+1) * 12;
         if(octave >= -1 && octave <= 9) {
             try {
-                return new ShortMessage(ShortMessage.NOTE_ON, midiCode, 88);
+                if(!active.contains(midiCode)) {
+                    active.clear();
+                    active.add(midiCode);
+                    System.out.println(octave);
+                    return new ShortMessage(ShortMessage.NOTE_ON, midiCode, 88);
+                } else {
+                    active.remove((Integer) midiCode);
+                    System.out.println("Note off" + octave);
+                    return new ShortMessage(ShortMessage.NOTE_OFF, midiCode, 88);
+                }
             } catch (InvalidMidiDataException e) {
                 System.out.println("Invalid Midi Data");
                 return null;
