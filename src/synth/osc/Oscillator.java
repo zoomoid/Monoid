@@ -7,16 +7,18 @@ import net.beadsproject.beads.ugens.Gain;
 import synth.auxilliary.MIDIUtils;
 import synth.midi.MidiInput;
 
-import javax.sound.midi.Receiver;
-import javax.sound.midi.ShortMessage;
-import javax.sound.midi.Synthesizer;
+import javax.sound.midi.*;
 
-public abstract class Oscillator extends UGen implements Synthesizer {
+public abstract class Oscillator extends UGen {
 
     /**
      * The frequency the oscillation is happening at
      */
     protected float frequency;
+    /**
+     * MIDI note value
+     */
+    protected int midiNote;
     /**
      * Oscillator output device
      */
@@ -58,6 +60,10 @@ public abstract class Oscillator extends UGen implements Synthesizer {
      * Initialisation boolean. This prevents setup from being called more than once on a certain oscillator
      */
     protected boolean isInitialised;
+    /**
+     *
+     */
+    public boolean UNISON_OSCILLATOR = false;
 
     /**
      * Creates an empty oscillator frame
@@ -83,6 +89,7 @@ public abstract class Oscillator extends UGen implements Synthesizer {
         isInitialised = false;
         velocityFactor = 1;
         isVelocitySensitive = false;
+        midiNote = -1;
     }
 
     /*
@@ -204,9 +211,27 @@ public abstract class Oscillator extends UGen implements Synthesizer {
         }
     }
 
-    /*
+
+    /**
+     * Sets the currently playing MIDI note
+     * @param midiNote integer value of the MIDI note
+     */
+    public void setMidiNote(int midiNote) {
+        this.midiNote = midiNote;
+    }
+
+    /**
+     * Gets the current playing MIDI note
+     * @return the currently playing MIDI note
+     */
+    public int getMidiNote() {
+        return midiNote;
+    }
+
+     /*
         Velocity functions
      */
+
     /**
      * Enable or disable oscillator velocity sensitivity
      * meaning whether the key velocity by a MIDI event should
@@ -257,9 +282,12 @@ public abstract class Oscillator extends UGen implements Synthesizer {
     public void send(ShortMessage message, long timeStamp){
         if(message.getCommand() == ShortMessage.NOTE_OFF){
             this.pause();
+            this.setFrequency(0);
+            this.setMidiNote(-1);
         } else {
             // call for the static function translating the MIDI key to frequency range
             this.setFrequency(MIDIUtils.midi2frequency(message.getData1()));
+            this.setMidiNote(message.getData1());
             // if oscillator is velocity sensitive, adjust volume
             if(this.isVelocitySensitive){
                 this.output.setGain(message.getData2() / 127f * this.output.getGain());

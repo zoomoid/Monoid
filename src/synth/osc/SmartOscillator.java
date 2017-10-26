@@ -202,8 +202,8 @@ public class SmartOscillator extends Oscillator {
 
     /**
      * Kills the voices and pauses the output
-     * TODO leave this to UGens to handle. Therefore fit Oscillator.update() and Oscillator.setup() to new workflow
      */
+
     @Override
     public void kill(){
         if(center != null){
@@ -220,15 +220,14 @@ public class SmartOscillator extends Oscillator {
 
     /**
      * Shortcut for pause(false)
-     * TODO leave this to UGens to handle. Therefore fit Oscillator.update() and Oscillator.setup() to new workflow
      */
     public void start(){
+
         this.pause(false);
     }
 
     /**
      * Shortcut for pause(true)
-     * TODO leave this to UGens to handle. Therefore fit Oscillator.update() and Oscillator.setup() to new workflow
      */
     public void pause(){
         this.pause(true);
@@ -236,7 +235,6 @@ public class SmartOscillator extends Oscillator {
 
     /**
      * {@see UGen}
-     * TODO leave this to UGens to handle. Therefore fit Oscillator.update() and Oscillator.setup() to new workflow
      * @param paused pause or play
      */
     @Override
