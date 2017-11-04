@@ -39,6 +39,7 @@ public class OscillatorUI {
     private JLabel labelUnisonBlend;
     private JComboBox oscillatorTypeSelector;
     private JLabel waveshapesLabel;
+    private JButton button1;
 
     OscillatorController oscillatorController;
     SmartOscillator assignedOsc;

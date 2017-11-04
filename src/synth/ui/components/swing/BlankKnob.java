@@ -1,79 +1,82 @@
 package synth.ui.components.swing;
 
-import java.awt.*;
 import javax.swing.*;
-import java.awt.event.*;
+import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 
-/**
- * A blank knob replicating the behaviour of a slider in a basic sense but for usage with lots of
- * other controls close to each other
- */
-public class BlankKnob extends JComponent implements MouseListener, MouseMotionListener {
-
+public abstract class BlankKnob extends JComponent implements MouseListener, MouseMotionListener {
     /**
      * Constant holding the knob radius
      */
-    private final int radius = 12;
+    protected int radius;
+
+    protected int strokeCircle;
+    protected int strokeIndicator;
+
+
+    protected int offset;
+
+    protected final int DIM_WIDTH;
+    protected final int DIM_HEIGHT;
+
     /**
      * Holding the rotational offset
      */
-    private double theta;
+    protected double theta;
     /**
      * Background color for the knob
      */
-    private Color background;
+    protected Color background;
     /**
      * Knob outline stroke and indicator line color
      */
-    private Color knob;
+    protected Color knob;
 
     /**
      * Containing the current state of the mouse
      */
-    private boolean pressed;
+    protected boolean pressed;
     /**
      * Point used to calculate whether a MouseClicked event is in the area of the knob to be dragged
      */
-    private Point mousePt;
+    protected Point mousePt;
     /**
      * Contains the previous state from where to pick up a drag again
      */
-    private double prev;
+    protected float prev;
 
     /**
      * Holds the current value
      */
-    protected double value;
+    protected float value;
+    /**
+     * value property listener
+     */
+    private PropertyChangeSupport valueChange = new PropertyChangeSupport(this);
     /**
      * Holds the maximum value
      */
-    protected double maxValue;
+    protected float maxValue;
     /**
      * Holds the minimum value
      */
-    protected double minValue;
+    protected float minValue;
     /**
      * Holds the scrollFactor
      */
-    protected double scrollFactor;
-
+    protected float scrollFactor;
     /**
-     * Creates a blank knob with default values (0, 100, 0)
+     * Snap knob to integer ticks
      */
-    public BlankKnob(){
-        this(0, 100, 0);
-    }
-
+    protected boolean snapToTicks = false;
     /**
-     * Creates a new BlankKnob from the given parameters
-     * @param minValue minimum value of the knob
-     * @param maxValue maximum value of the knob
-     * @param value initial value of the knob
+     * Label text
      */
-    public BlankKnob(double minValue, double maxValue, double value){
-        this(minValue, maxValue, value, 1);
-    }
-
+    protected String label;
     /**
      * Creates a new BlankKnob from the given parameters
      * @param minValue minimum value of the knob
@@ -81,7 +84,13 @@ public class BlankKnob extends JComponent implements MouseListener, MouseMotionL
      * @param value initial value of the knob
      * @param scrollFactor factor by which a change on drag gets multiplied. Especially helpful on Knob with large maximum values
      */
-    public BlankKnob(double minValue, double maxValue, double value, double scrollFactor){
+    public BlankKnob(float minValue, float maxValue, float value, float scrollFactor, int radius, String label){
+        this.radius = radius;
+        this.offset = 4;
+        this.DIM_HEIGHT =  offset + 2*radius + 4*offset;
+        this.DIM_WIDTH = offset + 2*radius + offset;
+        this.strokeCircle = 4;
+        this.strokeIndicator = 2;
         this.minValue = minValue;
         this.maxValue = maxValue;
         if(value <= maxValue && value >= minValue){
@@ -89,6 +98,7 @@ public class BlankKnob extends JComponent implements MouseListener, MouseMotionL
         } else {
             value = 0;
         }
+        this.label = label;
         this.theta = theta();
         this.scrollFactor = (scrollFactor > 0 ? scrollFactor : 1);
         this.background = Color.WHITE;
@@ -99,10 +109,24 @@ public class BlankKnob extends JComponent implements MouseListener, MouseMotionL
     }
 
     /**
+     * Set the stroke thickness of the outer circle
+     * By design, the indicator stroke thickness is less than that, per default 2
+     * @param thickness width of the line of the outer circle
+     */
+    public void setStrokeThickness(int thickness) {
+        this.strokeCircle = thickness;
+        this.strokeIndicator = thickness - 2;
+    }
+
+    public float scrollFunction(float x){
+        return 1;
+    }
+
+    /**
      * Gets the current value of the knob
      * @return the current value of the knob
      */
-    public double getValue(){
+    public float getValue(){
         return this.value;
     }
 
@@ -110,7 +134,7 @@ public class BlankKnob extends JComponent implements MouseListener, MouseMotionL
      * Gets the minimum value of the knob
      * @return double containing the minimum value
      */
-    public double getMinValue() {
+    public float getMinValue() {
         return minValue;
     }
 
@@ -118,7 +142,7 @@ public class BlankKnob extends JComponent implements MouseListener, MouseMotionL
      * Gets the maximum value of the knob
      * @return double containing the maximum value
      */
-    public double getMaxValue() {
+    public float getMaxValue() {
         return maxValue;
     }
 
@@ -127,18 +151,28 @@ public class BlankKnob extends JComponent implements MouseListener, MouseMotionL
      * Also repaints knob on change
      * @param value new current value of the knob
      */
-    public void setValue(double value){
+    public void setValue(float value){
+        double temp = this.value;
         if(value <= maxValue && value >= minValue){
             this.value = value;
             repaint();
+            valueChange.firePropertyChange("value", temp, this.value);
         }
+    }
+
+    public void addPropertyChangeListener(PropertyChangeListener listener) {
+        valueChange.addPropertyChangeListener(listener);
+    }
+
+    public void removePropertyChangeListener(PropertyChangeListener listener) {
+        valueChange.removePropertyChangeListener(listener);
     }
 
     /**
      * Set the minimum value of the knob
      * @param minValue minimal value of the knob
      */
-    public void setMinValue(double minValue) {
+    public void setMinValue(float minValue) {
         this.minValue = minValue;
         repaint();
     }
@@ -147,8 +181,18 @@ public class BlankKnob extends JComponent implements MouseListener, MouseMotionL
      * Sets the maximum value of the knob
      * @param maxValue
      */
-    public void setMaxValue(double maxValue) {
+    public void setMaxValue(float maxValue) {
         this.maxValue = maxValue;
+        repaint();
+    }
+
+    public void setSnapToTicks(boolean snapToTicks) {
+        this.snapToTicks = snapToTicks;
+        if(snapToTicks){
+            this.minValue = (int)this.minValue;
+            this.maxValue = (int)this.maxValue;
+            this.value = (int)this.value;
+        }
         repaint();
     }
 
@@ -157,16 +201,18 @@ public class BlankKnob extends JComponent implements MouseListener, MouseMotionL
      * @param g graphics canvas
      */
     @Override
-    public void paint(Graphics g){
+    public void paintComponent(Graphics g){
         Graphics2D g2d = (Graphics2D) g;
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
+        extendBounds(g2d);
+
         // Draw the knob backdrop
         g.setColor(knob);
-        g2d.setStroke(new BasicStroke(2));
-        g.drawOval(1,1,2*radius-2,2*radius-2);
+        g2d.setStroke(new BasicStroke(strokeCircle));
+        g.drawOval(4,4,2*radius,2*radius);
         g.setColor(background);
-
+        g2d.setStroke(new BasicStroke(strokeIndicator));
         // get the point on the outer knob circle
         Point pt = getKnobAngle();
         int xc = (int)pt.getX();
@@ -174,25 +220,56 @@ public class BlankKnob extends JComponent implements MouseListener, MouseMotionL
 
         // Draw the knob state indicator.
         g.setColor(knob);
-        g2d.drawLine(xc, yc, radius, radius);
+        g2d.drawLine(xc, yc, radius + offset, radius + offset);
+
+        paintLabel(g2d);
+    }
+
+    public void paintLabel(Graphics2D g){
+        drawCenteredString(g, this.label, new Rectangle(offset, offset + 2 * radius, 2 * offset + 2*radius, 4 * offset), new Font(Font.MONOSPACED, Font.PLAIN, 10));
+    }
+
+    public void extendBounds(Graphics2D g){
+        Rectangle r = g.getClipBounds();
+
+        g.setClip(r.x, r.y, r.height + offset * 4, r.width + offset * 4);
     }
 
     /**
      * Calculates the point on the knob circle to where to draw the indicator line to
      * @return Point on the knob circle
      */
-    private Point getKnobAngle() {
-        int r = radius;
+    protected Point getKnobAngle() {
         // basically tells the internal state theta to be rotated by 5/4 clockwise (could be the same as 3/4 ccw)
         double h = 3 * (theta) + 5.0/4.0 * Math.PI;
         // calculates x and y with basic trigonometric functions
-        int xcp = (int)(r * Math.sin(h));
-        int ycp = (int)(r * Math.cos(h));
+        int xcp = (int)(this.radius * Math.sin(h));
+        int ycp = (int)(this.radius * Math.cos(h));
         // calculate the offset from knob center
-        int xc = radius + xcp;
-        int yc = radius - ycp;
+        int xc = this.radius + this.offset + xcp;
+        int yc = this.radius + this.offset - ycp;
         // Create the new Point
         return new Point(xc,yc);
+    }
+
+    /**
+     * Draw a String centered in the middle of a Rectangle.
+     *
+     * @param g The Graphics instance.
+     * @param text The String to draw.
+     * @param rect The Rectangle to center the text in.
+     */
+    public void drawCenteredString(Graphics g, String text, Rectangle rect, Font font) {
+        // Get the FontMetrics
+        FontMetrics metrics = g.getFontMetrics(font);
+        // Determine the X coordinate for the text
+        int x = rect.x + (rect.width - metrics.stringWidth(text)) / 2;
+        // Determine the Y coordinate for the text (note we add the ascent, as in java 2d 0 is top of the screen)
+        int y = rect.y + ((rect.height - metrics.getHeight()) / 2) + metrics.getAscent();
+        // Set the font
+        g.setFont(font);
+        // Draw the String
+        g.drawString(text, x, y);
     }
 
     /**
@@ -200,9 +277,6 @@ public class BlankKnob extends JComponent implements MouseListener, MouseMotionL
      *
      * @return the preferred size of the JKnob.
      */
-    public Dimension getPreferredSize() {
-        return new Dimension(2*radius,2*radius);
-    }
 
     /**
      * Return the minimum size that the knob would like to be.
@@ -212,7 +286,18 @@ public class BlankKnob extends JComponent implements MouseListener, MouseMotionL
      * @return the minimum size of the JKnob.
      */
     public Dimension getMinimumSize() {
-        return new Dimension(2*radius,2*radius);
+        return new Dimension(DIM_WIDTH, DIM_HEIGHT);
+    }
+
+    /**
+     * Return the preferred size that the knob would like to be.
+     * This is the same size as the minimum size so the
+     * knob will be of a fixed size.
+     *
+     * @return the minimum size of the JKnob.
+     */
+    public Dimension getPreferredSize() {
+        return new Dimension(DIM_WIDTH, DIM_HEIGHT);
     }
 
     /**
@@ -223,7 +308,7 @@ public class BlankKnob extends JComponent implements MouseListener, MouseMotionL
      * @return true if x,y is on the spot and false if not.
      */
     private boolean isOnSpot() {
-        return (mousePt.distance(new Point(radius, radius)) < radius);
+        return (mousePt.distance(new Point(radius + offset, radius + offset)) < radius);
     }
 
     /**
@@ -298,16 +383,17 @@ public class BlankKnob extends JComponent implements MouseListener, MouseMotionL
      */
     public void mouseDragged(MouseEvent e) {
         if (pressed) {
-            double dy = (prev - e.getY()) * this.scrollFactor;
+            float dy = (prev - e.getY()) * this.scrollFactor;
             // check for the value to be in range of minValue and maxValue
             if(this.value + dy <= maxValue && this.value + dy >= minValue){
-                this.value += dy;
+                this.setValue(this.scrollFunction(this.value + dy) * (this.value + dy));
             } else if (this.value + dy > maxValue){
-                this.value = maxValue;
+                this.setValue(maxValue);
             } else if (this.value + dy < minValue){
-                this.value = minValue;
-            } else {
-                this.value = this.value;
+                this.setValue(minValue);
+            }
+            if(this.snapToTicks){
+                this.setValue((int)this.value);
             }
             // calculate the new theta
             theta = this.theta();

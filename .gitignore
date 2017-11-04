@@ -1,7 +1,6 @@
 .idea/
 out/
 Monoid.iml
-src/synth/auxilliary/MIDIInputDevice.java
 beads/bin
 beads/tutorial
 beads/.classpath

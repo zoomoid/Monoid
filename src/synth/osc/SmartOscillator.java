@@ -4,6 +4,9 @@ import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.ugens.Gain;
 import net.beadsproject.beads.ugens.WavePlayer;
+import synth.auxilliary.MIDIUtils;
+
+import javax.sound.midi.ShortMessage;
 
 public class SmartOscillator extends Oscillator {
 
@@ -50,6 +53,8 @@ public class SmartOscillator extends Oscillator {
         this.blend = blend;
         unison = null;
         center = null;
+        this.outputInitializationRegime = OutputInitializationRegime.RETAIN;
+        bufOut = bufIn;
     }
 
 
@@ -110,7 +115,6 @@ public class SmartOscillator extends Oscillator {
      */
     public void setVoices(int voices) {
         if(voices >= 1){
-            // this needs super.hasChanged since oscillators need to be recreated.
             hasChanged = true;
             this.voices = voices;
             super.changed();
@@ -152,7 +156,7 @@ public class SmartOscillator extends Oscillator {
      * Creates voices, either with unison or without
      */
     @Override
-    void createOscillator(){
+    public void createOscillator(){
         unison = new UnisonOscillator(super.ac, this.wave, this.voices - 1);
         center = new WavePlayer(super.ac, super.frequency, this.wave);
     }
@@ -161,9 +165,11 @@ public class SmartOscillator extends Oscillator {
      * Updates the frequency of each voice
      */
     @Override
-    void updateFrequency() {
-        this.unison.setFrequencies(this.calculateUnisonPitch());
-        this.center.setFrequency(super.frequency);
+    public void updateFrequency() {
+        if(isInitialised()){
+            this.unison.setFrequencies(this.calculateUnisonPitch());
+            this.center.setFrequency(super.frequency);
+        }
     }
 
     /**
@@ -171,7 +177,7 @@ public class SmartOscillator extends Oscillator {
      * Also calculates the blend ratio for the gain adjustments
      */
     @Override
-    void patchOutputs() {
+    public void patchOutputs() {
         cGain = new Gain(super.ac,2,1f);
         sGain = new Gain(super.ac,2,1f);
 
@@ -179,11 +185,18 @@ public class SmartOscillator extends Oscillator {
         sGain.addInput(unison);
 
         this.setBlend(this.blend);
-        super.output.addInput(cGain);
+
+        output.addInput(cGain);
         if(voices > 1)
-            super.output.addInput(sGain);
+            output.addInput(sGain);
     }
 
+    @Override
+    public void calculateBuffer(){
+        for(int i = 0; i < outs; i++){
+            bufOut[i] = output.getOutBuffer(i);
+        }
+    }
 
     /**
      * Calculates the unison pitch offset
@@ -249,4 +262,30 @@ public class SmartOscillator extends Oscillator {
         }
 
     }
+
+    /**
+     * Implements the MIDI Synthesizer method send, which is called by a transmitter (Sequencer) to
+     * send MIDI data to a synthesizer
+     * @param message MIDI data as ShortMessage type
+     * @param timeStamp (currently not implemented) used to calculate offset for delay compensation
+     *                  Since delay is an issue for the whole synthesizer, this is a minor problem
+     *                  with which can be dealt later on
+     */
+    public void send(ShortMessage message, long timeStamp){
+        if(message.getCommand() == ShortMessage.NOTE_OFF){
+            this.pause();
+            this.setFrequency(0);
+            this.setMidiNote(-1);
+        } else {
+            // call for the static function translating the MIDI key to frequency range
+            this.setFrequency(MIDIUtils.midi2frequency(message.getData1()));
+            this.setMidiNote(message.getData1());
+            // if oscillator is velocity sensitive, adjust volume
+            if(this.isVelocitySensitive){
+                this.output.setGain(message.getData2() / 127f * this.output.getGain());
+            }
+            this.start();
+        }
+    }
+
 }

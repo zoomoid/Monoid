@@ -85,7 +85,7 @@ public class WaveOscillator extends Oscillator {
     /**
      * Creates completely new WavePlayer objects with possibly changed parameters
      */
-    void createOscillator(){
+    public void createOscillator(){
         this.createVoices();
         this.updateFrequency();
         this.patchOutputs();

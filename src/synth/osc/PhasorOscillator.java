@@ -55,7 +55,7 @@ public class PhasorOscillator extends Oscillator {
      * Creates completely new WavePlayer objects with possibly changed parameters
      */
     @Override
-    void createOscillator(){
+    public void createOscillator(){
         LinkedList<Phasor> list = new LinkedList<>();
         for(int i = 0; i < unisonVoices; i++){
             list.add(new Phasor(this.ac, 0f));
@@ -67,7 +67,7 @@ public class PhasorOscillator extends Oscillator {
      * Updates unison voices pitch with spread by a given exponent
      */
     @Override
-    void updateFrequency(){
+    public void updateFrequency(){
         if(unisonVoices <= 1){
             // to prevent division by zero, encapsulate this in own block
             voices.get(0).setFrequency(frequency);

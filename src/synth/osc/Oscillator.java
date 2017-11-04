@@ -4,12 +4,12 @@ import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.ugens.Envelope;
 import net.beadsproject.beads.ugens.Gain;
+import synth.auxilliary.Device;
 import synth.auxilliary.MIDIUtils;
-import synth.midi.MidiInput;
 
 import javax.sound.midi.*;
 
-public abstract class Oscillator extends UGen {
+public class Oscillator extends UGen implements Device {
 
     /**
      * The frequency the oscillation is happening at
@@ -79,17 +79,20 @@ public abstract class Oscillator extends UGen {
      * @param frequency Oscillator frequency
      */
     public Oscillator(AudioContext ac, float frequency){
-        super(ac);
+        super(ac, 2, 2);
         this.ac = ac;
-        this.output = new Gain(ac, 1, 1f);
+        this.output = new Gain(ac, 2, 1f);
         this.frequency = frequency;
-        pause();
+        pause(true);
         isPaused = true;
         hasChanged = false;
         isInitialised = false;
         velocityFactor = 1;
         isVelocitySensitive = false;
         midiNote = -1;
+        this.outputInitializationRegime = OutputInitializationRegime.RETAIN;
+        this.addInput(output);
+        bufOut = bufIn;
     }
 
     /*
@@ -99,17 +102,17 @@ public abstract class Oscillator extends UGen {
     /**
      * Creates the voice(s) of the oscillator
      */
-    abstract void createOscillator();
+    public void createOscillator(){}
 
     /**
      * Sets the frequency / frequencies of the voice(s)
      */
-    abstract void updateFrequency();
+    public void updateFrequency(){}
 
     /**
      * Routes the sound to the output(s)
      */
-    abstract void patchOutputs();
+    public void patchOutputs(){}
 
     /**
      * Returns the current frequency of the oscillation
@@ -125,7 +128,7 @@ public abstract class Oscillator extends UGen {
      */
     public void setFrequency(float frequency){
         this.hasChanged = true;
-        this.frequency = frequency;
+        this.frequency = frequency / 2;
         this.changed();
     }
 
@@ -188,24 +191,8 @@ public abstract class Oscillator extends UGen {
         }
     }
 
-    /**
-     * Starts the oscillator
-     */
-    public abstract void start();
-
-    /**
-     * Pauses the oscillator while keeping its state
-     */
-    public abstract void pause();
-
-    /**
-     * Kills the oscillator voices
-     */
-    public abstract void kill();
-
     @Override
     public void calculateBuffer(){
-        zeroOuts();
         for(int i = 0; i < outs; i++){
             bufOut[i] = output.getOutBuffer(i);
         }
@@ -281,7 +268,7 @@ public abstract class Oscillator extends UGen {
      */
     public void send(ShortMessage message, long timeStamp){
         if(message.getCommand() == ShortMessage.NOTE_OFF){
-            this.pause();
+            this.pause(true);
             this.setFrequency(0);
             this.setMidiNote(-1);
         } else {

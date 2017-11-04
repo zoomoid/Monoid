@@ -45,7 +45,7 @@ public class PolyphonyOscillator extends UGen {
         int next = currentOscillator + 1 % oscillators.length;
         SmartOscillator current = oscillators[next];
         if(message.getCommand() == ShortMessage.NOTE_OFF){
-
+            this.findAndToggle(message.getData1());
         } else {
             current.send(message, timeStamp);
         }
@@ -56,4 +56,14 @@ public class PolyphonyOscillator extends UGen {
 
     }
 
+    private void findAndToggle(int midiKey){
+        for(int i = 0; i < oscillators.length; i++){
+            Oscillator o = oscillators[i];
+            if(o.getMidiNote() == midiKey){
+                o.pause(true);
+                o.setFrequency(0f);
+                return;
+            }
+        }
+    }
 }
