@@ -35,7 +35,7 @@ public class FilterUI {
         /**
          * 27.4955 is converted from the start frequency of 1000Hz to
          */
-        frequencyKnob = new LargeBlankKnob(0.1f, 1000, 27.4955f, 5, "Frequency");
+        frequencyKnob = new LargeBlankKnob(1, 1000, 1f, 1, "Frequency");
         frequencyKnob.addPropertyChangeListener(new PropertyChangeListener() {
             @Override
             public void propertyChange(PropertyChangeEvent evt) {
@@ -57,7 +57,6 @@ public class FilterUI {
             public void propertyChange(PropertyChangeEvent evt) {
                 // 0 = 6db, 1 = 12db, 2 = 24db; 3 = 48db; 4 = 96db; 5 = 128db;
                 int quantizedInput = Math.round((float)evt.getNewValue());
-                System.out.println(quantizedInput);
                 switch(quantizedInput){
                     case 0 : associatedFilter.setQ(6f); break;
                     case 1 : associatedFilter.setQ(12f); break;

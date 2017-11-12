@@ -14,11 +14,11 @@ public class Supersaw {
         // set the pad specific parameters
         osc.setup();
         osc.start();
-        osc.setFrequency(220f);
+        osc.setFrequency(110f);
         osc.setBlend(1);
         osc.setWave(Buffer.SAW);
         osc.setVoices(7);
-        osc.setSpread(0.25f);
+        osc.setSpread(5f);
         osc.output().setGain(0.25f);
         ac.out.addInput(osc);
     }
