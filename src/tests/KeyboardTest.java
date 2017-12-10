@@ -41,7 +41,6 @@ public class KeyboardTest {
         limiter.addInput(panner);
         Gain g = new Gain(ac, 1, 0.1f);
         g.addInput(limiter);
-        osc.setup();
         ac.out.addInput(g);
 
     }

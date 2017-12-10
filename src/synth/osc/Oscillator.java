@@ -2,19 +2,21 @@ package synth.osc;
 
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
-import net.beadsproject.beads.ugens.Envelope;
+import net.beadsproject.beads.data.Pitch;
+import synth.modulation.Envelope;
 import net.beadsproject.beads.ugens.Gain;
+import net.beadsproject.beads.ugens.Glide;
+import net.beadsproject.beads.ugens.Static;
 import synth.auxilliary.Device;
-import synth.auxilliary.MIDIUtils;
 
 import javax.sound.midi.*;
 
-public class Oscillator extends UGen implements Device {
+public abstract class Oscillator extends UGen implements Device {
 
     /**
      * The frequency the oscillation is happening at
      */
-    protected float frequency;
+    protected UGen frequency;
     /**
      * MIDI note value
      */
@@ -60,10 +62,6 @@ public class Oscillator extends UGen implements Device {
      * Initialisation boolean. This prevents setup from being called more than once on a certain oscillator
      */
     protected boolean isInitialised;
-    /**
-     *
-     */
-    public boolean UNISON_OSCILLATOR = false;
 
     /**
      * Creates an empty oscillator frame
@@ -82,15 +80,15 @@ public class Oscillator extends UGen implements Device {
         super(ac, 2, 2);
         this.ac = ac;
         this.output = new Gain(ac, 2, 1f);
-        this.frequency = frequency;
-        pause(true);
-        isPaused = true;
-        hasChanged = false;
-        isInitialised = false;
+        this.volumeEnvelope = new Envelope(this.ac, 5, 0, 1f, 20);
+        this.output.setGain(this.volumeEnvelope);
+        this.frequencyEnvelope = new Envelope(this.ac, 0, 0, 1f, 0);
+        this.frequency = new Static(ac, frequency);
         velocityFactor = 1;
         isVelocitySensitive = false;
         midiNote = -1;
         this.outputInitializationRegime = OutputInitializationRegime.RETAIN;
+        this.outputPauseRegime = OutputPauseRegime.ZERO;
         this.addInput(output);
         bufOut = bufIn;
     }
@@ -102,23 +100,23 @@ public class Oscillator extends UGen implements Device {
     /**
      * Creates the voice(s) of the oscillator
      */
-    public void createOscillator(){}
+    public abstract void createOscillator();
 
     /**
      * Sets the frequency / frequencies of the voice(s)
      */
-    public void updateFrequency(){}
+    public abstract void updateFrequency();
 
     /**
      * Routes the sound to the output(s)
      */
-    public void patchOutputs(){}
+    public abstract void patchOutput();
 
     /**
      * Returns the current frequency of the oscillation
      * @return frequency
      */
-    public float getFrequency(){
+    public UGen getFrequency(){
         return this.frequency;
     }
 
@@ -126,19 +124,36 @@ public class Oscillator extends UGen implements Device {
      * Set the frequency of the oscillation
      * @param frequency frequency in Hz
      */
+    public void setFrequency(UGen frequency){
+        this.frequency = frequency;
+    }
+
     public void setFrequency(float frequency){
-        this.hasChanged = true;
-        this.frequency = frequency / 2;
-        this.changed();
+        float old = this.frequency.getValue();
+        Glide temp = new Glide(this.ac, old, 20);
+        temp.setValue(frequency);
+        this.setFrequency(temp);
     }
 
     /**
-     * Set the gain of the oscillator output
+     * Set the (maximum) gain of the oscillator
+     * This is achieved by setting the maximum value of the volume envelope
+     * If not stated otherwise, this will be equal with the sustain or rather
+     * adds another layer of control
      * @param gain relative gain in [0,1]
      */
     public void setOutput(float gain){
-        if(gain <= 1f && gain >= 0f)
-            this.output.setGain(gain);
+        if(gain <= 1f && gain >= 0f){
+            this.volumeEnvelope.maximumGain(gain);
+        }
+    }
+
+    public Envelope volumeEnvelope(){
+        return this.volumeEnvelope;
+    }
+
+    public Envelope frequencyEnvelope(){
+        return this.frequencyEnvelope;
     }
 
     /**
@@ -149,47 +164,6 @@ public class Oscillator extends UGen implements Device {
         return output;
     }
 
-    /**
-     * Whether the oscillator is paused or not
-     * @return isPaused
-     */
-    public boolean isPaused(){
-        return isPaused;
-    }
-
-    public boolean isInitialised() {
-        return isInitialised;
-    }
-
-    /**
-     * Setup handler
-     * To be called when a new oscillator shall start. Creates voices and routes them to the output
-     */
-    public void setup(){
-        if(!isInitialised){
-            createOscillator();
-            updateFrequency();
-            patchOutputs();
-            start();
-            isInitialised = true;
-        }
-    }
-
-    /**
-     * Change handler
-     * To be called whether a major change happends to the Oscillator like switching the buffer or
-     * (not for {@link SmartOscillator}) change of the unison voice amount. Kills the currently running oscillator
-     * voices and creates fresh ones.
-     */
-    public void changed(){
-        if(hasChanged){
-            kill();
-            createOscillator();
-            updateFrequency();
-            patchOutputs();
-            start();
-        }
-    }
 
     @Override
     public void calculateBuffer(){
@@ -258,28 +232,15 @@ public class Oscillator extends UGen implements Device {
         return velocityFactor;
     }
 
-    /**
-     * Implements the MIDI Synthesizer method send, which is called by a transmitter (Sequencer) to
-     * send MIDI data to a synthesizer
-     * @param message MIDI data as ShortMessage type
-     * @param timeStamp (currently not implemented) used to calculate offset for delay compensation
-     *                  Since delay is an issue for the whole synthesizer, this is a minor problem
-     *                  with which can be dealt later on
-     */
-    public void send(ShortMessage message, long timeStamp){
-        if(message.getCommand() == ShortMessage.NOTE_OFF){
-            this.pause(true);
-            this.setFrequency(0);
-            this.setMidiNote(-1);
-        } else {
-            // call for the static function translating the MIDI key to frequency range
-            this.setFrequency(MIDIUtils.midi2frequency(message.getData1()));
-            this.setMidiNote(message.getData1());
-            // if oscillator is velocity sensitive, adjust volume
-            if(this.isVelocitySensitive){
-                this.output.setGain(message.getData2() / 127f * this.output.getGain());
-            }
-            this.start();
-        }
+    protected void noteOff(){
+        this.volumeEnvelope.noteOff();
+        this.frequencyEnvelope.noteOff();
     }
+
+     void noteOn(){
+        this.volumeEnvelope.noteOn();
+        this.frequencyEnvelope.noteOn();
+    }
+
+    public abstract void send(ShortMessage m, long timeStamp);
 }

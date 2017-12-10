@@ -36,8 +36,6 @@ public class PolyphonyOscillator extends UGen {
         this.limiter = new RangeLimiter(ac, 2);
         for(int i = 0; i < numVoices; i++){
             oscillators[i] = new SmartOscillator(ac, frequencies[i], buffer, unisonVoices[i], unisonSpread[i], unisonBlend[i]);
-            oscillators[i].setup();
-            oscillators[i].start();
         }
         ac.start();
     }

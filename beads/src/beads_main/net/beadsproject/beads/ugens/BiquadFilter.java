@@ -17,12 +17,12 @@ import net.beadsproject.beads.data.DataBeadReceiver;
  * <p>
  * Filter parameters may be set with individual setter functions (
  * {@link #setFrequency(float) setFreq}, {@link #setQ(float) setQ}, and
- * {@link #setGain(float) setGain}), or by passing a DataBead with the
+ * {@link #setGain(float) setStaticGain}), or by passing a DataBead with the
  * appropriate properties to {@link #setParams(DataBead) setParams}. (Messaging
  * the filter with a DataBead is equivalent to calling setParams.) Setter
  * methods return the instance, so they may be strung together:
  * <p>
- * <code>filt.setFreq(200).setQ(30).setGain(.4);</code>
+ * <code>filt.setFreq(200).setQ(30).setStaticGain(.4);</code>
  * <p>
  * BiquadFilterMulti can be used with pre-programmed algorithms that calculate
  * coefficients for various filter types. (See {@link #setType(int)} for a list

@@ -12,8 +12,6 @@ public class Supersaw {
         ac.start();
         SmartOscillator osc = new SmartOscillator(ac);
         // set the pad specific parameters
-        osc.setup();
-        osc.start();
         osc.setFrequency(110f);
         osc.setBlend(1);
         osc.setWave(Buffer.SAW);

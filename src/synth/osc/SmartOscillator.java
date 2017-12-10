@@ -2,6 +2,7 @@ package synth.osc;
 
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.data.Buffer;
+import net.beadsproject.beads.data.Pitch;
 import net.beadsproject.beads.ugens.Gain;
 import net.beadsproject.beads.ugens.WavePlayer;
 import synth.auxilliary.MIDIUtils;
@@ -21,6 +22,8 @@ public class SmartOscillator extends Oscillator {
     private WavePlayer center;
 
     private final boolean RANDOM_PHASE_OFFSET = true;
+
+    private boolean isInitialised;
 
     private Gain cGain, sGain;
 
@@ -55,6 +58,10 @@ public class SmartOscillator extends Oscillator {
         center = null;
         this.outputInitializationRegime = OutputInitializationRegime.RETAIN;
         bufOut = bufIn;
+        this.isInitialised = false;
+        this.createOscillator();
+        this.updateFrequency();
+        this.patchOutput();
     }
 
 
@@ -104,9 +111,8 @@ public class SmartOscillator extends Oscillator {
      * @param spread center offset in Hz
      */
     public void setSpread(float spread) {
-        // no need for super.hasChanged, since OscillatorBank provides setter for frequencies of unison voices
         this.spread = spread;
-        this.unison.setFrequencies(this.calculateUnisonPitch());
+        this.needsRefresh();
     }
 
     /**
@@ -115,9 +121,8 @@ public class SmartOscillator extends Oscillator {
      */
     public void setVoices(int voices) {
         if(voices >= 1){
-            hasChanged = true;
             this.voices = voices;
-            super.changed();
+            this.needsRefresh();
         }
     }
 
@@ -126,10 +131,7 @@ public class SmartOscillator extends Oscillator {
      * @param wave waveform as buffer
      */
     public void setWave(Buffer wave) {
-        // this needs super.hasChanged since oscillators need to be recreated.
-        hasChanged = true;
         this.wave = wave;
-        super.changed();
     }
 
     /**
@@ -148,7 +150,7 @@ public class SmartOscillator extends Oscillator {
      */
     @Override
     public void setFrequency(float frequency){
-        this.frequency = frequency;
+        super.setFrequency(frequency);
         this.updateFrequency();
     }
 
@@ -159,6 +161,7 @@ public class SmartOscillator extends Oscillator {
     public void createOscillator(){
         unison = new UnisonOscillator(super.ac, this.wave, this.voices - 1);
         center = new WavePlayer(super.ac, super.frequency, this.wave);
+        this.isInitialised = true;
     }
 
     /**
@@ -166,7 +169,7 @@ public class SmartOscillator extends Oscillator {
      */
     @Override
     public void updateFrequency() {
-        if(isInitialised()){
+        if(isInitialised){
             this.unison.setFrequencies(this.calculateUnisonPitch());
             this.center.setFrequency(super.frequency);
         }
@@ -177,18 +180,21 @@ public class SmartOscillator extends Oscillator {
      * Also calculates the blend ratio for the gain adjustments
      */
     @Override
-    public void patchOutputs() {
-        cGain = new Gain(super.ac,2,1f);
-        sGain = new Gain(super.ac,2,1f);
+    public void patchOutput() {
+        if(isInitialised){
+            cGain = new Gain(super.ac,2,1f);
+            sGain = new Gain(super.ac,2,1f);
 
-        cGain.addInput(center);
-        sGain.addInput(unison);
+            cGain.addInput(center);
+            sGain.addInput(unison);
 
-        this.setBlend(this.blend);
+            this.setBlend(this.blend);
 
-        output.addInput(cGain);
-        if(voices > 1)
-            output.addInput(sGain);
+            output.addInput(cGain);
+            if(voices > 1) {
+                output.addInput(sGain);
+            }
+        }
     }
 
     @Override
@@ -205,7 +211,7 @@ public class SmartOscillator extends Oscillator {
     private float[] calculateUnisonPitch(){
         float[] r = new float[voices];
         // absolute starting point of the linear spread
-        float x = super.frequency - this.spread;
+        float x = super.frequency.getValue() - this.spread;
         // note: case "voices = 1" is covered by this, so no need for compensation as in WaveOscillator
         for(int i = 0; i < voices; i++){
             r[i] = (float)(x + (i/Math.pow(voices-1f, spreadFunction)) * 2 * spread);
@@ -216,7 +222,6 @@ public class SmartOscillator extends Oscillator {
     /**
      * Kills the voices and pauses the output
      */
-
     @Override
     public void kill(){
         if(center != null){
@@ -235,7 +240,6 @@ public class SmartOscillator extends Oscillator {
      * Shortcut for pause(false)
      */
     public void start(){
-
         this.pause(false);
     }
 
@@ -273,19 +277,24 @@ public class SmartOscillator extends Oscillator {
      */
     public void send(ShortMessage message, long timeStamp){
         if(message.getCommand() == ShortMessage.NOTE_OFF){
-            this.pause();
-            this.setFrequency(0);
-            this.setMidiNote(-1);
+            this.noteOff();
         } else {
             // call for the static function translating the MIDI key to frequency range
-            this.setFrequency(MIDIUtils.midi2frequency(message.getData1()));
+            this.setFrequency(Pitch.mtof(message.getData1()));
             this.setMidiNote(message.getData1());
             // if oscillator is velocity sensitive, adjust volume
             if(this.isVelocitySensitive){
                 this.output.setGain(message.getData2() / 127f * this.output.getGain());
             }
-            this.start();
+            this.noteOn();
         }
     }
 
+    private void needsRefresh(){
+        this.pause(true);
+        this.createOscillator();
+        this.updateFrequency();
+        this.patchOutput();
+        this.pause(false);
+    }
 }

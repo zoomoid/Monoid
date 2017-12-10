@@ -27,8 +27,6 @@ public class UnisonOscillator extends UGen {
     /** The sample rate and master gain of the OscillatorBank. */
     private float gain;
 
-    private boolean randomPhaseOffset = true;
-
     /**
      * Instantiates a new UnisonOscillator.
      *
@@ -39,8 +37,13 @@ public class UnisonOscillator extends UGen {
     public UnisonOscillator(AudioContext context, Buffer buffer, int numOscillators) {
         super(context, 2);
         this.buffer = buffer;
-        setNumOscillators(numOscillators);
-        gain = 1f / (float)numOscillators;
+        if(numOscillators > 0){
+            setNumOscillators(numOscillators);
+            gain = 1f / (float)numOscillators;
+        } else {
+            gain = 0f;
+        }
+
     }
 
 
@@ -91,21 +94,6 @@ public class UnisonOscillator extends UGen {
 
     }
 
-    /**
-     * Returns true, when phase should be randomised for each new voice
-     * @return random phase offset flag
-     */
-    public boolean isRandomPhaseOffset() {
-        return randomPhaseOffset;
-    }
-
-    /**
-     * Sets of unsets the random phase offset flag
-     * @param randomPhaseOffset new random phase offset flag
-     */
-    public void setRandomPhaseOffset(boolean randomPhaseOffset) {
-        this.randomPhaseOffset = randomPhaseOffset;
-    }
 
     /**
      * Sets the frequencies and gains of all oscillators from an array freqsGains[][] where freqsGains[i][0] gives the

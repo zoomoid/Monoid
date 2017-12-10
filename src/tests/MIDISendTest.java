@@ -15,7 +15,6 @@ public class MIDISendTest {
         ac.start();
         SmartOscillator osc = new SmartOscillator(ac, 0f, Buffer.SAW, 5, 2f, 1);
         RangeLimiter limiter = new RangeLimiter(ac, 2);
-        osc.setup();
         limiter.addInput(osc.output());
         ac.out.addInput(limiter);
         osc.start();

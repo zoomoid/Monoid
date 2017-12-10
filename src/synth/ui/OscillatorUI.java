@@ -1,131 +1,115 @@
 package synth.ui;
 
-import synth.osc.Oscillator;
-import synth.osc.OscillatorController;
+import javafx.geometry.Orientation;
 import net.beadsproject.beads.data.Buffer;
+import net.beadsproject.beads.data.Pitch;
+import synth.bus.Bus;
+import synth.osc.Oscillator;
 import synth.osc.SmartOscillator;
+import synth.ui.components.swing.*;
 
 import javax.swing.*;
-
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-// TODO Port Swing usage to JavaFX with new components
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.Hashtable;
+
 public class OscillatorUI {
-    private JPanel OscMainFrame;
-    private JButton triangle;
-    private JButton saw;
-    private JButton square;
-    private JButton sine;
-    private JPanel WaveshapeSelector;
-    private JPanel WaveshapesButtonGroup;
-    private JPanel WaveshapesLabelWrapper;
-    private JPanel TitleWrapper;
-    private JPanel LabelWrapper;
-    private JCheckBox unisonCheckBox;
-    private JSlider unisonVoices;
-    private JSlider unisonPitchSpread;
-    private JSlider masterVolume;
-    private JPanel UnisonWrapper;
-    private JPanel AdjustmentWrapper;
-    private JPanel MixerWrapper;
-    private JLabel labelUnisonVoices;
-    private JLabel labelUnisonPitchSpread;
-    private JButton adjustUnison;
-    private JButton adjustVolume;
-    private JPanel OscillatorPitchWrapper;
-    private JButton adjustFrequency;
-    private JSlider oscillatorPitch;
-    private JSlider unisonBlend;
-    private JLabel labelUnisonBlend;
-    private JComboBox oscillatorTypeSelector;
-    private JLabel waveshapesLabel;
-    private JButton button1;
 
-    OscillatorController oscillatorController;
-    SmartOscillator assignedOsc;
+    private SmartOscillator associatedOscillator;
 
-    UIController context;
+    public JPanel pane;
+    private JPanel frequencyPane, unisonPane, wavetablePane, gainPane;
+    private BlankKnob frequencyKnob;
+    private BlankSlider unisonVoicesSlider;
+    private BlankKnob unisonSpreadKnob, unisonBlendKnob;
+    private BlankSlider wavetableSlider;
+    private BlankKnob oscGainKnob;
+    private GridLayout grid;
+    public OscillatorUI(SmartOscillator associatedOscillator){
+        this.associatedOscillator = associatedOscillator;
+        pane = new JPanel();
+        pane.setBackground(Color.WHITE);
+        frequencyPane = new JPanel();
+        frequencyPane.setBackground(Color.WHITE);
+        unisonPane = new JPanel();
+        unisonPane.setBackground(Color.WHITE);
+        wavetablePane = new JPanel();
+        wavetablePane.setBackground(Color.WHITE);
+        gainPane = new JPanel();
+        gainPane.setBackground(Color.WHITE);
 
-    /**
-     * Default UI constructor
-     */
-    public OscillatorUI(UIController context, int oscID){
-        this.context = context;
-        oscillatorController = this.context.getContext().getOscs();
+        frequencyKnob = new BlankKnob(new BlankKnob.Parameters(1, 1000, 1, false, false), new BlankKnob.Size(48, 48/3), 300, "Frequency");
+        frequencyKnob.addPropertyChangeListener(evt -> associatedOscillator.setFrequency(frequencyKnob.params().scale(Pitch.mtof(0), Pitch.mtof(127),(float)evt.getNewValue())));
 
-        oscillatorController.getOsc(oscID);
+        unisonVoicesSlider = new BlankSlider(1,8,1);
+        unisonVoicesSlider.setSnapToTicks(true);
+        unisonVoicesSlider.setPaintLabels(true);
+        unisonVoicesSlider.setPaintTicks(true);
+        unisonVoicesSlider.addChangeListener(e -> {
+            int voices = ((JSlider) e.getSource()).getValue();
+            associatedOscillator.setVoices(voices);
+        });
 
-        assignedOsc.setFrequency(oscillatorPitch.getValue());
-        assignedOsc.setup();
+        unisonSpreadKnob = new BlankKnob(new BlankKnob.Parameters(0, 10, 0.1f, false, true), BlankKnob.SMALL, 0, "Spread");
+        unisonSpreadKnob.addPropertyChangeListener(evt -> associatedOscillator.setSpread((float)evt.getNewValue()));
+        unisonBlendKnob = new BlankKnob(new BlankKnob.Parameters(0, 1, 0.01f, false, true), BlankKnob.SMALL, 1, "Blend");
+        unisonBlendKnob.addPropertyChangeListener(evt -> associatedOscillator.setBlend((float)evt.getNewValue()));
+        pane.setLayout(grid);
+        pane.add(frequencyPane);
+        pane.add(unisonPane);
+        pane.add(wavetablePane);
+        pane.add(gainPane);
+        pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
+        frequencyPane.add(frequencyKnob);
+        unisonPane.add(unisonVoicesSlider);
+        unisonPane.add(unisonSpreadKnob);
+        unisonPane.add(unisonBlendKnob);
 
-        unisonCheckBox.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                boolean toggle = unisonCheckBox.isSelected();
-                unisonPitchSpread.setEnabled(toggle);
-                unisonVoices.setEnabled(toggle);
-                unisonBlend.setEnabled(toggle);
-                labelUnisonPitchSpread.setEnabled(toggle);
-                labelUnisonVoices.setEnabled(toggle);
-                labelUnisonBlend.setEnabled(toggle);
-                if(toggle){
-                    System.out.println("Enabled Unison");
-                } else {
-                    System.out.println("Disabled Unison");
-                }
-                assignedOsc.setVoices(1);
+        wavetableSlider = new BlankSlider(0, 4, 2);
+        wavetableSlider.setSnapToTicks(true);
+        Hashtable labelTable = new Hashtable();
+        labelTable.put(0, new JLabel("Sine"));
+        labelTable.put(1, new JLabel("Tri"));
+        labelTable.put(2, new JLabel("Saw"));
+        labelTable.put(3, new JLabel("Square"));
+        labelTable.put(4, new JLabel("Noise"));
+        wavetableSlider.setLabelTable(labelTable);
+        wavetableSlider.setPaintTicks(true);
+        wavetableSlider.setPaintLabels(true);
+        wavetablePane.add(wavetableSlider);
+        wavetableSlider.addChangeListener(e -> {
+            int value = ((JSlider)e.getSource()).getValue();
+            switch(value){
+                case 0:
+                    associatedOscillator.setWave(Buffer.SINE);
+                    break;
+                case 1:
+                    associatedOscillator.setWave(Buffer.TRIANGLE);
+                    break;
+                case 2:
+                    associatedOscillator.setWave(Buffer.SAW);
+                    break;
+                case 3:
+                    associatedOscillator.setWave(Buffer.SQUARE);
+                    break;
+                case 4:
+                    associatedOscillator.setWave(Buffer.NOISE);
+                    break;
+                default: break;
             }
         });
-        sine.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                assignedOsc.setWave(Buffer.SINE);
-                System.out.println("Updated Wave Type to SINE");
-            }
-        });
-        triangle.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                assignedOsc.setWave(Buffer.TRIANGLE);
-                System.out.println("Updated Wave Type to TRIANGLE");
-            }
-        });
-        saw.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                assignedOsc.setWave(Buffer.SAW);
-                System.out.println("Updated Wave Type to SAW");
-            }
-        });
-        square.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                assignedOsc.setWave(Buffer.SQUARE);
-                System.out.println("Updated Wave Type to SQUARE");
-            }
-        });
-        adjustUnison.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                assignedOsc.setVoices(Math.max(1, unisonVoices.getValue()));
-                assignedOsc.setBlend(unisonBlend.getValue()/100f);
-                assignedOsc.setSpread(unisonPitchSpread.getValue());
-                System.out.println("Updated Unison to " + unisonVoices.getValue() + " Voices and Pitch Spread to " + unisonPitchSpread.getValue() + "Hz");
-            }
-        });
-        adjustVolume.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                assignedOsc.setOutput(masterVolume.getValue()/100f);
-                System.out.println("Updated Master Volume to " + masterVolume.getValue()/100f);
-            }
-        });
-        adjustFrequency.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                assignedOsc.setFrequency(oscillatorPitch.getValue());
-                System.out.println("Updated frequency to " + oscillatorPitch.getValue() + "Hz");
-            }
-        });
+
+        oscGainKnob = new BlankKnob(new BlankKnob.Parameters(0,1, 0.01f, false, true), BlankKnob.LARGE, 1,"Gain");
+        oscGainKnob.addPropertyChangeListener(evt -> associatedOscillator.output().setGain((float)evt.getNewValue()));
+        gainPane.add(oscGainKnob);
+
+        BlankButton interrupt = new BlankButton("Stop");
+        interrupt.addActionListener(e -> associatedOscillator.kill());
+        gainPane.add(interrupt);
     }
 }

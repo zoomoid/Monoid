@@ -12,7 +12,6 @@ public class FilterTest {
         AudioContext ac = ContextProvider.ac();
         ac.start();
         SmartOscillator osc = new SmartOscillator(ac, 55f, Buffer.SAW);
-        osc.setup();
         osc.setFrequency(55f);
 
 
