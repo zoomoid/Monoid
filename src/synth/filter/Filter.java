@@ -178,4 +178,10 @@ public class Filter extends UGenChain {
         filterBackend.setGain(this.gain);
         return this;
     }
+
+    public void setFilterType(BiquadFilter.Type newFilterType){
+        if(newFilterType != null){
+            this.filterBackend.setType(newFilterType);
+        }
+    }
 }

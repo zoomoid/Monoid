@@ -1,6 +1,5 @@
 package synth.ui.components.swing;
 
-
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicSliderUI;
 import java.awt.*;
@@ -15,7 +14,6 @@ public class BlankSlider extends JSlider {
 
         public BlankSliderUI(JSlider slider){
             super(slider);
-            //slider.setBorder(new LineBorder(Color.BLACK, 1, true));
             slider.setBackground(Color.WHITE);
         }
         public void paintTrack(Graphics g){

@@ -57,7 +57,7 @@ public class OscillatorUI {
 
         unisonSpreadKnob = new BlankKnob(new BlankKnob.Parameters(0, 10, 0.1f, false, true), BlankKnob.SMALL, 0, "Spread");
         unisonSpreadKnob.addPropertyChangeListener(evt -> associatedOscillator.setSpread((float)evt.getNewValue()));
-        unisonBlendKnob = new BlankKnob(new BlankKnob.Parameters(0, 1, 0.01f, false, true), BlankKnob.SMALL, 1, "Blend");
+        unisonBlendKnob = new BlankKnob(new BlankKnob.Parameters(0, 1, 0.01f, false, true), BlankKnob.SMALL, 0.5f, "Blend");
         unisonBlendKnob.addPropertyChangeListener(evt -> associatedOscillator.setBlend((float)evt.getNewValue()));
         pane.setLayout(grid);
         pane.add(frequencyPane);
