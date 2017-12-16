@@ -12,7 +12,7 @@ public class SwingBlankSliderTest {
     public SwingBlankSliderTest(){
         pane = new JPanel();
         pane.setBackground(Color.WHITE);
-        pane.add(new BlankKnob(0, 1000, 0, 1));
+        pane.add(new BlankKnob(new BlankKnob.Parameters(0, 1000, 1, false, true), BlankKnob.SMALL, 0, ""));
         pane.add(new BlankSlider(0, 100, 100));
     }
 

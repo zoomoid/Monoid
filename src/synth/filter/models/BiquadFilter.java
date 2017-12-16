@@ -1,13 +1,15 @@
 /*
  * This file is part of Beads. See http://www.beadsproject.net for all information.
  */
-package net.beadsproject.beads.ugens;
+package synth.filter.models;
 
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.Bead;
 import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.data.DataBead;
 import net.beadsproject.beads.data.DataBeadReceiver;
+import net.beadsproject.beads.ugens.IIRFilter;
+import net.beadsproject.beads.ugens.Static;
 
 /**
  * A simple implementation of a multi-channel biquad filter. It calculates
@@ -203,6 +205,7 @@ public class BiquadFilter extends IIRFilter implements DataBeadReceiver {
 		pi_over_sf = (float) (Math.PI / samplingfreq);
 		setType(itype);
 		setFrequency(freq).setQ(q).setGain(gain);
+		this.outputInitializationRegime = OutputInitializationRegime.ZERO;
 	}
 
 	/**
@@ -329,6 +332,15 @@ public class BiquadFilter extends IIRFilter implements DataBeadReceiver {
 			areAllStatic = false;
 		}
 	}
+
+    /**
+     * Sets the specific UGen input buffer to bypass addInput()
+     * @param in input buffer
+     * @param channel input channel
+     */
+	public void setInputBuffer(float[] in, int channel){
+	    this.bufIn[channel] = in;
+    }
 
 	@Override
 	public void calculateBuffer() {
@@ -1319,7 +1331,7 @@ public class BiquadFilter extends IIRFilter implements DataBeadReceiver {
 		} else {
 			gainUGen = ngain;
 			gainUGen.update();
-			gain = freqUGen.getValue();
+			gain = gainUGen.getValue();
 			isGainStatic = false;
 			areAllStatic = false;
 		}

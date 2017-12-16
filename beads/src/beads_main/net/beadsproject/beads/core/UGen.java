@@ -404,7 +404,7 @@ public abstract class UGen extends Bead {
 	 */
 	public synchronized void addInput(int inputIndex, UGen sourceUGen, int sourceOutputIndex) {
 		inputsAtChannel[inputIndex].add(new BufferPointer(sourceUGen, sourceOutputIndex));
-		//System.out.println("new input added, channel=" + inputIndex + " total=" + inputsAtChannel[inputIndex].size());
+		System.out.println("new input added, channel=" + inputIndex + " total=" + inputsAtChannel[inputIndex].size());
 		noInputs = false;
 	}
 	

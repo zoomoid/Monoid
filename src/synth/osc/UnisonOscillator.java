@@ -13,8 +13,8 @@ public class UnisonOscillator extends UGen {
     private float[] gains;
 
     /** The array of current positions of individual oscillators. */
-    private float[] point;
-
+    private float[] pointl;
+    private float[] pointr;
     /** The array of increment rates of individual oscillators, given their frequencies. */
     private double[] increment;
 
@@ -27,8 +27,6 @@ public class UnisonOscillator extends UGen {
     /** The sample rate and master gain of the OscillatorBank. */
     private float gain;
 
-    private boolean randomPhaseOffset = true;
-
     /**
      * Instantiates a new UnisonOscillator.
      *
@@ -37,10 +35,15 @@ public class UnisonOscillator extends UGen {
      * @param numOscillators the number of oscillators.
      */
     public UnisonOscillator(AudioContext context, Buffer buffer, int numOscillators) {
-        super(context, 1);
+        super(context, 2);
         this.buffer = buffer;
-        setNumOscillators(numOscillators);
-        gain = 1f / (float)numOscillators;
+        if(numOscillators > 0){
+            setNumOscillators(numOscillators);
+            gain = 1f / (float)numOscillators;
+        } else {
+            gain = 0f;
+        }
+
     }
 
 
@@ -72,34 +75,25 @@ public class UnisonOscillator extends UGen {
         for(int i = min; i < gains.length; i++) {
             gains[i] = 1f;
         }
-        old = point;
-        point = new float[numOscillators];
+        old = pointl;
+        pointl = new float[numOscillators];
         for(int i = 0; i < min; i++) {
-            point[i] = old[i];
+            pointl[i] = old[i];
         }
-        for(int i = min; i < point.length; i++) {
-            if(randomPhaseOffset)
-                point[i] = (float)Math.random();
-            else
-                point[i] = 0f;
+        for(int i = min; i < pointl.length; i++) {
+            pointl[i] = (float)(Math.random() * 2*Math.PI);
         }
+        old = pointr;
+        pointr = new float[numOscillators];
+        for(int i = 0; i < min; i++) {
+            pointr[i] = old[i];
+        }
+        for(int i = min; i < pointr.length; i++) {
+            pointr[i] = (float)(Math.random() * 2*Math.PI);
+        }
+
     }
 
-    /**
-     * Returns true, when phase should be randomised for each new voice
-     * @return random phase offset flag
-     */
-    public boolean isRandomPhaseOffset() {
-        return randomPhaseOffset;
-    }
-
-    /**
-     * Sets of unsets the random phase offset flag
-     * @param randomPhaseOffset new random phase offset flag
-     */
-    public void setRandomPhaseOffset(boolean randomPhaseOffset) {
-        this.randomPhaseOffset = randomPhaseOffset;
-    }
 
     /**
      * Sets the frequencies and gains of all oscillators from an array freqsGains[][] where freqsGains[i][0] gives the
@@ -174,10 +168,11 @@ public class UnisonOscillator extends UGen {
         for(int i = 0; i < bufferSize; i++) {
             for(int j = 0; j < numOscillators; j++) {
                 // step forward in phase (in [0,1])
-                point[j] = (float)(point[j] + increment[j]) % 1f;
-                bufOut[0][i] += gains[j] * buffer.getValueFraction(point[j]);
+                pointl[j] = (float)(pointl[j] + increment[j]) % 1f;
+                pointr[j] = (float)(pointr[j] + increment[j]) % 1f;
+                bufOut[0][i] += gains[j] * buffer.getValueFraction(pointl[j]);
+                bufOut[1][i] += gains[j] * buffer.getValueFraction(pointr[j]);
             }
-            /*bufOut[0][i] *= gain;*/
         }
     }
 

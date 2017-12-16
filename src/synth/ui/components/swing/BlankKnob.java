@@ -1,116 +1,305 @@
 package synth.ui.components.swing;
 
-import java.awt.*;
 import javax.swing.*;
-import java.awt.event.*;
+import javax.swing.plaf.ComponentUI;
+import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 
-/**
- * A blank knob replicating the behaviour of a slider in a basic sense but for usage with lots of
- * other controls close to each other
- */
 public class BlankKnob extends JComponent implements MouseListener, MouseMotionListener {
 
     /**
-     * Constant holding the knob radius
+     * Layout class for a BlankKnob
+     * This gets applied at construction by default
      */
-    private final int radius = 12;
-    /**
-     * Holding the rotational offset
-     */
-    private double theta;
-    /**
-     * Background color for the knob
-     */
-    private Color background;
-    /**
-     * Knob outline stroke and indicator line color
-     */
-    private Color knob;
+    private class BlankKnobUI extends ComponentUI {
 
-    /**
-     * Containing the current state of the mouse
-     */
-    private boolean pressed;
-    /**
-     * Point used to calculate whether a MouseClicked event is in the area of the knob to be dragged
-     */
-    private Point mousePt;
-    /**
-     * Contains the previous state from where to pick up a drag again
-     */
-    private double prev;
+        protected int strokeCircle;
+        protected int strokeIndicator;
 
-    /**
-     * Holds the current value
-     */
-    protected double value;
-    /**
-     * Holds the maximum value
-     */
-    protected double maxValue;
-    /**
-     * Holds the minimum value
-     */
-    protected double minValue;
-    /**
-     * Holds the scrollFactor
-     */
-    protected double scrollFactor;
+        protected int dimensionWidth;
+        protected int dimensionHeight;
 
-    /**
-     * Creates a blank knob with default values (0, 100, 0)
-     */
-    public BlankKnob(){
-        this(0, 100, 0);
+        /** Holding the rotational this.size.offset */
+        protected double theta;
+        /** Background color for the knob */
+        protected Color background;
+        /** Knob outline stroke and indicator line color */
+        protected Color knob;
+
+        public BlankKnobUI(BlankKnob b){
+            background = Color.WHITE;
+            this.knob = Color.BLACK;
+            this.dimensionWidth = 2*b.size.radius + 6*b.size.offset;
+            this.dimensionHeight = 2*b.size.radius + 4*b.size.offset;
+            this.strokeCircle = b.size.radius / 4;
+            this.strokeIndicator = (int)Math.sqrt(this.strokeCircle * 2);
+            this.theta = theta(b);
+
+        }
+        /**
+         * Draws the Knob
+         * @param g graphics canvas
+         * @param c instance of a BlankKnob, due to abstraction as a superclass
+         */
+        public void paint(Graphics g, JComponent c) throws UnsupportedOperationException {
+            if(!(c instanceof BlankKnob)){
+                throw new UnsupportedOperationException();
+            }
+            BlankKnob b = (BlankKnob) c;
+            Graphics2D g2d = (Graphics2D) g;
+            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            Rectangle r = g2d.getClipBounds();
+            g.setClip(r.x, r.y, dimensionWidth, dimensionHeight);
+            // Draw the knob backdrop
+            g.setColor(this.knob);
+            g2d.setStroke(new BasicStroke(strokeCircle));
+            g.drawOval(b.size.offset,b.size.offset,2*b.size.radius,2*b.size.radius);
+            g.setColor(this.background);
+            g2d.setStroke(new BasicStroke(strokeIndicator));
+            // get the point on the outer knob circle
+            this.theta = theta(b);
+            Point pt = getKnobAngle(b);
+            int xc = (int)pt.getX();
+            int yc = (int)pt.getY();
+            // Draw the knob state indicator.
+            g.setColor(knob);
+            g2d.drawLine(xc, yc, b.size.radius + b.size.offset, b.size.radius + b.size.offset);
+            paintLabel(g2d, b);
+        }
+
+        /**
+         * Calculates theta by multiplying the value/maxValue ratio with a full rotation
+         * @return rotational angle in rad
+         */
+        private double theta(BlankKnob b){
+            // calculates theta by multiplying the value/maxValue ratio with a quarter rotation
+            return b.value/b.maxValue * 0.5 * Math.PI;
+        }
+
+        /**
+         * Paints a label onto a component
+         * @param g graphics canvas
+         * @param b knob component
+         */
+        private void paintLabel(Graphics2D g, BlankKnob b){
+            Rectangle rect = g.getClipBounds();
+            Font font = new Font("Fira Mono", Font.BOLD, b.size.fontSize);
+            FontMetrics metrics = g.getFontMetrics(font);
+            int textWidth = metrics.stringWidth(b.label);
+            int textHeight = metrics.getHeight();
+            int width = 2*b.size.offset + 2*b.size.radius;
+            int x = rect.x + (width - textWidth) / 2;
+            int y = rect.y + b.size.offset * 2 + b.size.radius * 2 + textHeight / 2 + 2;
+            g.setFont(font);
+            g.drawString(b.label, x, y);
+        }
+
+        /**
+         * Calculates the point on the knob circle to where to draw the indicator line to
+         * @return Point on the knob circle
+         */
+        private Point getKnobAngle(BlankKnob b) {
+            // basically tells the internal state theta to be rotated by 5/4 clockwise (could be the same as 3/4 ccw)
+            double h = 3 * (theta) + 5.0/4.0 * Math.PI;
+            // calculates x and y with basic trigonometric functions
+            int xcp = (int)(b.size.radius * Math.sin(h));
+            int ycp = (int)(b.size.radius * Math.cos(h));
+            // calculate the this.size.offset from knob center
+            int xc = b.size.radius + b.size.offset + xcp;
+            int yc = b.size.radius + b.size.offset - ycp;
+            // Create the new Point
+            return new Point(xc,yc);
+        }
+
+        /**
+         * Function for setting the line thickness for the layout class according to MVC
+         * @param thickness thickness as integer
+         */
+        protected void setStrokeThickness(int thickness){
+            this.strokeCircle = thickness;
+            this.strokeIndicator = thickness / 2;
+        }
     }
 
     /**
-     * Creates a new BlankKnob from the given parameters
-     * @param minValue minimum value of the knob
-     * @param maxValue maximum value of the knob
-     * @param value initial value of the knob
+     * Constant holding the knob size parameters
      */
-    public BlankKnob(double minValue, double maxValue, double value){
-        this(minValue, maxValue, value, 1);
+
+    public static class Size {
+        protected final int radius;
+        protected final int offset;
+        protected final int fontSize;
+
+        public Size(int radius, int offset){
+            this(radius, offset, 10);
+        }
+
+        public Size(int radius, int offset, int fontSize){
+            this.radius = radius;
+            // this.size.offset shall not be bigger than this.size.radius
+            this.offset = Math.min(offset, this.radius);
+            this.fontSize = fontSize;
+        }
+        protected int radius(){
+            return this.radius;
+        }
+        protected int offset(){
+            return this.offset;
+        }
     }
 
+    public static final Size SMALL = new Size(12, 6);
+
+    public static final Size MEDIUM = new Size(24, 8, 12);
+
+    public static final Size LARGE = new Size(48, 12, 14);
+
+    public static class Parameters {
+        protected float min;
+        protected float max;
+        protected float scrollFactor;
+        protected boolean snapToTicks;
+        protected boolean isLinearScale;
+        protected float scalingFactor;
+        public Parameters(float min, float max, float scrollFactor, boolean snapToTicks, boolean isLinearScale){
+            this(min, max, scrollFactor, snapToTicks, isLinearScale, 1);
+        }
+        public Parameters(float min, float max, float scrollFactor, boolean snapToTicks, boolean isLinearScale, double scalingFactor){
+            this(min, max, scrollFactor, snapToTicks, isLinearScale, (float)scalingFactor);
+        }
+        public Parameters(float min, float max, float scrollFactor, boolean snapToTicks, boolean isLinearScale, float scalingFactor){
+            this.min = min;
+            this.max = max;
+            this.scrollFactor = scrollFactor;
+            this.isLinearScale = isLinearScale;
+            this.snapToTicks = snapToTicks;
+            this.scalingFactor = scalingFactor;
+        }
+
+        public float scale(float foreignMin, float foreignMax, float foreignValue){
+            if(this.isLinearScale){
+                return foreignValue;
+            } else {
+                double b = Math.log(foreignMin / foreignMax)/(this.min - this.max);
+                double a = foreignMin / Math.exp(b * this.min);
+                return ((float)(a * Math.exp(b * foreignValue)));
+            }
+        }
+    }
+
+    public static final Parameters DEFAULT = new Parameters(0, 100, 1, false, true);
+
+    /** Size object containing basic graphical variables */
+    protected Size size;
+
+    /** Parameters object containing necessary values for the knob */
+    protected Parameters params;
+    /** Containing the current state of the mouse */
+    protected boolean pressed;
+    /** Point used to calculate whether a MouseClicked event is in the area of the knob to be dragged */
+    protected Point mousePt;
+    /** Contains the previous state from where to pick up a drag again */
+    protected float prev;
+
+    /**  Holds the current value */
+    protected float value;
+    /** value property listener */
+    private PropertyChangeSupport valueChange = new PropertyChangeSupport(this);
+    /** Holds the maximum value */
+    protected float maxValue;
+    /** Holds the minimum value */
+    protected float minValue;
+    /** Holds the scrollFactor */
+    protected float scrollFactor;
+    /** Snap knob to integer ticks */
+    protected boolean snapToTicks = false;
+    /** Label text */
+    protected String label;
+
     /**
-     * Creates a new BlankKnob from the given parameters
-     * @param minValue minimum value of the knob
-     * @param maxValue maximum value of the knob
-     * @param value initial value of the knob
-     * @param scrollFactor factor by which a change on drag gets multiplied. Especially helpful on Knob with large maximum values
+     * Creates a
+     * @param params
+     * @param size
+     * @param label
      */
-    public BlankKnob(double minValue, double maxValue, double value, double scrollFactor){
-        this.minValue = minValue;
-        this.maxValue = maxValue;
+    public BlankKnob(Parameters params, Size size, float value, String label){
+        if(size != null){
+            this.size = size;
+        } else {
+            this.size = new Size(24, 8);
+        }
+        if(params != null){
+            this.params = params;
+        } else {
+            this.params = new Parameters(0, 100, 1, false, true);
+        }
+
+        this.minValue = this.params.min;
+        this.maxValue = this.params.max;
+
         if(value <= maxValue && value >= minValue){
             this.value = value;
         } else {
             value = 0;
         }
-        this.theta = theta();
-        this.scrollFactor = (scrollFactor > 0 ? scrollFactor : 1);
-        this.background = Color.WHITE;
-        this.knob = Color.BLACK;
+        this.label = label;
+        this.scrollFactor = (params.scrollFactor > 0 ? params.scrollFactor : 1);
         // add default listeners to the knob
         this.addMouseListener(this);
         this.addMouseMotionListener(this);
+        this.setUI(new BlankKnobUI(this));
+    }
+
+    /**
+     * Set the stroke thickness of the outer circle
+     * By design, the indicator stroke thickness is less than that, floor(thickness/2)
+     * @param thickness width of the line of the outer circle
+     */
+    public void setStrokeThickness(int thickness) {
+        ((BlankKnobUI)this.getUI()).setStrokeThickness(thickness);
+    }
+
+    /**
+     * Return the minimum size that the knob would like to be.
+     * @return the minimum size of the JKnob.
+     */
+    public Dimension getMinimumSize() {
+        return new Dimension(((BlankKnobUI)this.getUI()).dimensionWidth, ((BlankKnobUI)this.getUI()).dimensionHeight);
+    }
+
+    /**
+     * Return the preferred size that the knob would like to be.
+     * @return the minimum size of the JKnob.
+     */
+    public Dimension getPreferredSize() {
+        return new Dimension(((BlankKnobUI)this.getUI()).dimensionWidth, ((BlankKnobUI)this.getUI()).dimensionHeight);
     }
 
     /**
      * Gets the current value of the knob
      * @return the current value of the knob
      */
-    public double getValue(){
+    public float getValue(){
         return this.value;
+    }
+
+    /**
+     * Returns the Parameters object containing most value boundary context for the knob
+     * @return Parameters object
+     */
+    public Parameters params(){
+        return params;
     }
 
     /**
      * Gets the minimum value of the knob
      * @return double containing the minimum value
      */
-    public double getMinValue() {
+    public float getMinValue() {
         return minValue;
     }
 
@@ -118,7 +307,7 @@ public class BlankKnob extends JComponent implements MouseListener, MouseMotionL
      * Gets the maximum value of the knob
      * @return double containing the maximum value
      */
-    public double getMaxValue() {
+    public float getMaxValue() {
         return maxValue;
     }
 
@@ -127,19 +316,30 @@ public class BlankKnob extends JComponent implements MouseListener, MouseMotionL
      * Also repaints knob on change
      * @param value new current value of the knob
      */
-    public void setValue(double value){
+    public void setValue(float value){
+        double temp = this.value;
         if(value <= maxValue && value >= minValue){
             this.value = value;
             repaint();
+            valueChange.firePropertyChange("value", temp, this.value);
         }
+    }
+
+    public void addPropertyChangeListener(PropertyChangeListener listener) {
+        valueChange.addPropertyChangeListener(listener);
+    }
+
+    public void removePropertyChangeListener(PropertyChangeListener listener) {
+        valueChange.removePropertyChangeListener(listener);
     }
 
     /**
      * Set the minimum value of the knob
      * @param minValue minimal value of the knob
      */
-    public void setMinValue(double minValue) {
+    public void setMinValue(float minValue) {
         this.minValue = minValue;
+        this.params.min = minValue;
         repaint();
     }
 
@@ -147,83 +347,21 @@ public class BlankKnob extends JComponent implements MouseListener, MouseMotionL
      * Sets the maximum value of the knob
      * @param maxValue
      */
-    public void setMaxValue(double maxValue) {
+    public void setMaxValue(float maxValue) {
         this.maxValue = maxValue;
+        this.params.max = maxValue;
         repaint();
     }
 
-    /**
-     * Draws the Knob
-     * @param g graphics canvas
-     */
-    @Override
-    public void paint(Graphics g){
-        Graphics2D g2d = (Graphics2D) g;
-        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-        // Draw the knob backdrop
-        g.setColor(knob);
-        g2d.setStroke(new BasicStroke(2));
-        g.drawOval(1,1,2*radius-2,2*radius-2);
-        g.setColor(background);
-
-        // get the point on the outer knob circle
-        Point pt = getKnobAngle();
-        int xc = (int)pt.getX();
-        int yc = (int)pt.getY();
-
-        // Draw the knob state indicator.
-        g.setColor(knob);
-        g2d.drawLine(xc, yc, radius, radius);
-    }
-
-    /**
-     * Calculates the point on the knob circle to where to draw the indicator line to
-     * @return Point on the knob circle
-     */
-    private Point getKnobAngle() {
-        int r = radius;
-        // basically tells the internal state theta to be rotated by 5/4 clockwise (could be the same as 3/4 ccw)
-        double h = 3 * (theta) + 5.0/4.0 * Math.PI;
-        // calculates x and y with basic trigonometric functions
-        int xcp = (int)(r * Math.sin(h));
-        int ycp = (int)(r * Math.cos(h));
-        // calculate the offset from knob center
-        int xc = radius + xcp;
-        int yc = radius - ycp;
-        // Create the new Point
-        return new Point(xc,yc);
-    }
-
-    /**
-     * Return the ideal size that the knob would like to be.
-     *
-     * @return the preferred size of the JKnob.
-     */
-    public Dimension getPreferredSize() {
-        return new Dimension(2*radius,2*radius);
-    }
-
-    /**
-     * Return the minimum size that the knob would like to be.
-     * This is the same size as the preferred size so the
-     * knob will be of a fixed size.
-     *
-     * @return the minimum size of the JKnob.
-     */
-    public Dimension getMinimumSize() {
-        return new Dimension(2*radius,2*radius);
-    }
-
-    /**
-     * Determine if the mouse click was on the spot or
-     * not.  If it was return true, otherwise return
-     * false.
-     *
-     * @return true if x,y is on the spot and false if not.
-     */
-    private boolean isOnSpot() {
-        return (mousePt.distance(new Point(radius, radius)) < radius);
+    public void setSnapToTicks(boolean snapToTicks) {
+        this.snapToTicks = snapToTicks;
+        this.params.snapToTicks = snapToTicks;
+        if(snapToTicks){
+            this.minValue = (int)this.minValue;
+            this.maxValue = (int)this.maxValue;
+            this.value = (int)this.value;
+        }
+        repaint();
     }
 
     /**
@@ -261,8 +399,8 @@ public class BlankKnob extends JComponent implements MouseListener, MouseMotionL
      *          the mouse press.
      */
     public void mousePressed(MouseEvent e) {
-        mousePt = e.getPoint();
-        pressed = isOnSpot();
+        this.mousePt = e.getPoint();
+        this.pressed = this.isOnSpot();
     }
 
     /**
@@ -273,11 +411,32 @@ public class BlankKnob extends JComponent implements MouseListener, MouseMotionL
      *          the mouse release.
      */
     public void mouseReleased(MouseEvent e) {
-        pressed = false;
-        prev = mousePt.y;
+        this.pressed = false;
+        this.prev = this.mousePt.y;
     }
 
     // Methods from the MouseMotionListener interface.
+
+    private void updateValue(MouseEvent e){
+        if(this.pressed){
+            float dy = (prev - e.getY()) * this.scrollFactor;
+            // check for the value to be in range of minValue and maxValue
+            if(this.value + dy <= maxValue && this.value + dy >= minValue){
+                this.setValue(this.value + dy);
+            } else if (this.value + dy > maxValue){
+                this.setValue(maxValue);
+            } else if (this.value + dy < minValue){
+                this.setValue(minValue);
+            }
+            if(this.snapToTicks){
+                this.setValue((int)this.value);
+            }
+            // update previous state variable
+            prev = e.getY();
+            // repaint the whole knob
+            repaint();
+        }
+    }
 
     /**
      * Empty method because nothing happens when the mouse
@@ -286,7 +445,9 @@ public class BlankKnob extends JComponent implements MouseListener, MouseMotionL
      * @param e reference to a MouseEvent object describing
      *          the mouse move.
      */
-    public void mouseMoved(MouseEvent e) {}
+    public void mouseMoved(MouseEvent e) {
+        this.updateValue(e);
+    }
 
     /**
      * Compute the new angle for the spot and repaint the
@@ -297,33 +458,17 @@ public class BlankKnob extends JComponent implements MouseListener, MouseMotionL
      *          the mouse drag.
      */
     public void mouseDragged(MouseEvent e) {
-        if (pressed) {
-            double dy = (prev - e.getY()) * this.scrollFactor;
-            // check for the value to be in range of minValue and maxValue
-            if(this.value + dy <= maxValue && this.value + dy >= minValue){
-                this.value += dy;
-            } else if (this.value + dy > maxValue){
-                this.value = maxValue;
-            } else if (this.value + dy < minValue){
-                this.value = minValue;
-            } else {
-                this.value = this.value;
-            }
-            // calculate the new theta
-            theta = this.theta();
-            // update previous state variable
-            prev = e.getY();
-            // repaint the whole knob
-            repaint();
-        }
+        this.updateValue(e);
     }
 
     /**
-     * Calculates theta by multiplying the value/maxValue ratio with a full rotation
-     * @return rotational angle in rad
+     * Determine if the mouse click was on the spot or
+     * not. If it was return true, otherwise return
+     * false.
+     *
+     * @return true if x,y is on the spot and false if not.
      */
-    private double theta(){
-        // calculates theta by multiplying the value/maxValue ratio with a full rotation
-        return this.value/this.maxValue * 0.5 * Math.PI;
+    private boolean isOnSpot() {
+        return (this.mousePt.distance(new Point(this.size.radius + this.size.offset, this.size.radius + this.size.offset)) < this.size.radius);
     }
 }

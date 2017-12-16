@@ -18,16 +18,16 @@ public class Keys{
      */
     int octave = 4;
 
-    /**
-     * Setting up the oscillator
-     * @param osc given oscillator
-     */
+
 
     /**
      * Array of chars, in which the Index is a midi code: (octave+1)*12+i,  charToIndex[i] = key
      */
-    public char[] charToIndex = new char[12];
-
+    protected char[] charToIndex = new char[12];
+    /**
+     * Setting up the oscillator
+     * @param osc given oscillator
+     */
     public Keys(Oscillator osc) {
         this.osc = osc;
         fillCharArray();
@@ -126,7 +126,7 @@ public class Keys{
     }
 
     /**
-     * turns the currunt char into a MIDI Number
+     * turns the current char into a MIDI Number
      * @param key current played key
      * @return MIDI signal which equals the current played char
      */
@@ -143,7 +143,7 @@ public class Keys{
     }
 
     /**
-     * fills teh Array charToIndex
+     * fills the array charToIndex
      */
     public void fillCharArray() {
         charToIndex[0] = 'a';
