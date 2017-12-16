@@ -97,41 +97,46 @@ public class SmartOscillator extends Oscillator {
      * Sets the unison blend ratio
      * @param blend ratio in [0,1]
      */
-    public void setBlend(float blend) {
+    public SmartOscillator setBlend(float blend) {
         if(blend <= 1 && blend >= 0){
             // no need for super.hasChanged here, since it is just adjusting volume of two existing outputs
             this.blend = blend;
             cGain.setGain((float)(1-0.5*this.blend));
             sGain.setGain((float)(0.5*this.blend));
         }
+        return this;
     }
 
     /**
      * Sets the unison pitch spread
      * @param spread center offset in Hz
      */
-    public void setSpread(float spread) {
+    public SmartOscillator setSpread(float spread) {
         this.spread = spread;
         this.needsRefresh();
+        return this;
     }
 
     /**
      * Sets the number of voices
      * @param voices number of oscillator voices. 1 means there will be no unison voices
      */
-    public void setVoices(int voices) {
+    public SmartOscillator setVoices(int voices) {
         if(voices >= 1){
             this.voices = voices;
             this.needsRefresh();
         }
+        return this;
     }
 
     /**
      * Sets the current {@link Buffer} for the oscillator
      * @param wave waveform as buffer
      */
-    public void setWave(Buffer wave) {
+    public SmartOscillator setWave(Buffer wave) {
         this.wave = wave;
+        this.needsRefresh();
+        return this;
     }
 
     /**
@@ -149,9 +154,10 @@ public class SmartOscillator extends Oscillator {
      * @param frequency frequency in Hz
      */
     @Override
-    public void setFrequency(float frequency){
+    public SmartOscillator setFrequency(float frequency){
         super.setFrequency(frequency);
         this.updateFrequency();
+        return this;
     }
 
     /**
@@ -265,29 +271,6 @@ public class SmartOscillator extends Oscillator {
             isPaused = paused;
         }
 
-    }
-
-    /**
-     * Implements the MIDI Synthesizer method send, which is called by a transmitter (Sequencer) to
-     * send MIDI data to a synthesizer
-     * @param message MIDI data as ShortMessage type
-     * @param timeStamp (currently not implemented) used to calculate offset for delay compensation
-     *                  Since delay is an issue for the whole synthesizer, this is a minor problem
-     *                  with which can be dealt later on
-     */
-    public void send(ShortMessage message, long timeStamp){
-        if(message.getCommand() == ShortMessage.NOTE_OFF){
-            this.noteOff();
-        } else {
-            // call for the static function translating the MIDI key to frequency range
-            this.setFrequency(Pitch.mtof(message.getData1()));
-            this.setMidiNote(message.getData1());
-            // if oscillator is velocity sensitive, adjust volume
-            if(this.isVelocitySensitive){
-                this.output.setGain(message.getData2() / 127f * this.output.getGain());
-            }
-            this.noteOn();
-        }
     }
 
     private void needsRefresh(){

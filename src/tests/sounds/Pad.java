@@ -5,6 +5,7 @@ import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.ugens.RangeLimiter;
 import synth.filter.Filter;
 import synth.filter.models.BiquadFilter;
+import synth.osc.BasicOscillator;
 import synth.osc.SmartOscillator;
 import synth.ui.FilterUI;
 import tests.ContextProvider;
@@ -15,14 +16,11 @@ public class Pad {
     public static void main(String[] args){
         AudioContext ac = ContextProvider.ac();
         ac.start();
-        SmartOscillator osc = new SmartOscillator(ac);
+        BasicOscillator osc = new BasicOscillator(ac);
         // set the pad specific parameters
         osc.setFrequency(110f);
-        osc.setBlend(1);
         osc.setWave(Buffer.SAW);
-        osc.setVoices(1);
-        osc.setSpread(2f);
-        osc.output().setGain(0.01f);
+        osc.output().setGain(1f);
 
         Filter lp = new Filter(ac, BiquadFilter.LP, 22000f, 2, 1f);
         lp.addInput(osc);
