@@ -25,6 +25,9 @@ public abstract class Oscillator extends UGen implements Device {
 
     private Panner panner;
 
+    /**Gain, not controlled by UGen, used scalar */
+    protected float gain = 1f;
+
     /** Volume Envelope */
     protected Envelope volumeEnvelope;
 
@@ -129,6 +132,12 @@ public abstract class Oscillator extends UGen implements Device {
             this.volumeEnvelope.maximumGain(gain);
         }
     }
+    /**Method to set up gain, until volume envelope is implemented */
+    public void setGain(float gain) {
+        if(gain <= 1f && gain >= 0f){
+            this.gain = gain;
+        }
+    }
 
     public Envelope volumeEnvelope(){
         return this.volumeEnvelope;
@@ -151,6 +160,9 @@ public abstract class Oscillator extends UGen implements Device {
     public void calculateBuffer(){
         for(int i = 0; i < outs; i++){
             bufOut[i] = output.getOutBuffer(i);
+            for(int j = 0; j < bufferSize; j++) {
+                bufOut[i][j] *= this.gain;
+            }
         }
     }
 

@@ -47,8 +47,8 @@ public class BasicOscillator extends Oscillator {
         if (phaseEnvelope == null) {
             for (int i = 0; i < bufferSize; i++) {
                 phase = (((phase + frequency.getValue(0, i) * one_over_sr) % 1.0f) + 1.0f) % 1.0f;
-                bufOut[0][i] = buffer.getValueFraction((float) phase);
-                bufOut[1][i] = buffer.getValueFraction((float) phase);
+                bufOut[0][i] = gain *  buffer.getValueFraction((float) phase) ;
+                bufOut[1][i] = gain * buffer.getValueFraction((float) phase);
             }
         } else {
             phaseEnvelope.update();
