@@ -52,11 +52,12 @@ public class AdditiveOscillator extends UGen{
         this.basicFreq = basicFreq;
         for(int i = 0; i < numberOfOscs; i++) {
             BasicOscillator curr = new BasicOscillator(ac, basicFreq, wave);
-            //Gain g = new Gain(ac, 1, 1f);
-            curr.setGain(0.1f);
-            //g.addInput(curr);
+            if(i == 0) {
+                curr.setGain(0.3f);
+            } else {
+                curr.setGain(0.0f);
+            }
             this.oscillators.add(curr);
-            //this.gains.add(g);
             ac.out.addInput(curr);
         }
 
@@ -83,9 +84,4 @@ public class AdditiveOscillator extends UGen{
         return basicFreq;
     }
 
-    /*
-    public BeadArray getGains() {
-        return gains;
-    }
-    */
 }

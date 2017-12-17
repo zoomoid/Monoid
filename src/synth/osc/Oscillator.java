@@ -139,6 +139,11 @@ public abstract class Oscillator extends UGen implements Device {
         }
     }
 
+    /** Method to get current gain */
+    public float getGain() {
+        return this.gain;
+    }
+
     public Envelope volumeEnvelope(){
         return this.volumeEnvelope;
     }
