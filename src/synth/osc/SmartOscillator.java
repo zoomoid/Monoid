@@ -1,6 +1,7 @@
 package synth.osc;
 
 import net.beadsproject.beads.core.AudioContext;
+import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.data.Pitch;
 import net.beadsproject.beads.ugens.Gain;
@@ -21,32 +22,68 @@ public class SmartOscillator extends Oscillator {
     private UnisonOscillator unison;
     private WavePlayer center;
 
-    private final boolean RANDOM_PHASE_OFFSET = true;
+    private float startPhase;
 
     private boolean isInitialised;
 
-    private Gain cGain, sGain;
-
-    public SmartOscillator(AudioContext ac){
+    /**
+     * Blank SmartOscillator
+     * @param ac audio context
+     */
+    public SmartOscillator(AudioContext ac) {
         this(ac, 0f, Buffer.SINE, 1, 0f, 0f);
     }
 
+    /**
+     * SmartOscillator with only the frequency given
+     * This initializes the SmartOscillator to use a sine as waveform
+     * @param ac audio context
+     * @param frequency oscillator freaquency
+     */
     public SmartOscillator(AudioContext ac, float frequency){
         this(ac, frequency, Buffer.SINE, 1, 0f, 0f);
     }
 
+    /**
+     * SmartOscillator starting at 0Hz
+     * @param ac audio context
+     * @param wave oscillator waveform
+     */
     public SmartOscillator(AudioContext ac, Buffer wave){
         this(ac, 440f, wave, 1, 0f, 0f);
     }
 
+    /**
+     * SmartOscillator with only the center voice
+     * @param ac audio context
+     * @param frequency oscillator frequency
+     * @param wave oscillator waveform
+     */
     public SmartOscillator(AudioContext ac, float frequency, Buffer wave){
         this(ac, frequency, wave, 1, 0f, 0f);
     }
 
+    /**
+     * SmartOscillator with unison voices
+     * @param ac audio context
+     * @param frequency oscillator frequency
+     * @param wave oscillator waveform
+     * @param voices oscillator voices
+     * @param spread unison pitch spread
+     */
     public SmartOscillator(AudioContext ac, float frequency, Buffer wave, int voices, float spread){
         this(ac, frequency, wave, voices, spread, 1f);
     }
 
+    /**
+     * Fully blown SmartOscillator
+     * @param ac audio context
+     * @param frequency oscillator frequency
+     * @param wave oscillator waveform
+     * @param voices oscillator voices
+     * @param spread pitch spread range
+     * @param blend blend factor of unison to center voice
+     */
     public SmartOscillator(AudioContext ac, float frequency, Buffer wave, int voices, float spread, float blend){
         super(ac, frequency);
         this.spread = spread;
@@ -54,41 +91,69 @@ public class SmartOscillator extends Oscillator {
         this.wave = wave;
         this.spreadFunction = 1;
         this.blend = blend;
+        this.startPhase = 0;
         unison = null;
         center = null;
         this.outputInitializationRegime = OutputInitializationRegime.RETAIN;
-        bufOut = bufIn;
         this.isInitialised = false;
         this.createOscillator();
         this.updateFrequency();
         this.patchOutput();
     }
 
-
+    /**
+     * Gets the (serialized) buffer of wave form of this oscillator
+     * @return
+     */
     public Buffer getWave() {
         return wave;
     }
 
+    /**
+     * Gets the blend ratio with which the center voice and the unison voices gets blended together
+     * @return
+     */
     public float getBlend() {
         return blend;
     }
 
+    /**
+     * Gets the number of voices of this oscillator
+     * This is always 1 + unison voices
+     * @return
+     */
     public int getVoices() {
         return voices;
     }
 
+    /**
+     * Gets the pitch spread range of the unison voices
+     * @return
+     */
     public float getSpread() {
         return spread;
     }
 
+    /**
+     * Gets the exponent of the monomial determining the spread function
+     * @return exponent as float
+     */
     public float getSpreadFunction() {
         return spreadFunction;
     }
 
+    /**
+     * Gets the side UnisonOscillator object
+     * @return unison oscillator object
+     */
     public UnisonOscillator getUnison() {
         return unison;
     }
 
+    /**
+     * Gets the center voice / oscillator
+     * @return WavePlayer oscillator
+     */
     public WavePlayer getCenter() {
         return center;
     }
@@ -99,10 +164,8 @@ public class SmartOscillator extends Oscillator {
      */
     public SmartOscillator setBlend(float blend) {
         if(blend <= 1 && blend >= 0){
-            // no need for super.hasChanged here, since it is just adjusting volume of two existing outputs
+            // no need for super.hasChanged here, since this is just adjusting volume of two existing outputs
             this.blend = blend;
-            cGain.setGain((float)(1-0.5*this.blend));
-            sGain.setGain((float)(0.5*this.blend));
         }
         return this;
     }
@@ -166,7 +229,9 @@ public class SmartOscillator extends Oscillator {
     @Override
     public void createOscillator(){
         unison = new UnisonOscillator(super.ac, this.wave, this.voices - 1);
+        unison.setPhase(this.startPhase);
         center = new WavePlayer(super.ac, super.frequency, this.wave);
+        center.setPhase(this.startPhase);
         this.isInitialised = true;
     }
 
@@ -188,36 +253,45 @@ public class SmartOscillator extends Oscillator {
     @Override
     public void patchOutput() {
         if(isInitialised){
-            cGain = new Gain(super.ac,2,1f);
-            sGain = new Gain(super.ac,2,1f);
-
-            cGain.addInput(center);
-            sGain.addInput(unison);
-
-            this.setBlend(this.blend);
-
-            output.addInput(cGain);
-            if(voices > 1) {
-                output.addInput(sGain);
-            }
+            // this is deprecated since output belongs to the superclass which implicates inter-class dependencies which
+            // we try to minimize
+            // rather add both output devices together in calculateBuffer
+            //output.addInput(cGain);
+            //if(voices > 1) {
+            //    output.addInput(sGain);
+            //}
         }
     }
 
     @Override
     public void calculateBuffer(){
         for(int i = 0; i < outs; i++){
-            bufOut[i] = output.getOutBuffer(i);
+            for(int j = 0; j < bufferSize; j++){
+                bufOut[i][j] = (1-0.5f*this.blend) * center.getValue(i, j) + (0.5f*this.blend) * unison.getValue(i, j);
+            }
         }
     }
 
+
     /**
-     * Calculates the unison pitch offset
-     * @return array containing absolute frequency values
+     * Calculates the unison pitch spread of THIS oscillator
+     * @return float array containing individual unison frequencies
      */
     private float[] calculateUnisonPitch(){
+        return calculateUnisonPitch(this.voices, this.frequency, this.spreadFunction, this.spread);
+    }
+
+    /**
+     * Calculates a unison pitch offset
+     * @param voices
+     * @param spreadFunction
+     * @param spread
+     * @return array containing absolute frequency values
+     */
+    public static float[] calculateUnisonPitch(int voices, UGen frequency, double spreadFunction, float spread){
         float[] r = new float[voices];
         // absolute starting point of the linear spread
-        float x = super.frequency.getValue() - this.spread;
+        float x = frequency.getValue() - spread;
         // note: case "voices = 1" is covered by this, so no need for compensation as in WaveOscillator
         for(int i = 0; i < voices; i++){
             r[i] = (float)(x + (i/Math.pow(voices-1f, spreadFunction)) * 2 * spread);
@@ -232,11 +306,9 @@ public class SmartOscillator extends Oscillator {
     public void kill(){
         if(center != null){
             center.kill();
-            cGain.kill();
         }
         if(unison != null) {
             unison.kill();
-            sGain.kill();
         }
         output.pause(true);
         isPaused = true;

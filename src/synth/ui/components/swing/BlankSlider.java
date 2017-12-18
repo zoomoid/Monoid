@@ -58,36 +58,78 @@ public class BlankSlider extends JSlider {
 
     }
 
+    private double scrollFactor;
+    private boolean isLinearScale;
+    private double yMin, yMax;
+
     public BlankSlider(){
-        setLayout();
+        this.setLayout();
+        this.initialize();
     }
     public BlankSlider(BoundedRangeModel brm){
         super(brm);
-        setLayout();
+        this.setLayout();
+        this.initialize();
     }
 
     public BlankSlider(int orientation){
         super(orientation);
         setLayout();
+        this.initialize();
     }
 
     public BlankSlider(int min, int max){
         super(min, max);
-        setLayout();
+        this.setLayout();
+        this.initialize();
     }
 
     public BlankSlider(int min, int max, int value){
         super(min, max, value);
-        setLayout();
+        this.setLayout();
+        this.initialize();
     }
+
     public BlankSlider(int orientation, int min, int max, int value){
         super(orientation, min, max, value);
-        setLayout();
+        this.setLayout();
+        this.initialize();
+    }
+
+    private void initialize(){
+        this.scrollFactor = 1;
+        this.isLinearScale = true;
+        this.yMin = 0;
+        this.yMax = 0;
     }
 
     private void setLayout(){
         setFocusable(false);
         setUI(new BlankSliderUI(this));
     }
+
+    public void setScrollFactor(double scrollFactor){
+        this.scrollFactor = scrollFactor;
+    }
+
+    public double getScrollFactor(){
+        return this.scrollFactor;
+    }
+
+    public boolean isLinearScale(){
+        return isLinearScale;
+    }
+
+    /*public void setLinearScale(){
+        this.isLinearScale = true;
+        this.yMin = 0;
+        this.yMax = 0;
+    }
+
+    public void setLogScale(double yMin, double yMax){
+        this.isLinearScale = false;
+        this.yMin = yMin;
+        this.yMax = yMax;
+    }*/
 }
 
