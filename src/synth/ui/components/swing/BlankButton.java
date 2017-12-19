@@ -37,8 +37,14 @@ public class BlankButton extends JButton {
 
     public class BlankButtonUI extends BasicButtonUI {
 
+        public int preferredWidth, preferredHeight;
+
         public BlankButtonUI(){
             super();
+            preferredHeight = 30;
+            preferredWidth = 110;
+            setPreferredSize(new Dimension(preferredWidth, preferredHeight));
+            setMinimumSize(new Dimension(preferredWidth, preferredHeight));
         }
 
         @Override
@@ -49,22 +55,28 @@ public class BlankButton extends JButton {
             AbstractButton b = (AbstractButton) c;
             Dimension d = b.getSize();
 
+            d = c.getPreferredSize();
+
             Rectangle t = g.getClipBounds();
             FontMetrics fm = g.getFontMetrics();
+
+            int width = t.width - 5;
+            int height = t.height - 5;
+            int x = 1;
+            int y = 1;
+
             g2d.setColor(Color.WHITE);
-            g2d.fillRect(0,0,t.width,t.height);
+            g.fillRoundRect(x, y, width, height, 5, 5);
             g2d.setColor(Color.BLACK);
             g2d.setStroke(new BasicStroke(2));
-            g.drawRoundRect(2, 2, t.width-4, t.height-4, 5, 5);
-            drawCenteredString(g, b.getText(), t, new Font(Font.SANS_SERIF, Font.BOLD, 13));
+            g.drawRoundRect(x, y, width, height, 5, 5);
+            drawCenteredString(g, b.getText(), t, new Font("Fira Mono", Font.BOLD, 13));
             g2d.dispose();
 
         }
 
         public Dimension getPreferredSize(JComponent c) {
-            Dimension d = super.getPreferredSize(c);
-            d.setSize(d.width, d.height);
-            return d;
+            return super.getPreferredSize(c);
         }
 
         /**
@@ -88,7 +100,7 @@ public class BlankButton extends JButton {
         }
     }
 
-    private void setLayout(){
+    protected void setLayout(){
         setFocusable(false);
         setFocusPainted(false);
         setBorderPainted(false);

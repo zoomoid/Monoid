@@ -15,6 +15,7 @@ public class UnisonOscillatorTest {
 
         float[] frequencies = SmartOscillator.calculateUnisonPitch(5, new Static(ac, 220f), 1, 0.001f);
         osc.setPhase(0);
+
         osc.setFrequencies(frequencies);
 
         ac.start();
