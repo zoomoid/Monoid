@@ -20,7 +20,7 @@ public class SmartOscillator extends Oscillator {
     private Buffer wave;
 
     private UnisonOscillator unison;
-    private WavePlayer center;
+    private BasicOscillator center;
 
     private float startPhase;
 
@@ -154,7 +154,7 @@ public class SmartOscillator extends Oscillator {
      * Gets the center voice / oscillator
      * @return WavePlayer oscillator
      */
-    public WavePlayer getCenter() {
+    public BasicOscillator getCenter() {
         return center;
     }
 
@@ -230,7 +230,7 @@ public class SmartOscillator extends Oscillator {
     public void createOscillator(){
         unison = new UnisonOscillator(super.ac, this.wave, this.voices - 1);
         unison.setPhase(this.startPhase);
-        center = new WavePlayer(super.ac, super.frequency, this.wave);
+        center = new BasicOscillator(super.ac, super.frequency, this.wave);
         center.setPhase(this.startPhase);
         this.isInitialised = true;
     }
@@ -267,6 +267,7 @@ public class SmartOscillator extends Oscillator {
     public void calculateBuffer(){
         for(int i = 0; i < outs; i++){
             for(int j = 0; j < bufferSize; j++){
+                // FIXME I suppose BasicOscillator only has 1 output in this configuration resulting in an ArrayOutOfBounds exception
                 bufOut[i][j] = (1-0.5f*this.blend) * center.getValue(i, j) + (0.5f*this.blend) * unison.getValue(i, j);
             }
         }

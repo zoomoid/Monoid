@@ -19,16 +19,11 @@ public class BlankSlider extends JSlider {
         public void paintTrack(Graphics g){
             Graphics2D g2d = (Graphics2D) g;
             g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
             Rectangle t = trackRect;
-            if(slider.getOrientation() == 0){
-                g2d.setColor(Color.BLACK);
-                g2d.drawRect(t.x, t.y, t.width, t.height);
-            } else {
-                g2d.setStroke(new BasicStroke(1));
-                g2d.setColor(Color.BLACK);
-                g2d.drawRect(t.x, t.y, t.width, t.height);
-            }
+            g2d.setColor(Color.BLACK);
+            g2d.fillRoundRect(t.x, t.y, t.width, t.height, 2, 2);
+            g2d.setColor(Color.WHITE);
+            g2d.fillRoundRect(t.x+2,t.y+2, t.width-4, t.height-4, 2,2);
         }
         @Override
         public void paintThumb(Graphics g){
@@ -37,9 +32,9 @@ public class BlankSlider extends JSlider {
             Rectangle t = thumbRect;
             g2d.setColor(Color.BLACK);
             if(slider.getOrientation() == 0){
-                g2d.fillRect(t.x, t.y, 5, t.height);
+                g2d.fillRoundRect(t.x+2, t.y, 5, t.height, 2, 2);
             } else {
-                g2d.fillRect(t.x, t.y, t.width, 5);
+                g2d.fillRoundRect(t.x, t.y+2, t.width, 5, 2, 2);
             }
         }
 

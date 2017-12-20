@@ -55,14 +55,18 @@ public abstract class Oscillator extends UGen implements Device {
      * @param frequency Oscillator frequency
      */
     public Oscillator(AudioContext ac, float frequency){
-        super(ac, 2, 2);
+        this(ac, new Static(ac, frequency));
+    }
+
+    public Oscillator(AudioContext ac, UGen frequency){
+        super(ac, 0, 2);
         this.ac = ac;
         this.panner = new Panner(ac);
         this.output = new Gain(ac, 2, 1f);
         this.volumeEnvelope = new Envelope(this.ac, 5, 0, 1f, 20);
         this.output.setGain(this.volumeEnvelope);
         this.frequencyEnvelope = new Envelope(this.ac, 0, 0, 1f, 0);
-        this.frequency = new Static(ac, frequency);
+        this.frequency = frequency;
         velocityFactor = 1;
         isVelocitySensitive = false;
         midiNote = -1;
@@ -70,7 +74,6 @@ public abstract class Oscillator extends UGen implements Device {
         this.outputPauseRegime = OutputPauseRegime.ZERO;
         this.panner.addInput(output);
         this.addInput(panner);
-        bufOut = bufIn;
     }
 
     /*****************************************************************************

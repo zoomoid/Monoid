@@ -29,12 +29,16 @@ public class BasicOscillator extends Oscillator {
         this(ac, 0f, Buffer.SINE);
     }
 
-    public BasicOscillator(AudioContext ac, float frequency, Buffer wave){
+    public BasicOscillator(AudioContext ac, UGen frequency, Buffer wave){
         super(ac, frequency);
         this.buffer = wave;
         this.outputInitializationRegime = OutputInitializationRegime.RETAIN;
         phase = 0;
         one_over_sr = 1f / context.getSampleRate();
+    }
+
+    public BasicOscillator(AudioContext ac, float frequency, Buffer wave){
+        this(ac, new Static(ac, frequency), wave);
     }
 
     public void setWave(Buffer buffer){

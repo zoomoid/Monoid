@@ -31,6 +31,6 @@ public class OscUITest {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
         frame.setVisible(true);
-        frame.setResizable(true);
+        frame.setResizable(false);
     }
 }

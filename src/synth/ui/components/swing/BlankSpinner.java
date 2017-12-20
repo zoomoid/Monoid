@@ -1,7 +1,6 @@
 package synth.ui.components.swing;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.plaf.basic.BasicSpinnerUI;
@@ -11,27 +10,26 @@ public class BlankSpinner extends JSpinner {
 
     public BlankSpinner(){
         super();
-        //setBorder(new LineBorder(Color.BLACK));
-        setEditor(new BlankSpinnerEditor(this));
-        setUI(new BlankSpinnerUI());
-        setBorder(BorderFactory.createEmptyBorder());
+        setEditor(new BlankSpinner.BlankSpinnerEditor(this));
+        setUI(new BlankSpinner.BlankSpinnerUI());
+        setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
     }
 
     public BlankSpinner(SpinnerModel m){
         super(m);
-        //setBorder(new LineBorder(Color.BLACK));
-        setEditor(new BlankSpinnerEditor(this));
-        setUI(new BlankSpinnerUI());
-        setBorder(BorderFactory.createEmptyBorder());
+        setEditor(new BlankSpinner.BlankSpinnerEditor(this));
+        setUI(new BlankSpinner.BlankSpinnerUI());
+        setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
     }
 
-    private class BlankSpinnerUI extends BasicSpinnerUI {
+
+
+    protected class BlankSpinnerUI extends BasicSpinnerUI {
 
         @Override
         protected JComponent createEditor() {
             JComponent c = super.createEditor();
-            Dimension s = c.getPreferredSize();
-            c.setPreferredSize(new Dimension(s.width, s.height));
+            c.setPreferredSize(new Dimension(60, 40));
             c.setBorder(BorderFactory.createEmptyBorder());
             return c;
         }
@@ -43,13 +41,12 @@ public class BlankSpinner extends JSpinner {
             return button;
         }
 
-        private void setButtonProperties(JButton button) {
+        protected void setButtonProperties(JButton button) {
             button.setBackground(Color.WHITE);
             button.setForeground(Color.BLACK);
-            button.setBorderPainted(false);
+            button.setBorderPainted(true);
+            button.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
             button.setFocusPainted(false);
-            button.setBorder(BorderFactory.createEmptyBorder());
-            installNextButtonListeners(button);
         }
 
         @Override
@@ -60,32 +57,23 @@ public class BlankSpinner extends JSpinner {
         }
     }
 
-    private class BlankSpinnerEditor extends JLabel implements ChangeListener {
+    protected class BlankSpinnerEditor extends JLabel implements ChangeListener {
 
         private JSpinner spinner;
-
-        private Image icon;
-
         private BlankSpinnerEditor(JSpinner spinner){
-            super("", CENTER);
-            icon = ((ImageIcon)spinner.getValue()).getImage();
+            super(spinner.getValue().toString(), CENTER);
             this.spinner = spinner;
-            spinner.addChangeListener(this);
+            this.spinner.addChangeListener(this);
+            this.spinner.setBackground(Color.WHITE);
+            this.setFont(new Font("Fira Mono", Font.BOLD, 18));
             this.setPreferredSize(new Dimension(60, 40));
         }
 
         @Override
-        public void paint(Graphics g) {
-            super.paint(g);
-            Rectangle d = g.getClipBounds();
-            g.setColor(Color.WHITE);
-            g.fillRect(d.x, d.y, d.width, d.height);
-            g.drawImage(this.icon, d.x, d.y, d.width, d.height, this);
+        public void stateChanged(ChangeEvent e) {
+            this.setText(spinner.getValue().toString());
         }
 
-        public void stateChanged(ChangeEvent e){
-            icon = ((ImageIcon)spinner.getValue()).getImage();
-            repaint();
-        }
+
     }
 }

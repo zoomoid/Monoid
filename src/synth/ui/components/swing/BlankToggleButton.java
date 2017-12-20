@@ -35,7 +35,7 @@ public class BlankToggleButton extends BlankButton {
                 g2d.setStroke(new BasicStroke(2));
                 g.drawRoundRect(x, y, width, height, 5, 5);
                 g.setColor(Color.WHITE);
-                drawCenteredString(g, b.getText(), t, new Font("Fira Mono", Font.BOLD, 13));
+                drawCenteredString(g, b.getText(), t, new Font("Fira Mono", Font.BOLD, 12));
             } else {
                 g.setColor(Color.WHITE);
                 g.fillRoundRect(x, y, width, height, 5, 5);
@@ -92,8 +92,16 @@ public class BlankToggleButton extends BlankButton {
         return this.isToggled;
     }
 
+    /**
+     * Shortcut for toggle(!toggle.isToggled);
+     */
     public void toggle(){
         this.isToggled = !this.isToggled;
+        repaint();
+    }
+
+    public void toggle(boolean toggleValue){
+        this.isToggled = toggleValue;
         repaint();
     }
 
