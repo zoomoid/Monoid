@@ -12,10 +12,7 @@ public class UnisonOsc {
         ac.start();
         UnisonOscillator osc = new UnisonOscillator(ac, Buffer.SQUARE, 5);
         float[] frequencies = {MIDIUtils.midi2frequency(48+3), MIDIUtils.midi2frequency(52+3), MIDIUtils.midi2frequency(55+3), MIDIUtils.midi2frequency(59+3), MIDIUtils.midi2frequency(59+3+3)};
-        float[] gains = {0.1f, 0.1f, 0.1f, 0.1f, 0.1f};
         osc.setFrequencies(frequencies);
-        osc.setGains(gains);
-
         ac.out.addInput(osc);
     }
 }

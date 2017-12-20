@@ -135,7 +135,7 @@ public class BlankKnob extends JComponent implements MouseListener, MouseMotionL
         protected final int fontSize;
 
         public Size(int radius, int offset){
-            this(radius, offset, 10);
+            this(radius, offset, (int)(10 + Math.pow(2, Math.log(radius/12)/Math.log(2))));
         }
 
         public Size(int radius, int offset, int fontSize){
@@ -152,7 +152,7 @@ public class BlankKnob extends JComponent implements MouseListener, MouseMotionL
         }
     }
 
-    public static final Size SMALL = new Size(12, 6);
+    public static final Size SMALL = new Size(12, 6, 10);
 
     public static final Size MEDIUM = new Size(24, 8, 12);
 
