@@ -3,6 +3,7 @@ package synth.osc;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.data.Pitch;
+import net.beadsproject.beads.ugens.Panner;
 import synth.modulation.Envelope;
 import net.beadsproject.beads.ugens.Gain;
 import net.beadsproject.beads.ugens.Glide;
@@ -13,36 +14,24 @@ import javax.sound.midi.*;
 
 public abstract class Oscillator extends UGen implements Device {
 
-    /**
-     * The frequency the oscillation is happening at
-     */
+    /** The frequency the oscillation is happening at  */
     protected UGen frequency;
-    /**
-     * MIDI note value
-     */
+    /** MIDI note value */
     protected int midiNote;
-    /**
-     * Oscillator output device
-     */
+    /** Oscillator output device */
     protected Gain output;
-    /**
-     * The AudioContext the oscillator is working in
-     */
+    /** The AudioContext the oscillator is working in */
     protected AudioContext ac;
 
-    /**
-     * Volume Envelope
-     */
+    private Panner panner;
+
+    /** Volume Envelope */
     protected Envelope volumeEnvelope;
 
-    /**
-     * Frequency Envelope
-     */
+    /** Frequency Envelope */
     protected Envelope frequencyEnvelope;
 
-    /**
-     * Whether Oscillator is velocity sensitive or not
-     */
+    /** Whether Oscillator is velocity sensitive or not */
     protected boolean isVelocitySensitive;
     /**
      * Factor by which the linear velocity falloff gets multiplied
@@ -50,19 +39,8 @@ public abstract class Oscillator extends UGen implements Device {
      */
     protected float velocityFactor;
 
-    /**
-     * Pause boolean. This flag gets set as soon as an Oscillator is paused
-     */
+    /** Pause boolean. This flag gets set as soon as an Oscillator is paused */
     protected boolean isPaused;
-    /**
-     * Change boolean. This flag gets set by setters in child classes as soon as major changes occur
-     */
-    protected boolean hasChanged;
-    /**
-     * Initialisation boolean. This prevents setup from being called more than once on a certain oscillator
-     */
-    protected boolean isInitialised;
-
     /**
      * Creates an empty oscillator frame
      * @param ac AudioContext
@@ -77,26 +55,30 @@ public abstract class Oscillator extends UGen implements Device {
      * @param frequency Oscillator frequency
      */
     public Oscillator(AudioContext ac, float frequency){
-        super(ac, 2, 2);
+        this(ac, new Static(ac, frequency));
+    }
+
+    public Oscillator(AudioContext ac, UGen frequency){
+        super(ac, 0, 2);
         this.ac = ac;
+        this.panner = new Panner(ac);
         this.output = new Gain(ac, 2, 1f);
         this.volumeEnvelope = new Envelope(this.ac, 5, 0, 1f, 20);
         this.output.setGain(this.volumeEnvelope);
         this.frequencyEnvelope = new Envelope(this.ac, 0, 0, 1f, 0);
-        this.frequency = new Static(ac, frequency);
+        this.frequency = frequency;
         velocityFactor = 1;
         isVelocitySensitive = false;
         midiNote = -1;
         this.outputInitializationRegime = OutputInitializationRegime.RETAIN;
         this.outputPauseRegime = OutputPauseRegime.ZERO;
-        this.addInput(output);
-        bufOut = bufIn;
+        this.panner.addInput(output);
+        this.addInput(panner);
     }
 
-    /*
-    KEY METHODS FOR EACH OSCILLATOR. THESE MUST BE PROVIDED.
-     */
-
+    /*****************************************************************************
+     * KEY METHODS FOR EACH OSCILLATOR. THESE MUST BE PROVIDED.
+     *****************************************************************************/
     /**
      * Creates the voice(s) of the oscillator
      */
@@ -112,6 +94,10 @@ public abstract class Oscillator extends UGen implements Device {
      */
     public abstract void patchOutput();
 
+    /*****************************************************************************
+     * END OF KEY METHODS
+     *****************************************************************************/
+
     /**
      * Returns the current frequency of the oscillation
      * @return frequency
@@ -124,15 +110,14 @@ public abstract class Oscillator extends UGen implements Device {
      * Set the frequency of the oscillation
      * @param frequency frequency in Hz
      */
-    public void setFrequency(UGen frequency){
+    public Oscillator setFrequency(UGen frequency){
         this.frequency = frequency;
+        return this;
     }
 
-    public void setFrequency(float frequency){
-        float old = this.frequency.getValue();
-        Glide temp = new Glide(this.ac, old, 20);
-        temp.setValue(frequency);
-        this.setFrequency(temp);
+    public Oscillator setFrequency(float frequency){
+        this.setFrequency(new Static(ac, frequency));
+        return this;
     }
 
     /**
@@ -242,5 +227,18 @@ public abstract class Oscillator extends UGen implements Device {
         this.frequencyEnvelope.noteOn();
     }
 
-    public abstract void send(ShortMessage m, long timeStamp);
+    public void send(ShortMessage message, long timeStamp){
+        if(message.getCommand() == ShortMessage.NOTE_OFF){
+            this.noteOff();
+        } else {
+            // call for the static function translating the MIDI key to frequency range
+            this.setFrequency(Pitch.mtof(message.getData1()));
+            this.setMidiNote(message.getData1());
+            // if oscillator is velocity sensitive, adjust volume
+            if(this.isVelocitySensitive){
+                this.output.setGain(message.getData2() / 127f * this.output.getGain());
+            }
+            this.noteOn();
+        }
+    }
 }

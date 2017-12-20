@@ -4,7 +4,6 @@ import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.data.Buffer;
 
-
 /**
  * A LFO is a modulation device for parameters of a synthesizer. It inherits UGens, meaning it can be widely used in
  * parameters of other UGen implementations
@@ -12,36 +11,27 @@ import net.beadsproject.beads.data.Buffer;
  * Note, that the amplitude of the LFO not directly determines the amount of modulation to a given parameter but rather
  * is a factor by which the modulation amount gets multiplied
  */
-public class LFO extends UGen {
+public class LFO extends Modulator {
 
-    /**
-     * Audio Context
-     */
+    /** Audio Context */
     private AudioContext context;
-
-    /**
-     * Available type indicator
-     */
+    /** Available types indicator */
     public enum Type {
         SINE, TRIANGLE, SAW, SQUARE, NOISE, CUSTOM_TYPE
     }
-
-    /**
-     * LFO waveform buffer
-     */
+    /** LFO waveform buffer */
     private Buffer buffer;
-    /**
-     * LFO waveform type indicator
-     */
+    /** LFO waveform type indicator */
     private Type type;
-    /**
-     * LFO frequency
-     */
+    /** LFO frequency */
     private float frequency;
-    /**
-     * LFO amplitude
-     */
+    /** LFO amplitude */
     private float amplitude;
+    /** The playback point in the Buffer, expressed as a fraction. double for more precision*/
+    private double phase;
+    /** current sampling rate with which the device got initialized */
+    private float one_over_sr;
+
 
 
     public LFO(AudioContext ac){
@@ -49,8 +39,9 @@ public class LFO extends UGen {
     }
 
     public LFO(AudioContext ac, Type lfoType, float frequency, float amplitude){
-        super(ac, 0, 1);
+        super(ac);
         this.context = ac;
+        one_over_sr = 1f / context.getSampleRate();
         this.setFrequency(frequency).setAmplitude(amplitude).setType(lfoType);
     }
 
@@ -114,9 +105,19 @@ public class LFO extends UGen {
         return this;
     }
 
+    /**
+     * TODO test implementation
+     */
     @Override
     public void calculateBuffer(){
-
+        // since frequency is (pseudo) static, we can save up calculations by doing this once
+        double increment = frequency * one_over_sr;
+        for (int i = 0; i < bufferSize; i++) {
+            // current phase cache
+            phase = (((phase + increment) % 1.0f) + 1.0f) % 1.0f;
+            // since the lfo only has one output channel
+            bufOut[0][i] = range * buffer.getValueFraction((float) phase) + centerValue;
+        }
     }
 
 }
