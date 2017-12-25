@@ -20,7 +20,7 @@ public class Pad {
         // set the pad specific parameters
         osc.setFrequency(110f);
         osc.setWave(Buffer.SAW);
-        osc.output().setGain(1f);
+        osc.setGain(1f);
 
         Filter lp = new Filter(ac, BiquadFilter.LP, 22000f, 2, 1f);
         lp.addInput(osc);

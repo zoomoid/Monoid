@@ -14,16 +14,22 @@ import javax.sound.midi.*;
 
 public abstract class Oscillator extends UGen implements Device {
 
+    protected String type;
+
     /** The frequency the oscillation is happening at  */
     protected UGen frequency;
+    /** Oscillator output gain */
+    protected UGen gain;
+    /** Phase UGen */
+    protected UGen phase;
+
     /** MIDI note value */
     protected int midiNote;
-    /** Oscillator output device */
-    protected Gain output;
+
     /** The AudioContext the oscillator is working in */
     protected AudioContext ac;
 
-    private Panner panner;
+    protected boolean isUnisonOscillator;
 
     /** Volume Envelope */
     protected Envelope volumeEnvelope;
@@ -39,8 +45,6 @@ public abstract class Oscillator extends UGen implements Device {
      */
     protected float velocityFactor;
 
-    /** Pause boolean. This flag gets set as soon as an Oscillator is paused */
-    protected boolean isPaused;
     /**
      * Creates an empty oscillator frame
      * @param ac AudioContext
@@ -59,21 +63,23 @@ public abstract class Oscillator extends UGen implements Device {
     }
 
     public Oscillator(AudioContext ac, UGen frequency){
-        super(ac, 0, 2);
+        super(ac, 2, 2);
         this.ac = ac;
-        this.panner = new Panner(ac);
-        this.output = new Gain(ac, 2, 1f);
         this.volumeEnvelope = new Envelope(this.ac, 5, 0, 1f, 20);
-        this.output.setGain(this.volumeEnvelope);
         this.frequencyEnvelope = new Envelope(this.ac, 0, 0, 1f, 0);
+
         this.frequency = frequency;
+        this.gain = new Static(ac, 1f);
+        this.phase = new Static(ac, -1f);
+
         velocityFactor = 1;
         isVelocitySensitive = false;
         midiNote = -1;
         this.outputInitializationRegime = OutputInitializationRegime.RETAIN;
         this.outputPauseRegime = OutputPauseRegime.ZERO;
-        this.panner.addInput(output);
-        this.addInput(panner);
+        this.setType();
+        this.createOscillator();
+        this.updateFrequency();
     }
 
     /*****************************************************************************
@@ -89,74 +95,107 @@ public abstract class Oscillator extends UGen implements Device {
      */
     public abstract void updateFrequency();
 
-    /**
-     * Routes the sound to the output(s)
-     */
-    public abstract void patchOutput();
-
     /*****************************************************************************
      * END OF KEY METHODS
      *****************************************************************************/
 
+    public String getType(){
+        return this.type;
+    }
+
+    public abstract void setType();
+
     /**
-     * Returns the current frequency of the oscillation
-     * @return frequency
+     * Returns the current frequency of oscillation
+     * @return frequency UGen
      */
     public UGen getFrequency(){
         return this.frequency;
     }
 
     /**
-     * Set the frequency of the oscillation
-     * @param frequency frequency in Hz
+     * Returns the current oscillator output gain
+     * @return gain UGen
+     */
+    public UGen getGain(){
+        return this.gain;
+    }
+
+    /**
+     * Returns the current phase offset
+     * @return phase UGen
+     */
+    public UGen getPhase(){
+        return this.phase;
+    }
+
+    /**
+     * Sets the frequency of oscillation
+     * @param frequency static oscillation frequency
+     * @return this oscillator instance
      */
     public Oscillator setFrequency(UGen frequency){
-        this.frequency = frequency;
-        return this;
-    }
-
-    public Oscillator setFrequency(float frequency){
-        this.setFrequency(new Static(ac, frequency));
-        return this;
-    }
-
-    /**
-     * Set the (maximum) gain of the oscillator
-     * This is achieved by setting the maximum value of the volume envelope
-     * If not stated otherwise, this will be equal with the sustain or rather
-     * adds another layer of control
-     * @param gain relative gain in [0,1]
-     */
-    public void setOutput(float gain){
-        if(gain <= 1f && gain >= 0f){
-            this.volumeEnvelope.maximumGain(gain);
+        if(frequency != null){
+            this.frequency = frequency;
         }
-    }
-
-    public Envelope volumeEnvelope(){
-        return this.volumeEnvelope;
-    }
-
-    public Envelope frequencyEnvelope(){
-        return this.frequencyEnvelope;
+        return this;
     }
 
     /**
-     * Returns the output of the Oscillator
-     * @return output device
+     * Sets the frequency of oscillation
+     * @param frequency static oscillation frequency
+     * @return this oscillator instance
      */
-    public Gain output(){
-        return output;
+    public Oscillator setFrequency(float frequency){
+        return this.setFrequency(new Static(ac, frequency));
     }
 
+    /**
+     * Sets the gain of the oscillator
+     * @param gain gain UGen
+     * @return this oscillator instance
+     */
+    public Oscillator setGain(UGen gain){
+        if(gain != null){
+            this.gain = gain;
+        }
+        return this;
+    }
+
+    /**
+     * Sets the gain of the oscillator
+     * @param gain static gain value as float
+     * @return this oscillator instance
+     */
+    public Oscillator setGain(float gain){
+        return this.setGain(new Static(ac, gain));
+    }
+
+    /**
+     * Sets a constant phase offset for the oscillation
+     * @param phase phase offset in [-1, 1]. NOTE that -1 is to be used for random phase offset since -1 and 1 are equivalent in effect on the oscillation
+     * @return this oscillator instance
+     */
+    public Oscillator setPhase(float phase){
+        return this.setPhase(new Static(ac, phase));
+    }
+
+    /**
+     * Sets a variable phase offset for the oscillation
+     * @param phase variable phase offset UGen
+     * @return this oscillator instance
+     */
+    public Oscillator setPhase(UGen phase){
+        if(phase != null){
+            this.phase = phase;
+        }
+        return this;
+    }
 
     @Override
     public void calculateBuffer(){
-        for(int i = 0; i < outs; i++){
-            bufOut[i] = output.getOutBuffer(i);
-        }
-    }
 
+    }
 
     /**
      * Sets the currently playing MIDI note
@@ -203,7 +242,7 @@ public abstract class Oscillator extends UGen implements Device {
      * Note: Clipping is to be prevented by the user, either by using a limiter
      *       (RangeLimiter Beads UGen, when implementing a chain) otherwise, for factors greateer
      *       than 1, clipping may occur, when velocity/127 * velocityFactor * gain is greater than 1
-     * @param velocityFactor constant factor to be applid onto the volume
+     * @param velocityFactor constant factor to be applied onto the volume
      */
     public void setVelocityFactor(float velocityFactor) {
         this.velocityFactor = velocityFactor;
@@ -236,7 +275,7 @@ public abstract class Oscillator extends UGen implements Device {
             this.setMidiNote(message.getData1());
             // if oscillator is velocity sensitive, adjust volume
             if(this.isVelocitySensitive){
-                this.output.setGain(message.getData2() / 127f * this.output.getGain());
+                this.setGain(message.getData2() / 127f * this.getGain().getValue());
             }
             this.noteOn();
         }

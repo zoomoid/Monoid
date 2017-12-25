@@ -5,13 +5,13 @@ import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.ugens.RangeLimiter;
 import net.beadsproject.beads.ugens.Static;
 import synth.osc.SmartOscillator;
-import synth.osc.UnisonOscillator;
+import synth.osc.MultivoiceOscillator;
 import tests.ContextProvider;
 
 public class UnisonOscillatorTest {
     public static void main(String[] args){
         AudioContext ac = ContextProvider.ac();
-        UnisonOscillator osc = new UnisonOscillator(ac, Buffer.SAW, 5);
+        MultivoiceOscillator osc = new MultivoiceOscillator(ac, Buffer.SAW, 5);
 
         float[] frequencies = SmartOscillator.calculateUnisonPitch(5, new Static(ac, 220f), 1, 0.001f);
         osc.setPhase(0);

@@ -6,6 +6,6 @@ import org.jaudiolibs.beads.AudioServerIO;
 
 public class ContextProvider {
     public static AudioContext ac(){
-        return new AudioContext(new AudioServerIO.JavaSound("Primärer Soundtreiber"), 2048, new IOAudioFormat(48000, 16, 0, 2));
+        return new AudioContext(new AudioServerIO.JavaSound("Primärer Soundtreiber"), 4069, new IOAudioFormat(48000, 16, 0, 2));
     }
 }
