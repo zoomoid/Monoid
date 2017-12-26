@@ -45,6 +45,7 @@ public class BlankButton extends JButton {
             preferredWidth = 110;
             setPreferredSize(new Dimension(preferredWidth, preferredHeight));
             setMinimumSize(new Dimension(preferredWidth, preferredHeight));
+            setFont(new Font("Fira Mono", Font.BOLD, 13));
         }
 
         @Override
@@ -70,7 +71,7 @@ public class BlankButton extends JButton {
             g2d.setColor(Color.BLACK);
             g2d.setStroke(new BasicStroke(2));
             g.drawRoundRect(x, y, width, height, 5, 5);
-            drawCenteredString(g, b.getText(), t, new Font("Fira Mono", Font.BOLD, 13));
+            drawCenteredString(g, b.getText(), t, c.getFont());
             g2d.dispose();
 
         }
@@ -105,5 +106,10 @@ public class BlankButton extends JButton {
         setFocusPainted(false);
         setBorderPainted(false);
         setUI(new BlankButtonUI());
+    }
+
+    public void pack(){
+        FontMetrics f = this.getFontMetrics(this.getFont());
+        this.setPreferredSize(new Dimension(f.stringWidth(this.getText()) + 8, f.getHeight()+4));
     }
 }

@@ -97,7 +97,7 @@ public class AdditiveUI {
             currSlider.addChangeListener(new SliderListener((BasicOscillator) this.addOsc.getOscillators().get(i), freq));
 
             //knobs to control velocity
-            BlankKnob currBlankKnob = new BlankKnob(BlankKnob.DEFAULT, BlankKnob.SMALL, ((BasicOscillator) this.addOsc.getOscillators().get(i)).getGain() * 100f, "Amp");
+            BlankKnob currBlankKnob = new BlankKnob(BlankKnob.DEFAULT, BlankKnob.SMALL, ((BasicOscillator) this.addOsc.getOscillators().get(i)).getGain().getValue() * 100f, "Amp");
 
             currBlankKnob.addPropertyChangeListener(new KnobListener((BasicOscillator) this.addOsc.getOscillators().get(i)));
 

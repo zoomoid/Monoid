@@ -12,6 +12,10 @@ public class BlankToggleButton extends BlankButton {
 
     public class BlankToggleButtonUI extends BlankButtonUI {
 
+        public BlankToggleButtonUI(){
+            setFont(new Font("Fira Mono", Font.BOLD, 12));
+        }
+
         @Override
         public void paint(Graphics g, JComponent c){
             Graphics2D g2d = (Graphics2D) g;
@@ -35,14 +39,14 @@ public class BlankToggleButton extends BlankButton {
                 g2d.setStroke(new BasicStroke(2));
                 g.drawRoundRect(x, y, width, height, 5, 5);
                 g.setColor(Color.WHITE);
-                drawCenteredString(g, b.getText(), t, new Font("Fira Mono", Font.BOLD, 12));
+                drawCenteredString(g, b.getText(), t, c.getFont());
             } else {
                 g.setColor(Color.WHITE);
                 g.fillRoundRect(x, y, width, height, 5, 5);
                 g.setColor(Color.BLACK);
                 g2d.setStroke(new BasicStroke(2));
                 g.drawRoundRect(x, y, width, height, 5, 5);
-                drawCenteredString(g, b.getText(), t, new Font("Fira Mono", Font.BOLD, 13));
+                drawCenteredString(g, b.getText(), t, c.getFont());
             }
             g.dispose();
 
