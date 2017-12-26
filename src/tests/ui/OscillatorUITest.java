@@ -1,4 +1,4 @@
-package tests.oscillators;
+package tests.ui;
 
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.data.Buffer;
@@ -11,7 +11,7 @@ import tests.ContextProvider;
 
 import javax.swing.*;
 
-public class OscUITest {
+public class OscillatorUITest {
     public static void main(String[] args){
         AudioContext ac = ContextProvider.ac();
         ac.start();
@@ -20,17 +20,13 @@ public class OscUITest {
         osc.setBlend(1);
         osc.setSpread(0);
         osc.setVoices(1);
-        osc.setWave(Buffer.SAW);
+        osc.setWave(Buffer.SINE);
 
         RangeLimiter l = new RangeLimiter(ac,1);
         l.addInput(osc);
         ac.out.addInput(l);
 
-        JFrame frame = new JFrame("Oscillator");
-        frame.setContentPane(new OscillatorUI(osc).pane);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.pack();
-        frame.setVisible(true);
-        frame.setResizable(false);
+        OscillatorUI oUI = new OscillatorUI(osc);
+        oUI.show();
     }
 }

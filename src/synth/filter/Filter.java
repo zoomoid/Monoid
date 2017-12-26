@@ -2,108 +2,94 @@ package synth.filter;
 
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
-import net.beadsproject.beads.core.UGenChain;
-import net.beadsproject.beads.ugens.Gain;
 import net.beadsproject.beads.ugens.Static;
 import synth.filter.models.BiquadFilter;
+import synth.filter.models.FilterFactory;
+import synth.filter.models.FilterModel;
 
 /**
  * A Basic 2-channel filter wrapper implementation for Monoid.
  * Different filter types can be chosen from at creation.
  */
-public class Filter extends UGenChain {
+public class Filter extends UGen {
 
-    /**
-     * Quality factor of the filter
-     */
-    private float q;
-
-    /**
-     * UGen determining the Filters cutoff frequency
-     */
+    /** Quality factor of the filter */
+    private UGen q;
+    /** UGen determining the Filters cutoff frequency */
     private UGen cutoff;
-    /**
-     * UGen determining the Filters output gain
-     */
+    /** UGen determining the Filters output gain */
     private UGen gain;
 
-    /**
-     * Filter implementation UGen. Handles the math of filtering. Part of the Filter Chain
-     */
-    private BiquadFilter filterBackend;
+    /** Filter implementation UGen. Handles the math of filtering. Part of the Filter Chain */
+    private FilterModel filterBackend;
 
-    /**
-     * Output UGen. Used as a post-filter leveling device. Part of the Filter Chain
-     */
-    private Gain output;
-    /**
-     * Audio Context
-     */
+    /** Audio Context */
     private AudioContext context;
 
+    public enum Type {BiquadFilter, MonoMoog}
+
+    private Type type;
+
     /**
-     * Blank allpass filter
+     * Blank LPF filter
      * @param ac audio context
      */
     public Filter(AudioContext ac){
-        this(ac, BiquadFilter.AP, 20000f, 24f, 1);
+        this(ac, Type.BiquadFilter, FilterModel.Type.LPF, 20000f, 1f, 1);
     }
 
     /**
      * Creates a filter with static cutoff frequency and static filter gain
      * @param ac audio context
-     * @param filterType filter type
+     * @param type filter type
+     * @param filterModel filter type model
      * @param staticCutoff cutoff frequency
      * @param q filter q
      * @param staticGain filter gain
      */
-    public Filter(AudioContext ac, BiquadFilter.Type filterType, float staticCutoff, float q, float staticGain){
-        this(ac, filterType, new Static(ac, staticCutoff), q, new Static(ac, staticGain));
-    }
-
-    /**
-     * Creates a filter with static cutoff frequency and dynamic filter gain
-     * @param ac audio context
-     * @param filterType filter type
-     * @param staticCutoff cutoff frequency
-     * @param q filter q
-     * @param gain filter gain
-     */
-    public Filter(AudioContext ac, BiquadFilter.Type filterType, float staticCutoff, float q, UGen gain){
-        this(ac, filterType, new Static(ac, staticCutoff), q, gain);
-    }
-
-    /**
-     * Creates a filter with dynamic cutoff frequency and static filter gain
-     * @param ac audio context
-     * @param filterType filter type
-     * @param cutoff cutoff frequency
-     * @param q filter q
-     * @param staticGain filter gain
-     */
-    public Filter(AudioContext ac, BiquadFilter.Type filterType, UGen cutoff, float q, float staticGain){
-        this(ac, filterType, cutoff, q, new Static(ac, staticGain));
+    public Filter(AudioContext ac, Filter.Type type, BiquadFilter.Type filterModel, float staticCutoff, float q, float staticGain){
+        this(ac, type, filterModel, new Static(ac, staticCutoff), new Static(ac, q), new Static(ac, staticGain));
     }
 
     /**
      * Creates a filter with dynamic cutoff frequency and filter gain
      * @param ac audio context
-     * @param filterType filter type
+     * @param type filter type
      * @param cutoff cutoff frequency
      * @param q filter q
      * @param gain filter gain
      */
-    public Filter(AudioContext ac, BiquadFilter.Type filterType, UGen cutoff, float q, UGen gain){
+    public Filter(AudioContext ac, Filter.Type type, FilterModel.Type filterModel, UGen cutoff, UGen q, UGen gain){
         super(ac, 2, 2);
         this.context = ac;
-        filterBackend = new BiquadFilter(ac, 2,filterType);
-        output = new Gain(ac, 2, gain);
-        this.setCutoff(cutoff);
-        this.setQ(q);
-        this.setGain(gain);
-        this.drawFromChainInput(filterBackend);
-        output.addInput(filterBackend);
-        this.addToChainOutput(output);
+
+        switch(type){
+            case BiquadFilter:
+                this.filterBackend = FilterFactory.createBiquadFilter(ac, filterModel);
+                break;
+            case MonoMoog:
+                this.filterBackend = FilterFactory.createMonoMoog(ac, filterModel);
+                break;
+            default:
+                break;
+        }
+
+        this.type = type;
+        if(cutoff != null){
+            this.setCutoff(cutoff);
+        } else {
+            this.setCutoff(new Static(ac, 0f));
+        }
+        if(gain != null){
+            this.setGain(gain);
+        } else {
+            this.setGain(new Static(ac, 1f));
+        }
+        if(q != null){
+            this.setQ(q);
+        } else {
+            this.setQ(new Static(ac, 1f));
+        }
     }
 
     /**
@@ -123,45 +109,63 @@ public class Filter extends UGenChain {
     }
 
     /**
+     * Gets the current Q UGen
+     * @return Q UGen
+     */
+    public UGen getQ(){
+        return q;
+    }
+
+    /**
+     * Gets the type of the filter
+     * @return type enum element
+     */
+    public Type getType(){
+        return this.type;
+    }
+    /**
      * Sets the cutoff frequency of the filter by a static value
-     * @param frequency cutoff frequency as float
+     * @param cutoff cutoff frequency as float
      * @return Filter instance
      */
-    public Filter setCutoff(float frequency){
-        return this.setCutoff(new Static(context, frequency));
+    public Filter setCutoff(float cutoff){
+        return this.setCutoff(new Static(context, cutoff));
     }
 
     /**
      * Sets the cutoff frequency of the filter by a arbitrary UGen
-     * @param frequency frequency determining UGen
+     * @param cutoff cutoff frequency determining UGen
      * @return LFO instance
      */
-    public Filter setCutoff(UGen frequency){
-        if(this.cutoff == null){
-            this.cutoff = frequency;
-        } else {
-            this.cutoff.setValue(frequency.getValue());
+    public Filter setCutoff(UGen cutoff){
+        if(cutoff != null){
+            this.cutoff = cutoff;
+            filterBackend.setFrequency(this.cutoff);
         }
-        filterBackend.setFrequency(this.cutoff.getValue());
         return this;
+    }
+
+    public Filter setQ(float q){
+        return this.setQ(new Static(context, q));
     }
 
     /**
      * Sets the constant quality factor of the filter
      * @param q quality factor
      */
-    public void setQ(float q) {
+    public Filter setQ(UGen q) {
         this.q = q;
         filterBackend.setQ(q);
+        return this;
     }
 
     /**
      * Sets the output gain of the filter by a constant value
-     * @param staticGain output gain as float
+     * @param gain output gain as float
      * @return Filter instance
      */
-    public Filter setGain(float staticGain){
-        return this.setGain(new Static(context, staticGain));
+    public Filter setGain(float gain){
+        return this.setGain(new Static(context, gain));
     }
 
     /**
@@ -170,18 +174,27 @@ public class Filter extends UGenChain {
      * @return Filter instance
      */
     public Filter setGain(UGen gain){
-        if(this.gain == null){
+        if(gain != null){
             this.gain = gain;
-        } else {
-            this.gain.setValue(gain.getValue());
         }
-        filterBackend.setGain(this.gain);
+        //filterBackend.setGain(this.gain);
         return this;
     }
 
     public void setFilterType(BiquadFilter.Type newFilterType){
         if(newFilterType != null){
             this.filterBackend.setType(newFilterType);
+        }
+    }
+
+    public void calculateBuffer(){
+        this.cutoff.update();
+        this.filterBackend.update();
+        this.gain.update();
+        for(int k = 0; k < outs; k++){
+            for(int i = 0; i < bufferSize; i++){
+                bufOut[k][i] = gain.getValue(0, i) * filterBackend.getValue(k, i);
+            }
         }
     }
 }

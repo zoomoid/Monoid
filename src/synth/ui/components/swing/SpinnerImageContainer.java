@@ -6,6 +6,7 @@ public abstract class SpinnerImageContainer {
 
     protected Image img;
     protected int index;
+    public static int staticIndex = 0;
 
     public int getIndex(){
         return index;

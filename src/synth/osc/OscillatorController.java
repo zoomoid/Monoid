@@ -48,7 +48,7 @@ public class OscillatorController {
     public void setup(float frequency){
         for(Oscillator o : oscillators){
             o.setFrequency(frequency);
-            limiter.addInput(o.output());
+            limiter.addInput(o);
         }
     }
 

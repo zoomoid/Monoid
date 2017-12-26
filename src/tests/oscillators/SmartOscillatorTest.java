@@ -15,9 +15,9 @@ public class SmartOscillatorTest {
         AudioContext ac = ContextProvider.ac();
         SmartOscillator osc = new SmartOscillator(ac);
         osc.setWave(Buffer.SAW);
+        osc.setGain(1f);
         ac.out.addInput(osc);
         ac.start();
-        ac.out.setGain(0.1f);
         if(STATIC_FREQUENCY){
             osc.setFrequency(220f);
         } else {
