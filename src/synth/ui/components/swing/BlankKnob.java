@@ -33,7 +33,7 @@ public class BlankKnob extends JComponent implements MouseListener, MouseMotionL
         public BlankKnobUI(BlankKnob b){
             background = Color.WHITE;
             this.knob = Color.BLACK;
-            this.dimensionWidth = 2*b.size.radius + 6*b.size.offset;
+            this.dimensionWidth = 2*b.size.radius + 2*b.size.offset;
             this.dimensionHeight = 2*b.size.radius + 4*b.size.offset;
             this.strokeCircle = b.size.radius / 4;
             this.strokeIndicator = (int)Math.sqrt(this.strokeCircle * 2);

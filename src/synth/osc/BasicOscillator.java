@@ -9,10 +9,10 @@ public class BasicOscillator extends Oscillator implements WavetableOscillator {
 
     /** The phase envelope. */
     private UGen phaseEnvelope;
-
+    /* Phase sampler */
+    private float currentPhase;
     /** The Buffer. */
     private Buffer wave;
-
     /** To store the inverse of the sampling frequency. */
     private float one_over_sr;
 
@@ -26,8 +26,8 @@ public class BasicOscillator extends Oscillator implements WavetableOscillator {
     BasicOscillator(AudioContext ac, SmartOscillator dependent, UGen frequency, Buffer wave){
         this(ac, frequency, wave);
         this.dependent = dependent;
-        this.isUnisonOscillator = false;
         this.addDependent(this.dependent);
+        this.currentPhase = super.phase.getValue();
     }
 
     public BasicOscillator(AudioContext ac, UGen frequency, Buffer wave){
@@ -75,11 +75,12 @@ public class BasicOscillator extends Oscillator implements WavetableOscillator {
         this.frequency.update();
         this.gain.update();
         this.phase.update();
-        float phase = 0;
-        for (int i = 0; i < bufferSize; i++) {
-            this.phase.setValue((((this.phase.getValue(0, i) + frequency.getValue(0, i) * one_over_sr) % 1.0f) + 1.0f) % 1.0f);
-            for(int k = 0; k < outs; k++){
-                bufOut[k][i] = this.wave.getValueFraction(phase);
+        float prevPhase = currentPhase;
+        for(int i = 0; i < outs; i++){
+            currentPhase = prevPhase;
+            for(int j = 0; j < bufferSize; j++){
+                currentPhase = (((currentPhase + frequency.getValue(i, j) * one_over_sr) % 1.f) + 1.f) % 1.f;
+                bufOut[i][j] = this.wave.getValueFraction(currentPhase);
             }
         }
     }

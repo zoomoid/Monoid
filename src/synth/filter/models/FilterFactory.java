@@ -11,6 +11,7 @@ public class FilterFactory {
         return new MonoMoog(ac, type, 0f, 1f, 1f);
     }
 
+    @NotNull
     public static BiquadFilter createBiquadFilter(AudioContext ac, FilterModel.Type type){
         return new BiquadFilter(ac, type, 0f, 1f, 1f);
     }

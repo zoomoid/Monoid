@@ -5,6 +5,7 @@ import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.ugens.RangeLimiter;
 import synth.filter.Filter;
 import synth.filter.models.BiquadFilter;
+import synth.filter.models.FilterModel;
 import synth.osc.BasicOscillator;
 import synth.osc.SmartOscillator;
 import synth.ui.FilterUI;
@@ -22,7 +23,7 @@ public class Pad {
         osc.setWave(Buffer.SAW);
         osc.setGain(1f);
 
-        Filter lp = new Filter(ac, BiquadFilter.LP, 22000f, 2, 1f);
+        Filter lp = new Filter(ac, Filter.Type.BiquadFilter, FilterModel.Type.LPF, 22000f, 2, 1f);
         lp.addInput(osc);
 
         RangeLimiter l = new RangeLimiter(ac, 2);

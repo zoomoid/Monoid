@@ -3,6 +3,7 @@ package synth.ui;
 import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.data.Pitch;
 import synth.SynthController;
+import synth.auxilliary.MIDIUtils;
 import synth.osc.Oscillator;
 import synth.osc.UnisonOscillator;
 import synth.osc.WavetableOscillator;
@@ -82,11 +83,9 @@ public class OscillatorUI {
         pane.add(topPanel);
         pane.add(unisonPane);
 
-
-        frequencyKnob = new BlankKnob(new BlankKnob.Parameters(1, 1000, 1, false, false), new BlankKnob.Size(48, 48/3), 300, "Frequency");
+        frequencyKnob = new BlankKnob(new BlankKnob.Parameters(0, 127, 0.25f, true, true), new BlankKnob.Size(48, 48/3), 57, "Frequency");
         frequencyKnob.addPropertyChangeListener(e -> {
-            associatedOscillator.setFrequency(frequencyKnob.params().scale(
-                    Pitch.mtof(0), Pitch.mtof(127),(float) e.getNewValue()));
+            associatedOscillator.setFrequency(Pitch.mtof((float)e.getNewValue()));
         });
         frequencyPane.add(frequencyKnob);
 
@@ -177,14 +176,13 @@ public class OscillatorUI {
 
             unisonPane.add(unisonVoicesPane);
         }
-
-
-
         this.ui = new JFrame(associatedOscillator.getName());
         this.ui.setContentPane(this.pane);
         this.ui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.ui.pack();
         this.ui.setResizable(false);
+
+        this.initializeFromOscillator();
     }
 
     public void hide(){
@@ -193,5 +191,17 @@ public class OscillatorUI {
 
     public void show(){
         this.ui.setVisible(true);
+    }
+
+    private void initializeFromOscillator(){
+        this.frequencyKnob.setValue(associatedOscillator.getFrequency().getValue());
+        this.gainKnob.setValue(associatedOscillator.getGain().getValue());
+        // TODO implement wavetable switch case. (Wavetable)Oscillators need an enum for their wave type to compare against, since buffers get serialized and are returned as float arrays.
+        if(associatedOscillator instanceof UnisonOscillator){
+            this.unisonVoicesSlider.setValue(((UnisonOscillator) associatedOscillator).getVoices());
+            this.unisonSpreadKnob.setValue(((UnisonOscillator) associatedOscillator).getSpread());
+            this.unisonBlendKnob.setValue(((UnisonOscillator) associatedOscillator).getBlend());
+            this.unisonEnableButton.toggle(true);
+        }
     }
 }

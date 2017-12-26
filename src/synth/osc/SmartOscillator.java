@@ -256,6 +256,8 @@ public class SmartOscillator extends Oscillator implements UnisonOscillator, Wav
         this.frequency.update();
         this.phase.update();
         for(int i = 0; i < outs; i++){
+            unison.update();
+            center.update();
             for(int j = 0; j < bufferSize; j++){
                 bufOut[i][j] = this.gain.getValue(i, j) * ((1-0.5f*this.blend) * center.getValue(i, j) + (0.5f*this.blend) * unison.getValue(i, j));
             }
