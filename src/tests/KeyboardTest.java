@@ -37,7 +37,7 @@ public class KeyboardTest {
         osc = new SmartOscillator(ac, 220f, Buffer.SAW, 1, 2f, 1f);
         limiter = new RangeLimiter(ac, 2);
         Panner panner = new Panner(ac, 0f);
-        panner.addInput(osc.output());
+        panner.addInput(osc);
         limiter.addInput(panner);
         Gain g = new Gain(ac, 1, 0.1f);
         g.addInput(limiter);

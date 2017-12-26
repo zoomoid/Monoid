@@ -336,7 +336,7 @@ public class GranularSamplePlayer extends SamplePlayer {
 	}
 	
 	/* (non-Javadoc)
-	 * @see net.beadsproject.beads.ugens.SamplePlayer#setBuffer(net.beadsproject.beads.data.Sample)
+	 * @see net.beadsproject.beads.ugens.SamplePlayer#setWave(net.beadsproject.beads.data.Sample)
 	 */
 	public synchronized void setSample(Sample buffer) {
 		super.setSample(buffer);

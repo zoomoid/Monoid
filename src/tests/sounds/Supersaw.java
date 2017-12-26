@@ -17,7 +17,7 @@ public class Supersaw {
         osc.setWave(Buffer.SAW);
         osc.setVoices(7);
         osc.setSpread(5f);
-        osc.output().setGain(0.25f);
+        osc.setGain(0.25f);
         ac.out.addInput(osc);
     }
 }

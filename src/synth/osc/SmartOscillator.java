@@ -3,14 +3,8 @@ package synth.osc;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.data.Buffer;
-import net.beadsproject.beads.data.Pitch;
-import net.beadsproject.beads.ugens.Gain;
-import net.beadsproject.beads.ugens.WavePlayer;
-import synth.auxilliary.MIDIUtils;
 
-import javax.sound.midi.ShortMessage;
-
-public class SmartOscillator extends Oscillator {
+public class SmartOscillator extends Oscillator implements UnisonOscillator, WavetableOscillator {
 
     private float spread;
     private int voices;
@@ -19,12 +13,8 @@ public class SmartOscillator extends Oscillator {
 
     private Buffer wave;
 
-    private UnisonOscillator unison;
+    private MultivoiceOscillator unison;
     private BasicOscillator center;
-
-    private float startPhase;
-
-    private boolean isInitialised;
 
     /**
      * Blank SmartOscillator
@@ -86,32 +76,44 @@ public class SmartOscillator extends Oscillator {
      */
     public SmartOscillator(AudioContext ac, float frequency, Buffer wave, int voices, float spread, float blend){
         super(ac, frequency);
+        // wavetable specific initialization
+        this.wave = wave;
+        // unison specific initialization
         this.spread = spread;
         this.voices = voices;
-        this.wave = wave;
         this.spreadFunction = 1;
         this.blend = blend;
-        this.startPhase = 0;
-        unison = null;
-        center = null;
+        // submodule initialization
+        unison = new MultivoiceOscillator(ac, this, this.wave, this.voices);
+        unison.setPhase(this.phase);
+        center = new BasicOscillator(ac, this, frequency, this.wave);
+        center.setPhase(this.phase);
+        this.addDependent(unison);
+        this.addDependent(center);
+        // output policy
         this.outputInitializationRegime = OutputInitializationRegime.RETAIN;
-        this.isInitialised = false;
-        this.createOscillator();
-        this.updateFrequency();
-        this.patchOutput();
     }
 
     /**
      * Gets the (serialized) buffer of wave form of this oscillator
-     * @return
+     * @return waveform as float array
      */
     public Buffer getWave() {
         return wave;
     }
 
     /**
+     * Sets the type label of the oscillator
+     */
+    public final void setType(){
+        if(this.type == null){
+            this.type = "SmartOscillator";
+        }
+    }
+
+    /**
      * Gets the blend ratio with which the center voice and the unison voices gets blended together
-     * @return
+     * @return the blend ratio of center and unison in [0,1]
      */
     public float getBlend() {
         return blend;
@@ -120,7 +122,7 @@ public class SmartOscillator extends Oscillator {
     /**
      * Gets the number of voices of this oscillator
      * This is always 1 + unison voices
-     * @return
+     * @return number of voices as integer
      */
     public int getVoices() {
         return voices;
@@ -128,7 +130,7 @@ public class SmartOscillator extends Oscillator {
 
     /**
      * Gets the pitch spread range of the unison voices
-     * @return
+     * @return pitch spread range in float
      */
     public float getSpread() {
         return spread;
@@ -143,10 +145,10 @@ public class SmartOscillator extends Oscillator {
     }
 
     /**
-     * Gets the side UnisonOscillator object
+     * Gets the side MultivoiceOscillator object
      * @return unison oscillator object
      */
-    public UnisonOscillator getUnison() {
+    public MultivoiceOscillator getUnison() {
         return unison;
     }
 
@@ -206,10 +208,11 @@ public class SmartOscillator extends Oscillator {
      * Sets the unison spread function in form of an exponent
      * @param spreadFunction exponent for pitch offset calculation
      */
-    public void setSpreadFunction(float spreadFunction) {
+    public SmartOscillator setSpreadFunction(float spreadFunction) {
         // no need for super.hasChanged since simply the unison frequencies get recalculated
         this.spreadFunction = spreadFunction;
         this.unison.setFrequencies(this.calculateUnisonPitch());
+        return this;
     }
 
     /**
@@ -228,11 +231,12 @@ public class SmartOscillator extends Oscillator {
      */
     @Override
     public void createOscillator(){
-        unison = new UnisonOscillator(super.ac, this.wave, this.voices - 1);
-        unison.setPhase(this.startPhase);
-        center = new BasicOscillator(super.ac, super.frequency, this.wave);
-        center.setPhase(this.startPhase);
-        this.isInitialised = true;
+        unison = new MultivoiceOscillator(ac, this, this.wave, this.voices);
+        unison.setPhase(this.phase);
+        center = new BasicOscillator(ac, this, frequency, this.wave);
+        center.setPhase(this.phase);
+        this.addDependent(unison);
+        this.addDependent(center);
     }
 
     /**
@@ -240,35 +244,22 @@ public class SmartOscillator extends Oscillator {
      */
     @Override
     public void updateFrequency() {
-        if(isInitialised){
+        if(unison != null && center != null){
             this.unison.setFrequencies(this.calculateUnisonPitch());
             this.center.setFrequency(super.frequency);
         }
     }
 
-    /**
-     * Routes center voice to center output and unison voices to unison output.
-     * Also calculates the blend ratio for the gain adjustments
-     */
-    @Override
-    public void patchOutput() {
-        if(isInitialised){
-            // this is deprecated since output belongs to the superclass which implicates inter-class dependencies which
-            // we try to minimize
-            // rather add both output devices together in calculateBuffer
-            //output.addInput(cGain);
-            //if(voices > 1) {
-            //    output.addInput(sGain);
-            //}
-        }
-    }
-
     @Override
     public void calculateBuffer(){
+        this.gain.update();
+        this.frequency.update();
+        this.phase.update();
         for(int i = 0; i < outs; i++){
+            unison.update();
+            center.update();
             for(int j = 0; j < bufferSize; j++){
-                // FIXME I suppose BasicOscillator only has 1 output in this configuration resulting in an ArrayOutOfBounds exception
-                bufOut[i][j] = (1-0.5f*this.blend) * center.getValue(i, j) + (0.5f*this.blend) * unison.getValue(i, j);
+                bufOut[i][j] = this.gain.getValue(i, j) * ((1-0.5f*this.blend) * center.getValue(i, j) + (0.5f*this.blend) * unison.getValue(i, j));
             }
         }
     }
@@ -284,9 +275,9 @@ public class SmartOscillator extends Oscillator {
 
     /**
      * Calculates a unison pitch offset
-     * @param voices
-     * @param spreadFunction
-     * @param spread
+     * @param voices number of unison voices
+     * @param spreadFunction exponent of spread function monoial
+     * @param spread spread range
      * @return array containing absolute frequency values
      */
     public static float[] calculateUnisonPitch(int voices, UGen frequency, double spreadFunction, float spread){
@@ -300,57 +291,10 @@ public class SmartOscillator extends Oscillator {
         return r;
     }
 
-    /**
-     * Kills the voices and pauses the output
-     */
-    @Override
-    public void kill(){
-        if(center != null){
-            center.kill();
-        }
-        if(unison != null) {
-            unison.kill();
-        }
-        output.pause(true);
-        isPaused = true;
-    }
-
-    /**
-     * Shortcut for pause(false)
-     */
-    public void start(){
-        this.pause(false);
-    }
-
-    /**
-     * Shortcut for pause(true)
-     */
-    public void pause(){
-        this.pause(true);
-    }
-
-    /**
-     * {@see UGen}
-     * @param paused pause or play
-     */
-    @Override
-    public void pause(boolean paused){
-        if(isPaused != paused){
-            if(center != null)
-                center.pause(paused);
-            if(unison != null)
-                unison.pause(paused);
-            output.pause(paused);
-            isPaused = paused;
-        }
-
-    }
-
     private void needsRefresh(){
         this.pause(true);
         this.createOscillator();
         this.updateFrequency();
-        this.patchOutput();
         this.pause(false);
     }
 }
