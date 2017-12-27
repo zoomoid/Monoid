@@ -1,111 +1,103 @@
 package synth.ui.experimental;
 
-import net.beadsproject.beads.ugens.Gain;
-import synth.osc.AdditiveOscillator;
+import net.beadsproject.beads.core.AudioContext;
+import net.beadsproject.beads.data.Buffer;
 import synth.osc.BasicOscillator;
-import synth.ui.components.swing.BlankButton;
-import synth.ui.components.swing.BlankKnob;
-import synth.ui.components.swing.BlankSlider;
+import synth.ui.OscillatorPanel;
+import synth.ui.components.swing.BlankPanel;
 
-import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 
 public class AdditiveUI {
-    /**The controlled additive osc */
-    private AdditiveOscillator addOsc;
+    AudioContext ac;
+    public static final int DEFAULT = 0;
+    public static final int SAW = 1;
+    public static final int SQUARE = 2;
+    public static final int TRIANGLE = 3;
 
-    public JPanel contentPane;
+    /**structure to combine oscillator and oscillatorPanel*/
+    class OscController {
+        BasicOscillator osc;
+        OscillatorPanel panel;
+
+        public OscController(BasicOscillator osc) {
+            this.osc = osc;
+            panel = new OscillatorPanel(osc);
+        }
+
+        public void setOsc(BasicOscillator osc) {
+            this.osc = osc;
+            panel = new OscillatorPanel(osc);
+        }
+
+        public BasicOscillator getOscillator() {
+            return this.osc;
+        }
+    }
+
+    public BlankPanel contentPane;
     private GridLayout grid;
 
-    public AdditiveUI(AdditiveOscillator addOsc) {
-        this.addOsc = addOsc; //the controlled additive Osc
-        contentPane = new JPanel();
-        contentPane.setBackground(Color.WHITE);
+    public AdditiveUI(int numberOfOscillators, AudioContext ac, int param) {
+        contentPane = new BlankPanel();
+        this.ac = ac;
 
-        //turned lambda function as seen in filterUI into SliderListener to prevent non final value i to make
-        // lambda functionality useless
-        class SliderListener implements ChangeListener {
-            BasicOscillator osc;
-            JTextField addControl; //textField, also controlling frequency
+        setupOscillators(220f, numberOfOscillators, param);
 
-            public SliderListener(BasicOscillator osc, JTextField tf) {
-                this.osc = osc;
-                this.addControl = tf;
-            }
-
-            public void stateChanged(ChangeEvent e) {
-                BlankSlider source = (BlankSlider) e.getSource();
-                if (!source.getValueIsAdjusting()) {
-                    float value = source.getValue() / 100f;
-                    this.osc.setFrequency(value);
-                    this.addControl.setText(Float.toString(value));
-                }
-            }
-        }
-        //same here, but as knobListener
-        class KnobListener implements PropertyChangeListener {
-            BasicOscillator osc;
-            KnobListener(BasicOscillator osc) {
-                this.osc = osc;
-            }
-
-            @Override
-            public void propertyChange(PropertyChangeEvent evt) {
-                BlankKnob source = (BlankKnob) evt.getSource();
-                this.osc.setGain((float) source.getValue() / 100);
-                osc.update();
-            }
-        }
-
-        class FieldListener implements ActionListener {
-            BasicOscillator osc;
-            BlankSlider addControl; //slider, also controlling frequency
-
-            FieldListener(BasicOscillator osc, BlankSlider bs) {
-                this.osc = osc;
-                this.addControl = bs;
-            }
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                JTextField text = (JTextField) e.getSource();
-                float newFreq= Float.parseFloat(text.getText());
-                this.addControl.setValue((int) (newFreq * 100));
-                osc.setFrequency(newFreq);
-                osc.update();
-            }
-        }
-
-        for(int i = 0; i < addOsc.getOscillators().size(); i++) {
-            //textfield to adjust frequency
-            JTextField freq = new JTextField(((Float)((BasicOscillator) addOsc.getOscillators().get(i)).getFrequency().getValue()).toString());
-            //sldier to adjust frequency
-            BlankSlider currSlider = new BlankSlider(JSlider.HORIZONTAL, 0, 440000, (int) this.addOsc.getBasicFreq()
-                    *100);
-            currSlider.setSnapToTicks(false);
-            currSlider.setPaintTicks(true);
-
-            contentPane.add(freq);
-            freq.addActionListener(new FieldListener((BasicOscillator) this.addOsc.getOscillators().get(i), currSlider));
-
-            contentPane.add(currSlider);
-            currSlider.addChangeListener(new SliderListener((BasicOscillator) this.addOsc.getOscillators().get(i), freq));
-
-            //knobs to control velocity
-            BlankKnob currBlankKnob = new BlankKnob(BlankKnob.DEFAULT, BlankKnob.SMALL, ((BasicOscillator) this.addOsc.getOscillators().get(i)).getGain() * 100f, "Amp");
-
-            currBlankKnob.addPropertyChangeListener(new KnobListener((BasicOscillator) this.addOsc.getOscillators().get(i)));
-
-            contentPane.add(currBlankKnob);
-            contentPane.updateUI();
-        }
-        grid = new GridLayout(this.addOsc.getOscillators().size(), 3, 5, 5);
+        grid = new GridLayout(numberOfOscillators, 1, 5, 5);
         contentPane.setLayout(grid);
         contentPane.updateUI();
+    }
+
+    private void setupOscillators(float basicFreq, int numberOfOscillators, int param) {
+        switch(param) {
+            default:
+            case DEFAULT:
+                for(int i = 0; i < numberOfOscillators; i++) {
+                    BasicOscillator bscOsc = new BasicOscillator(this.ac, basicFreq, Buffer.SINE);
+                    if(i == 0) {
+                        bscOsc.setGain(0.2f);
+                    } else {
+                        bscOsc.setGain(0f);
+                    }
+                    OscillatorPanel oscPanel = new OscillatorPanel(bscOsc);
+                    contentPane.add(oscPanel);
+                    this.ac.out.addInput(bscOsc);
+                }
+                break;
+            case SAW:
+                for(int i = 0; i < numberOfOscillators; i++) {
+                    BasicOscillator bscOsc = new BasicOscillator(this.ac, basicFreq * (float) i, Buffer.SINE);
+
+                    bscOsc.setGain((float) 1 / (float) i);
+
+                    OscillatorPanel oscPanel = new OscillatorPanel(bscOsc);
+                    contentPane.add(oscPanel);
+                    this.ac.out.addInput(bscOsc);
+                }
+                break;
+            case SQUARE:
+                for(int i = 0; i < numberOfOscillators; i++) {
+                    BasicOscillator bscOsc = new BasicOscillator(this.ac, basicFreq * (float) i * 2, Buffer.SINE);
+
+                    bscOsc.setGain((float) 1 / (float) i * 2);
+
+                    OscillatorPanel oscPanel = new OscillatorPanel(bscOsc);
+                    contentPane.add(oscPanel);
+                    this.ac.out.addInput(bscOsc);
+                }
+                break;
+            case TRIANGLE:
+                for(int i = 0; i < numberOfOscillators; i++) {
+                    BasicOscillator bscOsc = new BasicOscillator(this.ac, basicFreq * (float) i * 2, Buffer.SINE);
+
+                    bscOsc.setGain((float) 1 / (float) (i * 2) * (i * 2));
+
+                    OscillatorPanel oscPanel = new OscillatorPanel(bscOsc);
+                    contentPane.add(oscPanel);
+                    this.ac.out.addInput(bscOsc);
+                }
+                break;
+        }
     }
 }

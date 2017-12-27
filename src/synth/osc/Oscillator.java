@@ -3,14 +3,11 @@ package synth.osc;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.data.Pitch;
-import net.beadsproject.beads.ugens.Panner;
-import synth.modulation.Envelope;
-import net.beadsproject.beads.ugens.Gain;
-import net.beadsproject.beads.ugens.Glide;
 import net.beadsproject.beads.ugens.Static;
 import synth.auxilliary.Device;
+import synth.modulation.Envelope;
 
-import javax.sound.midi.*;
+import javax.sound.midi.ShortMessage;
 
 public abstract class Oscillator extends UGen implements Device {
 
