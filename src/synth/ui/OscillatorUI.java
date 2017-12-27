@@ -68,7 +68,11 @@ public class OscillatorUI {
     private BlankLabel _headline;
     private BlankLabel _frequencyLabel, _gainLabel, _wavetableLabel, _unisonVoicesLabel, _unisonSpreadLabel, _unisonBlendLabel;
 
-    private BlankTextfield _frequency, _gain, _unisonVoices, _unisonSpread, _unisonBlend;
+    private BlankSpinner _frequency;
+    private BlankSpinner _gain;
+    private BlankSpinner _unisonVoices;
+    private BlankSpinner _unisonSpread;
+    private BlankSpinner _unisonBlend;
     private BlankImageSpinner _wavetableSpinner;
 
     private JFrame ui;
@@ -235,16 +239,16 @@ public class OscillatorUI {
         optionsPane.add(_headline);
         optionsPane.add(_pane);
         this._frequencyLabel = new BlankLabel("Frequency");
-        this._frequency = new BlankTextfield(associatedOscillator.getFrequency().getValue() + "");
-        this._frequency.addActionListener(e -> {
-            this.frequencyKnob.setValue(Float.parseFloat(_frequency.getText()));
+        this._frequency = new BlankSpinner(new SpinnerNumberModel(associatedOscillator.getFrequency().getValue(), 0.0, 22000.0, 1));
+        this._frequency.addChangeListener(e -> {
+            this.frequencyKnob.setValue(Float.parseFloat(_frequency.getValue() + ""));
         });
         _pane.add(_frequencyLabel);
         _pane.add(_frequency);
         this._gainLabel = new BlankLabel("Gain");
-        this._gain = new BlankTextfield(associatedOscillator.getGain().getValue() + "");
-        this._gain.addActionListener(e -> {
-            this.gainKnob.setValue(Float.parseFloat(_gain.getText()));
+        this._gain = new BlankSpinner(new SpinnerNumberModel(associatedOscillator.getGain().getValue(), 0.0, 1.0, 0.01));
+        this._gain.addChangeListener(e -> {
+            this.gainKnob.setValue(Float.parseFloat(_gain.getValue() + ""));
         });
         _pane.add(_gainLabel);
         _pane.add(_gain);
@@ -259,28 +263,28 @@ public class OscillatorUI {
         }
         if(associatedOscillator instanceof UnisonOscillator){
             this._unisonVoicesLabel = new BlankLabel("Unison Voices");
-            this._unisonVoices = new BlankTextfield(((UnisonOscillator) associatedOscillator).getVoices() + "");
-            this._unisonVoices.addActionListener(e -> {
-                if(Integer.parseInt(this._unisonVoices.getText()) > 0){
+            this._unisonVoices = new BlankSpinner(new SpinnerNumberModel(((UnisonOscillator) associatedOscillator).getVoices(), 0, 8, 1));
+            this._unisonVoices.addChangeListener(e -> {
+                if(Integer.parseInt(this._unisonVoices.getValue() + "") > 0){
                     this.unisonEnableButton.toggle(true);
                 } else {
                     this.unisonEnableButton.toggle(false);
                 }
-                this.unisonVoicesSlider.setValue(Integer.parseInt(this._unisonVoices.getText()));
+                this.unisonVoicesSlider.setValue(Integer.parseInt(this._unisonVoices.getValue()+ ""));
             });
             _pane.add(_unisonVoicesLabel);
             _pane.add(_unisonVoices);
             this._unisonSpreadLabel = new BlankLabel("Unison Spread");
-            this._unisonSpread = new BlankTextfield(((UnisonOscillator) associatedOscillator).getSpread() + "");
-            this._unisonSpread.addActionListener(e -> {
-                this.unisonSpreadKnob.setValue(Float.parseFloat(this._unisonSpread.getText()));
+            this._unisonSpread = new BlankSpinner(new SpinnerNumberModel(((UnisonOscillator) associatedOscillator).getSpread(), 0.0, 1.0, 0.01));
+            this._unisonSpread.addChangeListener(e -> {
+                this.unisonSpreadKnob.setValue(Float.parseFloat(this._unisonSpread.getValue() + ""));
             });
             _pane.add(_unisonSpreadLabel);
             _pane.add(_unisonSpread);
             this._unisonBlendLabel = new BlankLabel("Unison Blend");
-            this._unisonBlend = new BlankTextfield(((UnisonOscillator) associatedOscillator).getBlend() + "");
-            this._unisonBlend.addActionListener(e -> {
-                this.unisonBlendKnob.setValue(Float.parseFloat(this._unisonBlend.getText()));
+            this._unisonBlend = new BlankSpinner(new SpinnerNumberModel(((UnisonOscillator) associatedOscillator).getBlend(), 0.0, 1.0, 0.01));
+            this._unisonBlend.addChangeListener(e -> {
+                this.unisonBlendKnob.setValue(Float.parseFloat(this._unisonBlend.getValue() + ""));
             });
             _pane.add(_unisonBlendLabel);
             _pane.add(_unisonBlend);
