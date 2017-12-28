@@ -3,10 +3,12 @@ package synth.ui.experimental;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.data.Buffer;
 import synth.osc.BasicOscillator;
+import synth.osc.Oscillator;
 import synth.ui.OscillatorPanel;
 import synth.ui.components.swing.BlankPanel;
 
 import java.awt.*;
+import java.util.ArrayList;
 
 public class AdditiveUI {
     AudioContext ac;
@@ -14,6 +16,9 @@ public class AdditiveUI {
     public static final int SAW = 1;
     public static final int SQUARE = 2;
     public static final int TRIANGLE = 3;
+
+    public static int numberOfOscillators = 0;
+    ArrayList<Oscillator> activeOscillators = new ArrayList<Oscillator>();
 
     /**structure to combine oscillator and oscillatorPanel*/
     class OscController {
@@ -39,6 +44,7 @@ public class AdditiveUI {
     private GridLayout grid;
 
     public AdditiveUI(int numberOfOscillators, AudioContext ac, int param) {
+        this.numberOfOscillators = numberOfOscillators;
         contentPane = new BlankPanel();
         this.ac = ac;
 
@@ -50,54 +56,47 @@ public class AdditiveUI {
     }
 
     private void setupOscillators(float basicFreq, int numberOfOscillators, int param) {
-        switch(param) {
-            default:
-            case DEFAULT:
-                for(int i = 0; i < numberOfOscillators; i++) {
-                    BasicOscillator bscOsc = new BasicOscillator(this.ac, basicFreq, Buffer.SINE);
-                    if(i == 0) {
+        for(int i = 1; i <= numberOfOscillators; i++) {
+            BasicOscillator bscOsc = new BasicOscillator(this.ac, basicFreq, Buffer.SINE);
+            activeOscillators.add(bscOsc);
+
+            switch(param) {
+                default:
+                case DEFAULT:
+                    if(i == 1) {
                         bscOsc.setGain(0.2f);
                     } else {
                         bscOsc.setGain(0f);
                     }
-                    OscillatorPanel oscPanel = new OscillatorPanel(bscOsc);
-                    contentPane.add(oscPanel);
-                    this.ac.out.addInput(bscOsc);
-                }
-                break;
-            case SAW:
-                for(int i = 0; i < numberOfOscillators; i++) {
-                    BasicOscillator bscOsc = new BasicOscillator(this.ac, basicFreq * (float) i, Buffer.SINE);
-
+                    break;
+                case SAW:
                     bscOsc.setGain((float) 1 / (float) i);
+                    bscOsc.setFrequency(basicFreq * (float) i);
+                    break;
+                case SQUARE:
+                    bscOsc.setGain((float) 1 / (i * 2 + 1f));
+                    bscOsc.setFrequency(basicFreq * (i * 2 + 1f));
+                    break;
+                case TRIANGLE:
+                    bscOsc.setGain((float) 1 / (float) (i * 2 + 1f) * (i * 2 + 1f));
+                    bscOsc.setFrequency(basicFreq * (i * 2 + 1f) * (i * 2 + 1f));
+                    break;
+            }
 
-                    OscillatorPanel oscPanel = new OscillatorPanel(bscOsc);
-                    contentPane.add(oscPanel);
-                    this.ac.out.addInput(bscOsc);
-                }
-                break;
-            case SQUARE:
-                for(int i = 0; i < numberOfOscillators; i++) {
-                    BasicOscillator bscOsc = new BasicOscillator(this.ac, basicFreq * (float) i * 2, Buffer.SINE);
+            OscController oscCon = new OscController(bscOsc);
 
-                    bscOsc.setGain((float) 1 / (float) i * 2);
+            contentPane.add(oscCon.panel);
+            this.ac.out.addInput(bscOsc);
+        }
+    }
 
-                    OscillatorPanel oscPanel = new OscillatorPanel(bscOsc);
-                    contentPane.add(oscPanel);
-                    this.ac.out.addInput(bscOsc);
-                }
-                break;
-            case TRIANGLE:
-                for(int i = 0; i < numberOfOscillators; i++) {
-                    BasicOscillator bscOsc = new BasicOscillator(this.ac, basicFreq * (float) i * 2, Buffer.SINE);
+    public int getNumberOfOscillators() {
+        return numberOfOscillators;
+    }
 
-                    bscOsc.setGain((float) 1 / (float) (i * 2) * (i * 2));
-
-                    OscillatorPanel oscPanel = new OscillatorPanel(bscOsc);
-                    contentPane.add(oscPanel);
-                    this.ac.out.addInput(bscOsc);
-                }
-                break;
+    public void killAllOscillators() {
+        for(Oscillator osc : activeOscillators) {
+            osc.kill();
         }
     }
 }

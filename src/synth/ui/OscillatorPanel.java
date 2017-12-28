@@ -14,7 +14,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
 public class OscillatorPanel extends BlankPanel {
-
+    Oscillator osc;
     //turned lambda function as seen in filterUI into SliderListener to prevent non final value i to make
     // lambda functionality useless
     class SliderListener implements ChangeListener {
@@ -45,7 +45,7 @@ public class OscillatorPanel extends BlankPanel {
         @Override
         public void propertyChange(PropertyChangeEvent evt) {
             BlankKnob source = (BlankKnob) evt.getSource();
-            this.osc = (Oscillator) this.osc.setGain(source.getValue() / 100);
+            this.osc = this.osc.setGain(source.getValue() / 100);
             this.osc.update();
         }
     }
@@ -71,6 +71,7 @@ public class OscillatorPanel extends BlankPanel {
     public OscillatorPanel() {super();}
 
     public OscillatorPanel(Oscillator osc) {
+        this.osc = osc;
         JTextField freq = new JTextField(((Float)(osc.getFrequency().getValue())).toString());
         //slider to adjust frequency
         BlankSlider slider = new BlankSlider(JSlider.HORIZONTAL, 0, 440000, (int) osc.getFrequency().getValue() * 100);
@@ -90,5 +91,9 @@ public class OscillatorPanel extends BlankPanel {
 
         this.add(blankKnob);
         this.updateUI();
+    }
+
+    public void remove() {
+        this.osc.kill();
     }
 }

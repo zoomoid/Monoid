@@ -23,11 +23,14 @@ public class AddSynthTest {
     private static BlankButton presetSquare;
     private static BlankButton presetTriangle;
 
+    private static AdditiveUI currUI;
+
     public static void main(String[] args) {
         JFrame frame = new JFrame("Additive Synthesis");
         mainPane = new BlankPanel();
         presetPane = new BlankPanel();
-        synthPane = new AdditiveUI(5, ac, AdditiveUI.DEFAULT).contentPane;
+        currUI = new AdditiveUI(5, ac, AdditiveUI.DEFAULT);
+        synthPane = currUI.contentPane;
 
         //setip layouts
         mainPane.setLayout(mainGrid);
@@ -36,30 +39,38 @@ public class AddSynthTest {
         //setup preset Buttons
         presetDefault = new BlankButton("Default");
         presetDefault.addActionListener(e -> {
-            mainPane.remove(synthPane);
-            synthPane = new AdditiveUI(5, ac, AdditiveUI.DEFAULT).contentPane;
+            removeSynthPane();
+            currUI = new AdditiveUI(5, ac, AdditiveUI.DEFAULT);
+            synthPane = currUI.contentPane;
             mainPane.add(synthPane);
+            mainPane.updateUI();
         });
 
         presetSaw = new BlankButton("Saw");
         presetSaw.addActionListener(e -> {
-            mainPane.remove(synthPane);
-            synthPane = new AdditiveUI(5, ac, AdditiveUI.SAW).contentPane;
+            removeSynthPane();
+            currUI = new AdditiveUI(15, ac, AdditiveUI.SAW);
+            synthPane = currUI.contentPane;
             mainPane.add(synthPane);
+            mainPane.updateUI();
         });
 
         presetSquare = new BlankButton("Square");
         presetSquare.addActionListener(e -> {
-            mainPane.remove(synthPane);
-            synthPane = new AdditiveUI(5, ac, AdditiveUI.SQUARE).contentPane;
+            removeSynthPane();
+            currUI = new AdditiveUI(10, ac, AdditiveUI.SQUARE);
+            synthPane = currUI.contentPane;
             mainPane.add(synthPane);
+            mainPane.updateUI();
         });
 
         presetTriangle = new BlankButton("Triangle");
         presetTriangle.addActionListener(e -> {
-            mainPane.remove(synthPane);
-            synthPane = new AdditiveUI(5, ac, AdditiveUI.TRIANGLE).contentPane;
+            removeSynthPane();
+            currUI = new AdditiveUI(10, ac, AdditiveUI.TRIANGLE);
+            synthPane = currUI.contentPane;
             mainPane.add(synthPane);
+            mainPane.updateUI();
         });
 
         //add buttons
@@ -75,5 +86,11 @@ public class AddSynthTest {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
         frame.setVisible(true);
+    }
+
+    public static void removeSynthPane() {
+        currUI.killAllOscillators();
+        mainPane.remove(synthPane);
+        mainPane.updateUI();
     }
 }
