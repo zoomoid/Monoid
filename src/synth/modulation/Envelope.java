@@ -2,11 +2,12 @@ package synth.modulation;
 
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
+import synth.container.Device;
 
 /**
  * A basic envelope wrapping class.
  */
-public class Envelope extends UGen {
+public class Envelope extends Modulator {
 
     /**
      * attack time in milliseconds
@@ -67,13 +68,12 @@ public class Envelope extends UGen {
      * @param release release time
      */
     public Envelope(AudioContext ac, int attack, int decay, float sustain, int release){
-        super(ac, 0, 1);
+        super(ac);
         this.context = ac;
         this.attack = attack;
         this.decay = decay;
         this.sustain = sustain;
         this.release = release;
-        this.maximumGain = 1f;
         current = new net.beadsproject.beads.ugens.Envelope(this.context);
         this.outputInitializationRegime = OutputInitializationRegime.ZERO;
         this.outputPauseRegime = OutputPauseRegime.ZERO;
@@ -91,26 +91,10 @@ public class Envelope extends UGen {
      * Sets the attack time
      * @param attack attack time in ms
      */
-    public void attack(int attack) {
+    public void setAttack(int attack) {
         this.attack = attack;
     }
-
-    /**
-     * Gets the maximum value for the envelope to rise to
-     * @return maximum gain
-     */
-    public float maximumGain() {
-        return maximumGain;
-    }
-
-    /**
-     * Sets the maximum value for the envelope to rise to
-     * @param maximumGain maximum gain
-     */
-    public void maximumGain(float maximumGain) {
-        this.maximumGain = maximumGain;
-    }
-
+    
     /**
      * Gets the decay time in [ms]
      * @return decay time
@@ -122,7 +106,7 @@ public class Envelope extends UGen {
      * Sets the decay time in [ms]
      * @param decay decay time
      */
-    public void decay(int decay) {
+    public void setDecay(int decay) {
         this.decay = decay;
     }
 
@@ -137,7 +121,7 @@ public class Envelope extends UGen {
      * Sets the sustain level
      * @param sustain decay time
      */
-    public void sustain(float sustain) {
+    public void setSustain(float sustain) {
         this.sustain = sustain;
     }
     /**
@@ -151,17 +135,29 @@ public class Envelope extends UGen {
      * Sets the release time in [ms]
      * @param release release time
      */
-    public void release(int release) {
+    public void setRelease(int release) {
         this.release = release;
     }
 
     @Override
-    public synchronized void calculateBuffer(){
-        bufOut[0] = current.getOutBuffer(0);
+    public void calculateBuffer(){
+        current.update();
+        for(int i = 0; i < bufferSize; i++){
+            bufOut[0][i] = modulationStrength * current.getValue(0, i);
+
+        }
+    }
+
+    public float getValue(){
+        return this.centerValue;
+    }
+
+    public Envelope clone(){
+        return new Envelope(this.ac, this.attack, this.decay, this.sustain, this.release);
     }
 
     /**
-     * Method for {@link synth.auxilliary.Device} when a send for MIDI data with noteOn command appears to happen
+     * Method for {@link Device} when a send for MIDI data with noteOn command appears to happen
      */
     public void noteOn(){
         this.current.setValue(0);
@@ -170,7 +166,7 @@ public class Envelope extends UGen {
         this.current.addSegment(this.sustain, this.decay);
     }
     /**
-     * Method for {@link synth.auxilliary.Device} when a send for MIDI data with noteOff command appears to happen
+     * Method for {@link Device} when a send for MIDI data with noteOff command appears to happen
      */
     public void noteOff(){
         this.current.addSegment(0f, this.release);

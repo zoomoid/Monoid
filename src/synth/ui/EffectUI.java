@@ -3,14 +3,6 @@ package synth.ui;
 import javafx.application.Application;
 import javafx.stage.Stage;
 
-public class EffectUI extends Application {
+public class EffectUI extends SynthesizerUserInterfaceModule {
 
-    public static void main(String[] args) {
-        launch(args);
-    }
-
-    @Override
-    public void start(Stage primaryStage) {
-
-    }
 }

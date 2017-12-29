@@ -3,11 +3,13 @@ package synth.osc;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.data.Buffer;
+import synth.modulation.Modulator;
+import synth.modulation.Static;
 
 public class MultivoiceOscillator extends UGen {
 
     /** The array of frequencies of individual oscillators. */
-    private float[] frequency;
+    private Modulator[] frequency;
 
     /** The array of current positions of individual oscillators. */
     private float[] phase;
@@ -65,28 +67,34 @@ public class MultivoiceOscillator extends UGen {
         this.setPhase(phase.getValue());
     }
 
+    public void setWave(Buffer wave){
+        if(wave != null){
+            this.buffer = wave;
+        }
+    }
+
     /**
      * Sets the number of oscillators.
      * @param numOscillators the new number of oscillators.
      */
     public void setNumOscillators(int numOscillators) {
         this.numOscillators = numOscillators;
-        float[] old = frequency;
-        frequency = new float[numOscillators];
+        Modulator[] oldC = frequency;
+        frequency = new Modulator[numOscillators];
         increment = new double[numOscillators];
         int min = 0;
-        if(old != null){
-            min = Math.min(frequency.length, old.length);
+        if(oldC != null){
+            min = Math.min(frequency.length, oldC.length);
         }
         for(int i = 0; i < min; i++) {
-            frequency[i] = old[i];
-            increment[i] = frequency[i] / context.getSampleRate();
+            frequency[i] = oldC[i];
+            increment[i] = frequency[i].getValue() / context.getSampleRate();
         }
         for(int i = min; i < frequency.length; i++) {
-            frequency[i] = 0f;
-            increment[i] = frequency[i] / context.getSampleRate();
+            frequency[i] = new Static(this.context, 0f);
+            increment[i] = frequency[i].getValue() / context.getSampleRate();
         }
-        old = phase;
+        float[] old = phase;
         phase = new float[numOscillators];
         for(int i = 0; i < min; i++) {
             if(this.phaseStart == -1){
@@ -114,14 +122,14 @@ public class MultivoiceOscillator extends UGen {
      *
      * @param frequencies the new frequencies.
      */
-    public void setFrequencies(float[] frequencies) {
+    public void setFrequencies(Modulator[] frequencies) {
         for(int i = 0; i < numOscillators; i++) {
             if(i < frequencies.length) {
-                frequency[i] = Math.abs(frequencies[i]);
+                this.frequency[i].setValue(Math.abs(frequencies[i].getValue()));
             } else {
-                frequency[i] = 0f;
+                this.frequency[i].setValue(0f);
             }
-            increment[i] = frequency[i] / context.getSampleRate();
+            increment[i] = this.frequency[i].getValue() / context.getSampleRate();
         }
     }
 
@@ -129,7 +137,7 @@ public class MultivoiceOscillator extends UGen {
      * Gets the array of frequencies.
      * @return array of frequencies.
      */
-    public float[] getFrequencies() {
+    public Modulator[] getFrequencies() {
         return frequency;
     }
 

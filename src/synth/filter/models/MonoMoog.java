@@ -4,6 +4,7 @@ import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.ugens.Static;
 
+// FIXME this filter is currently not outputting anything
 public class MonoMoog extends FilterModel {
 
     protected AudioContext context;

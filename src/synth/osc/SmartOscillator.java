@@ -3,6 +3,8 @@ package synth.osc;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.data.Buffer;
+import net.beadsproject.beads.data.Pitch;
+import synth.modulation.Modulator;
 
 public class SmartOscillator extends Oscillator implements UnisonOscillator, WavetableOscillator {
 
@@ -88,8 +90,8 @@ public class SmartOscillator extends Oscillator implements UnisonOscillator, Wav
         unison.setPhase(this.phase);
         center = new BasicOscillator(ac, this, frequency, this.wave);
         center.setPhase(this.phase);
-        this.addDependent(unison);
-        this.addDependent(center);
+        //this.addDependent(unison);
+        //this.addDependent(center);
         // output policy
         this.outputInitializationRegime = OutputInitializationRegime.RETAIN;
     }
@@ -174,11 +176,13 @@ public class SmartOscillator extends Oscillator implements UnisonOscillator, Wav
 
     /**
      * Sets the unison pitch spread
-     * @param spread center offset in Hz
+     * @param spread center offset in [0,1]
      */
     public SmartOscillator setSpread(float spread) {
-        this.spread = spread;
-        this.needsRefresh();
+        if(spread >= 0 && spread <= 1){
+            this.spread = spread;
+            this.refresh();
+        }
         return this;
     }
 
@@ -187,9 +191,10 @@ public class SmartOscillator extends Oscillator implements UnisonOscillator, Wav
      * @param voices number of oscillator voices. 1 means there will be no unison voices
      */
     public SmartOscillator setVoices(int voices) {
-        if(voices >= 1){
+        if(voices != this.voices && voices > 0){
             this.voices = voices;
-            this.needsRefresh();
+
+            this.refresh();
         }
         return this;
     }
@@ -199,8 +204,10 @@ public class SmartOscillator extends Oscillator implements UnisonOscillator, Wav
      * @param wave waveform as buffer
      */
     public SmartOscillator setWave(Buffer wave) {
-        this.wave = wave;
-        this.needsRefresh();
+        if(wave != null){
+            this.wave = wave;
+            this.refresh();
+        }
         return this;
     }
 
@@ -230,13 +237,12 @@ public class SmartOscillator extends Oscillator implements UnisonOscillator, Wav
      * Creates voices, either with unison or without
      */
     @Override
-    public void createOscillator(){
-        unison = new MultivoiceOscillator(ac, this, this.wave, this.voices);
+    public void updateOscillator(){
+        this.unison.setNumOscillators(voices);
+        this.center.setWave(wave);
+        this.unison.setWave(wave);
         unison.setPhase(this.phase);
-        center = new BasicOscillator(ac, this, frequency, this.wave);
         center.setPhase(this.phase);
-        this.addDependent(unison);
-        this.addDependent(center);
     }
 
     /**
@@ -246,7 +252,7 @@ public class SmartOscillator extends Oscillator implements UnisonOscillator, Wav
     public void updateFrequency() {
         if(unison != null && center != null){
             this.unison.setFrequencies(this.calculateUnisonPitch());
-            this.center.setFrequency(super.frequency);
+            this.center.setFrequency(this.frequency);
         }
     }
 
@@ -269,31 +275,32 @@ public class SmartOscillator extends Oscillator implements UnisonOscillator, Wav
      * Calculates the unison pitch spread of THIS oscillator
      * @return float array containing individual unison frequencies
      */
-    private float[] calculateUnisonPitch(){
+    private Modulator[] calculateUnisonPitch(){
         return calculateUnisonPitch(this.voices, this.frequency, this.spreadFunction, this.spread);
     }
 
     /**
      * Calculates a unison pitch offset
      * @param voices number of unison voices
-     * @param spreadFunction exponent of spread function monoial
-     * @param spread spread range
+     * @param spreadFunction exponent of spread function monomial
+     * @param spread spread range (Given in [0,1] * half tone step
      * @return array containing absolute frequency values
      */
-    public static float[] calculateUnisonPitch(int voices, UGen frequency, double spreadFunction, float spread){
-        float[] r = new float[voices];
-        // absolute starting point of the linear spread
-        float x = frequency.getValue() - spread;
+    public static Modulator[] calculateUnisonPitch(int voices, Modulator frequency, double spreadFunction, float spread){
+        Modulator[] r = new Modulator[voices];
+        // calculate absolute frequency range
+        float mtStart = Pitch.ftom(frequency.getValue()) - spread;
         // note: case "voices = 1" is covered by this, so no need for compensation as in WaveOscillator
         for(int i = 0; i < voices; i++){
-            r[i] = (float)(x + (i/Math.pow(voices-1f, spreadFunction)) * 2 * spread);
+            r[i] = frequency.clone();
+            r[i].setValue((float)(mtStart + (i/Math.pow(voices-1, spreadFunction)) * 2 * spread));
         }
         return r;
     }
 
-    private void needsRefresh(){
+    private void refresh(){
         this.pause(true);
-        this.createOscillator();
+        this.updateOscillator();
         this.updateFrequency();
         this.pause(false);
     }

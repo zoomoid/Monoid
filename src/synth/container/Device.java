@@ -1,4 +1,4 @@
-package synth.auxilliary;
+package synth.container;
 
 public interface Device {
 }
