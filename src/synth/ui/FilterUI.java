@@ -8,7 +8,7 @@ import synth.ui.components.swing.*;
 import javax.swing.*;
 import java.awt.*;
 
-public class FilterUI {
+public class FilterUI extends SynthesizerUserInterfaceModule {
 
     public class FilterType extends SpinnerImageContainer {
 
@@ -219,5 +219,9 @@ public class FilterUI {
         //        this._frequency.addActionListener(e -> {
         //            this.frequencyKnob.setValue(Float.parseFloat(_frequency.getText()));
         //        });
+    }
+
+    public Filter getAssociatedDevice(){
+        return this.associatedFilter;
     }
 }

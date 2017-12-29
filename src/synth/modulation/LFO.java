@@ -4,6 +4,8 @@ import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.data.Buffer;
 
+import java.util.Objects;
+
 /**
  * A LFO is a modulation device for parameters of a synthesizer. It inherits UGens, meaning it can be widely used in
  * parameters of other UGen implementations
@@ -19,10 +21,16 @@ public class LFO extends Modulator {
     public enum Type {
         SINE, TRIANGLE, SAW, SQUARE, NOISE, CUSTOM_TYPE
     }
+
+    public enum Mode {
+        RETRIGGER, FREE
+    }
     /** LFO waveform buffer */
     private Buffer buffer;
     /** LFO waveform type indicator */
     private Type type;
+    /** LFO mode */
+    private Mode mode;
     /** LFO frequency */
     private float frequency;
     /** LFO amplitude */
@@ -32,17 +40,22 @@ public class LFO extends Modulator {
     /** current sampling rate with which the device got initialized */
     private float one_over_sr;
 
-
+    private float gate;
 
     public LFO(AudioContext ac){
         this(ac, Type.SINE, 1f, 1f);
     }
 
     public LFO(AudioContext ac, Type lfoType, float frequency, float amplitude){
+        this(ac, lfoType, Mode.RETRIGGER, frequency, amplitude);
+    }
+
+    public LFO(AudioContext ac, Type lfoType, Mode lfoMode, float frequency, float amplitude){
         super(ac);
         this.context = ac;
-        one_over_sr = 1f / context.getSampleRate();
-        this.setFrequency(frequency).setAmplitude(amplitude).setType(lfoType);
+        this.gate = 0;
+        this.one_over_sr = 1f / context.getSampleRate();
+        this.setFrequency(frequency).setAmplitude(amplitude).setType(lfoType).setMode(lfoMode);
     }
 
 
@@ -95,7 +108,7 @@ public class LFO extends Modulator {
      * Custom type setter for LFO type
      * @param customType Custom type enum keyword as indicator for custom buffer
      * @param customBuffer custom buffer for the LFO
-     * @return LFO instance
+     * @return this LFO instance
      */
     public LFO setType(Type customType, Buffer customBuffer){
         switch(customType){
@@ -103,6 +116,38 @@ public class LFO extends Modulator {
             default : this.setType(customType); break;
         }
         return this;
+    }
+
+    public Type type() {
+        return type;
+    }
+
+    public Mode mode() {
+        return mode;
+    }
+
+    public float frequency() {
+        return frequency;
+    }
+
+    public float amplitude() {
+        return amplitude;
+    }
+
+    /**
+     * Sets the mode of the LFO
+     * @param mode Retrigger or Free-running mode
+     * @return this LFO instance
+     */
+    public LFO setMode(Mode mode){
+
+        this.mode = mode;
+        return this;
+    }
+
+    @Override
+    public void setValue(float value){
+        this.centerValue = value;
     }
 
     /**
@@ -116,8 +161,35 @@ public class LFO extends Modulator {
             // current phase cache
             phase = (((phase + increment) % 1.0f) + 1.0f) % 1.0f;
             // since the lfo only has one output channel
-            bufOut[0][i] = range * buffer.getValueFraction((float) phase) + centerValue;
+            bufOut[0][i] = gate * modulationStrength * buffer.getValueFraction((float) phase) + centerValue;
         }
     }
 
+
+    @Override
+    public float getValue(){
+        return this.centerValue;
+    }
+
+    public void noteOn(){
+        // switch on gate
+        this.gate = 1;
+        if(this.mode == Mode.RETRIGGER){
+            // reset current phase to 0 to reset oscillation to start
+            this.phase = 0;
+        } else {
+            // no-op, keep running the oscillation
+        }
+        this.calculateBuffer();
+    }
+
+    public void noteOff(){
+        // reset buffer to 0
+        this.gate = 0;
+        this.calculateBuffer();
+    }
+
+    public LFO clone(){
+        return new LFO(this.ac, this.type, this.mode, this.frequency, this.amplitude);
+    }
 }

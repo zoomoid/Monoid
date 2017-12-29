@@ -1,6 +1,6 @@
 package synth.bus;
 
-import synth.auxilliary.Device;
+import synth.container.Device;
 
 import java.util.ArrayList;
 

@@ -11,7 +11,7 @@ import synth.ui.components.swing.*;
 import javax.swing.*;
 import java.awt.*;
 
-public class OscillatorUI {
+public class OscillatorUI extends SynthesizerUserInterfaceModule {
 
     public class WaveType extends SpinnerImageContainer {
 
@@ -131,10 +131,12 @@ public class OscillatorUI {
         });
         frequencyPane.add(frequencyKnob);
 
-        phaseKnob = new BlankKnob(new BlankKnob.Parameters(-1, 1, 0.01f, false, true), BlankKnob.SMALL, -1, "Phase");
+        /*phaseKnob = new BlankKnob(new BlankKnob.Parameters(-1, 1, 0.01f, false, true), BlankKnob.SMALL, -1, "Phase");
         phaseKnob.addPropertyChangeListener(e -> {
             associatedOscillator.setPhase((float)(e.getNewValue()));
         });
+        gainPane.add(phaseKnob);*/
+
         gainKnob = new BlankKnob(new BlankKnob.Parameters(0,1, 0.01f, false, true), BlankKnob.MEDIUM, 1,"Gain");
         gainKnob.addPropertyChangeListener(e -> {
             associatedOscillator.setGain((float) e.getNewValue());
@@ -312,5 +314,9 @@ public class OscillatorUI {
             this.unisonBlendKnob.setValue(((UnisonOscillator) associatedOscillator).getBlend());
             this.unisonEnableButton.toggle(true);
         }
+    }
+
+    public Oscillator getAssociatedDevice() {
+        return associatedOscillator;
     }
 }
