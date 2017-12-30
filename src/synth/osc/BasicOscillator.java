@@ -3,18 +3,17 @@ package synth.osc;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.data.Buffer;
-import net.beadsproject.beads.ugens.Static;
+import synth.modulation.Modulatable;
+import synth.modulation.Static;
 
 public class BasicOscillator extends Oscillator implements WavetableOscillator {
 
-    /** The phase envelope. */
-    private UGen phaseEnvelope;
     /* Phase sampler */
-    private float currentPhase;
+    private float cP;
     /** The Buffer. */
     private Buffer wave;
     /** To store the inverse of the sampling frequency. */
-    private float one_over_sr;
+    private double one_over_sr;
 
     private SmartOscillator dependent;
 
@@ -23,14 +22,14 @@ public class BasicOscillator extends Oscillator implements WavetableOscillator {
     }
 
 
-    BasicOscillator(AudioContext ac, SmartOscillator dependent, UGen frequency, Buffer wave){
+    BasicOscillator(AudioContext ac, SmartOscillator dependent, Modulatable frequency, Buffer wave){
         this(ac, frequency, wave);
         this.dependent = dependent;
         this.addDependent(this.dependent);
-        this.currentPhase = super.phase.getValue();
+        this.cP = super.phase.getValue();
     }
 
-    public BasicOscillator(AudioContext ac, UGen frequency, Buffer wave){
+    public BasicOscillator(AudioContext ac, Modulatable frequency, Buffer wave){
         super(ac, frequency);
         if(wave != null){
             this.wave = wave;
@@ -70,26 +69,28 @@ public class BasicOscillator extends Oscillator implements WavetableOscillator {
         }
     }
 
+    public BasicOscillator setPhase(float phase){
+        this.cP = phase % 1.f;
+        return this;
+    }
+
     @Override
-    public void calculateBuffer(){
+    public BasicOscillator setPhase(UGen phase){
+        return this.setPhase(phase.getValue());
+    }
+
+    @Override
+    public synchronized void calculateBuffer(){
+        zeroOuts();
         this.frequency.update();
         this.gain.update();
         this.phase.update();
-        float prevPhase = currentPhase;
-        for(int i = 0; i < outs; i++){
-            currentPhase = prevPhase;
-            for(int j = 0; j < bufferSize; j++){
-                currentPhase = (((currentPhase + frequency.getValue(i, j) * one_over_sr) % 1.f) + 1.f) % 1.f;
-                bufOut[i][j] = gain.getValue(i, j) * this.wave.getValueFraction(currentPhase);
+        for(int j = 0; j < bufferSize; j++){
+            cP = (float)(((cP + frequency.getValue(0, j) * one_over_sr) % 1.f) + 1.f) % 1.f;
+            for(int i = 0; i < outs; i++){
+                bufOut[i][j] = gain.getValue(i, j) * this.wave.getValueFraction(cP);
             }
         }
-    }
-
-    public void updateOscillator(){
-
-    }
-
-    public void updateFrequency(){
 
     }
 }

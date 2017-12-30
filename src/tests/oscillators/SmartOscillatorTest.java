@@ -23,12 +23,15 @@ public class SmartOscillatorTest {
         } else {
             LFO freqLFO = new LFO(ac, LFO.Type.SINE, 2f, 1f);
             // modulator specific sets
-            freqLFO.setCenterValue(220f).setRange(20f);
+            freqLFO.setCenterValue(220f).setModulationStrength(20f);
             osc.setFrequency(freqLFO);
         }
 
         if(UNISON){
-            osc.setVoices(5).setBlend(1).setSpread(2).setSpreadFunction(2);
+            osc.setVoices(5);
+            osc.setBlend(1);
+            osc.setSpread(0.25f);
+            osc.setSpreadFunction(1);
         } else {
             osc.setVoices(1).setBlend(1).setSpread(0).setSpreadFunction(1);
         }

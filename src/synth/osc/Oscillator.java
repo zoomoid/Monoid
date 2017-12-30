@@ -5,6 +5,7 @@ import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.data.Pitch;
 import synth.modulation.Envelope;
 import synth.container.Device;
+import synth.modulation.Modulatable;
 import synth.modulation.Modulator;
 import synth.modulation.Static;
 
@@ -15,9 +16,9 @@ public abstract class Oscillator extends UGen implements Device {
     protected String type;
 
     /** The frequency the oscillation is happening at  */
-    protected Modulator frequency;
+    protected Modulatable frequency;
     /** Oscillator output gain */
-    protected Modulator gain;
+    protected Modulatable gain;
     /** Phase UGen */
     protected UGen phase;
 
@@ -60,7 +61,7 @@ public abstract class Oscillator extends UGen implements Device {
         this(ac, new Static(ac, frequency));
     }
 
-    public Oscillator(AudioContext ac, Modulator frequency){
+    public Oscillator(AudioContext ac, Modulatable frequency){
         super(ac, 2, 2);
         this.ac = ac;
         this.volumeEnvelope = new Envelope(this.ac, 5, 0, 1f, 20);
@@ -76,26 +77,7 @@ public abstract class Oscillator extends UGen implements Device {
         this.outputInitializationRegime = OutputInitializationRegime.RETAIN;
         this.outputPauseRegime = OutputPauseRegime.ZERO;
         this.setType();
-        this.updateOscillator();
-        this.updateFrequency();
     }
-
-    /*****************************************************************************
-     * KEY METHODS FOR EACH OSCILLATOR. THESE MUST BE PROVIDED.
-     *****************************************************************************/
-    /**
-     * Creates the voice(s) of the oscillator
-     */
-    public abstract void updateOscillator();
-
-    /**
-     * Sets the frequency / frequencies of the voice(s)
-     */
-    public abstract void updateFrequency();
-
-    /*****************************************************************************
-     * END OF KEY METHODS
-     *****************************************************************************/
 
     public String getType(){
         return this.type;
@@ -107,7 +89,7 @@ public abstract class Oscillator extends UGen implements Device {
      * Returns the current frequency of oscillation
      * @return frequency UGen
      */
-    public UGen getFrequency(){
+    public Modulatable getFrequency(){
         return this.frequency;
     }
 
@@ -115,7 +97,7 @@ public abstract class Oscillator extends UGen implements Device {
      * Returns the current oscillator output gain
      * @return gain UGen
      */
-    public UGen getGain(){
+    public Modulatable getGain(){
         return this.gain;
     }
 
@@ -133,7 +115,7 @@ public abstract class Oscillator extends UGen implements Device {
      * @param frequency static oscillation frequency
      * @return this oscillator instance
      */
-    public Oscillator setFrequency(Modulator frequency){
+    public Oscillator setFrequency(Modulatable frequency){
         if(frequency != null){
             this.frequency = frequency;
         }
@@ -163,7 +145,7 @@ public abstract class Oscillator extends UGen implements Device {
      * @param gain gain UGen
      * @return this oscillator instance
      */
-    public Oscillator setGain(Modulator gain){
+    public Oscillator setGain(Modulatable gain){
         if(gain != null){
             this.gain = gain;
         }
@@ -295,7 +277,7 @@ public abstract class Oscillator extends UGen implements Device {
             this.setMidiNote(message.getData1());
             // if oscillator is velocity sensitive, adjust volume
             if(this.isVelocitySensitive){
-                this.setGain(message.getData2() / 127f * this.getGain().getValue());
+                this.setGain(message.getData2() / 127f * this.gain.getValue());
             }
             this.noteOn();
         }

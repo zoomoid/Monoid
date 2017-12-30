@@ -4,6 +4,8 @@ import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.data.Pitch;
+import org.jetbrains.annotations.NotNull;
+import synth.modulation.Modulatable;
 import synth.modulation.Modulator;
 
 public class SmartOscillator extends Oscillator implements UnisonOscillator, WavetableOscillator {
@@ -167,10 +169,8 @@ public class SmartOscillator extends Oscillator implements UnisonOscillator, Wav
      * @param blend ratio in [0,1]
      */
     public SmartOscillator setBlend(float blend) {
-        if(blend <= 1 && blend >= 0){
-            // no need for super.hasChanged here, since this is just adjusting volume of two existing outputs
-            this.blend = blend;
-        }
+        // no need for super.hasChanged here, since this is just adjusting volume of two existing outputs
+        this.blend = Math.max(Math.min(blend, 1), 0);
         return this;
     }
 
@@ -179,10 +179,8 @@ public class SmartOscillator extends Oscillator implements UnisonOscillator, Wav
      * @param spread center offset in [0,1]
      */
     public SmartOscillator setSpread(float spread) {
-        if(spread >= 0 && spread <= 1){
-            this.spread = spread;
-            this.refresh();
-        }
+        this.spread = Math.max(Math.min(spread, 1), 0);
+        this.refresh();
         return this;
     }
 
@@ -191,9 +189,8 @@ public class SmartOscillator extends Oscillator implements UnisonOscillator, Wav
      * @param voices number of oscillator voices. 1 means there will be no unison voices
      */
     public SmartOscillator setVoices(int voices) {
-        if(voices != this.voices && voices > 0){
-            this.voices = voices;
-
+        if(voices != this.voices){
+            this.voices = Math.max(1, Math.min(voices, UnisonOscillator.MAX_NUM_VOICES));
             this.refresh();
         }
         return this;
@@ -236,7 +233,6 @@ public class SmartOscillator extends Oscillator implements UnisonOscillator, Wav
     /**
      * Creates voices, either with unison or without
      */
-    @Override
     public void updateOscillator(){
         this.unison.setNumOscillators(voices);
         this.center.setWave(wave);
@@ -248,7 +244,6 @@ public class SmartOscillator extends Oscillator implements UnisonOscillator, Wav
     /**
      * Updates the frequency of each voice
      */
-    @Override
     public void updateFrequency() {
         if(unison != null && center != null){
             this.unison.setFrequencies(this.calculateUnisonPitch());
@@ -257,13 +252,14 @@ public class SmartOscillator extends Oscillator implements UnisonOscillator, Wav
     }
 
     @Override
-    public void calculateBuffer(){
+    public synchronized void calculateBuffer(){
         this.gain.update();
         this.frequency.update();
         this.phase.update();
+        this.unison.update();
+        this.center.update();
+        zeroOuts();
         for(int i = 0; i < outs; i++){
-            unison.update();
-            center.update();
             for(int j = 0; j < bufferSize; j++){
                 bufOut[i][j] = this.gain.getValue(i, j) * ((1-0.5f*this.blend) * center.getValue(i, j) + (0.5f*this.blend) * unison.getValue(i, j));
             }
@@ -275,7 +271,7 @@ public class SmartOscillator extends Oscillator implements UnisonOscillator, Wav
      * Calculates the unison pitch spread of THIS oscillator
      * @return float array containing individual unison frequencies
      */
-    private Modulator[] calculateUnisonPitch(){
+    private Modulatable[] calculateUnisonPitch(){
         return calculateUnisonPitch(this.voices, this.frequency, this.spreadFunction, this.spread);
     }
 
@@ -286,14 +282,14 @@ public class SmartOscillator extends Oscillator implements UnisonOscillator, Wav
      * @param spread spread range (Given in [0,1] * half tone step
      * @return array containing absolute frequency values
      */
-    public static Modulator[] calculateUnisonPitch(int voices, Modulator frequency, double spreadFunction, float spread){
-        Modulator[] r = new Modulator[voices];
+    public static Modulatable[] calculateUnisonPitch(int voices, Modulatable frequency, double spreadFunction, float spread){
+        Modulatable[] r = new Modulatable[voices];
         // calculate absolute frequency range
         float mtStart = Pitch.ftom(frequency.getValue()) - spread;
         // note: case "voices = 1" is covered by this, so no need for compensation as in WaveOscillator
         for(int i = 0; i < voices; i++){
             r[i] = frequency.clone();
-            r[i].setValue((float)(mtStart + (i/Math.pow(voices-1, spreadFunction)) * 2 * spread));
+            r[i].setValue(Pitch.mtof((float)(mtStart + (i/Math.pow(voices-1, spreadFunction)) * 2 * spread)));
         }
         return r;
     }

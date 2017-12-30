@@ -2,7 +2,7 @@ package synth.modulation;
 
 import net.beadsproject.beads.core.AudioContext;
 
-public class Static extends Modulator {
+public class Static extends Modulator implements Modulatable {
     /** The stored value. */
     public float x;
 
