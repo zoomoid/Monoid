@@ -74,7 +74,12 @@ public class OscillatorPanel extends BlankPanel {
         this.osc = osc;
         JTextField freq = new JTextField(((Float)(osc.getFrequency().getValue())).toString());
         //slider to adjust frequency
-        BlankSlider slider = new BlankSlider(JSlider.HORIZONTAL, 0, 440000, (int) osc.getFrequency().getValue() * 100);
+        BlankSlider slider;
+        if((int) osc.getFrequency().getValue() * 100 <= 440000) {
+            slider = new BlankSlider(JSlider.HORIZONTAL, 0, 440000, (int) osc.getFrequency().getValue() * 100);
+        } else {
+            slider = new BlankSlider(JSlider.HORIZONTAL, 0, 440000, 440000);
+        }
         slider.setSnapToTicks(false);
         slider.setPaintTicks(true);
 

@@ -80,7 +80,7 @@ public class BasicOscillator extends Oscillator implements WavetableOscillator {
             currentPhase = prevPhase;
             for(int j = 0; j < bufferSize; j++){
                 currentPhase = (((currentPhase + frequency.getValue(i, j) * one_over_sr) % 1.f) + 1.f) % 1.f;
-                bufOut[i][j] = this.wave.getValueFraction(currentPhase);
+                bufOut[i][j] = gain.getValue(i, j) * this.wave.getValueFraction(currentPhase);
             }
         }
     }

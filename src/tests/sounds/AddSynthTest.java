@@ -12,8 +12,10 @@ import java.awt.*;
 public class AddSynthTest {
     public static AudioContext ac = ContextProvider.ac();
 
+    private static JFrame frame;
+
     private static GridLayout mainGrid =  new GridLayout(2, 1);
-    private static GridLayout presetGrid = new GridLayout(1, 4, 5, 5);
+    private static GridLayout presetGrid =  new GridLayout(1, 4);
 
     private static BlankPanel mainPane;
     private static BlankPanel presetPane;
@@ -26,14 +28,15 @@ public class AddSynthTest {
     private static AdditiveUI currUI;
 
     public static void main(String[] args) {
-        JFrame frame = new JFrame("Additive Synthesis");
+        frame = new JFrame("Additive Synthesis");
         mainPane = new BlankPanel();
         presetPane = new BlankPanel();
         currUI = new AdditiveUI(5, ac, AdditiveUI.DEFAULT);
         synthPane = currUI.contentPane;
 
         //setip layouts
-        mainPane.setLayout(mainGrid);
+        mainPane.setLayout(new BoxLayout(mainPane, BoxLayout.Y_AXIS));
+        //presetPane.setLayout(new BoxLayout(presetPane, BoxLayout.X_AXIS));
         presetPane.setLayout(presetGrid);
 
         //setup preset Buttons
@@ -44,15 +47,17 @@ public class AddSynthTest {
             synthPane = currUI.contentPane;
             mainPane.add(synthPane);
             mainPane.updateUI();
+            frame.pack();
         });
 
         presetSaw = new BlankButton("Saw");
         presetSaw.addActionListener(e -> {
             removeSynthPane();
-            currUI = new AdditiveUI(15, ac, AdditiveUI.SAW);
+            currUI = new AdditiveUI(10, ac, AdditiveUI.SAW);
             synthPane = currUI.contentPane;
             mainPane.add(synthPane);
             mainPane.updateUI();
+            frame.pack();
         });
 
         presetSquare = new BlankButton("Square");
@@ -62,6 +67,7 @@ public class AddSynthTest {
             synthPane = currUI.contentPane;
             mainPane.add(synthPane);
             mainPane.updateUI();
+            frame.pack();
         });
 
         presetTriangle = new BlankButton("Triangle");
@@ -71,6 +77,7 @@ public class AddSynthTest {
             synthPane = currUI.contentPane;
             mainPane.add(synthPane);
             mainPane.updateUI();
+            frame.pack();
         });
 
         //add buttons
@@ -78,12 +85,17 @@ public class AddSynthTest {
         presetPane.add(presetSaw);
         presetPane.add(presetSquare);
         presetPane.add(presetTriangle);
+
+        //add panels
         mainPane.add(presetPane);
         mainPane.add(synthPane);
+
+        //start audio
         ac.start();
 
         frame.setContentPane(mainPane);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setResizable(true);
         frame.pack();
         frame.setVisible(true);
     }

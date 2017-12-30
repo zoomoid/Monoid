@@ -78,8 +78,8 @@ public class AdditiveUI {
                     bscOsc.setFrequency(basicFreq * (i * 2 + 1f));
                     break;
                 case TRIANGLE:
-                    bscOsc.setGain((float) 1 / (float) (i * 2 + 1f) * (i * 2 + 1f));
-                    bscOsc.setFrequency(basicFreq * (i * 2 + 1f) * (i * 2 + 1f));
+                    bscOsc.setGain((float) 1 / ((float) (i * 2 + 1f) * (i * 2 + 1f)) );
+                    bscOsc.setFrequency(basicFreq * (i * 2 + 1f));
                     break;
             }
 

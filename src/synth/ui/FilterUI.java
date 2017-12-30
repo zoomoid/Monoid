@@ -3,7 +3,6 @@ package synth.ui;
 import synth.SynthController;
 import synth.filter.Filter;
 import synth.filter.models.FilterModel;
-import synth.filter.models.MonoMoog;
 import synth.ui.components.swing.*;
 
 import javax.swing.*;
@@ -101,13 +100,12 @@ public class FilterUI {
         });
 
         cutoffPane.add(frequencyKnob);
-        if(associatedFilter.getType() == Filter.Type.MonoMoog){
-            resonanceKnob = new BlankKnob(new BlankKnob.Parameters(0.5f, (float)(8*Math.sqrt(2)), 0.01f, false, true, Math.sqrt(2)), BlankKnob.MEDIUM,1f,"Resonance");
-            resonanceKnob.addPropertyChangeListener(e -> {
-                associatedFilter.setQ((float)e.getNewValue());
-            });
-            qGainPane.add(resonanceKnob);
-        }
+
+        resonanceKnob = new BlankKnob(new BlankKnob.Parameters(0.1f, 10, 0.1f, false, true), BlankKnob.MEDIUM,(float)(1/Math.sqrt(2)),"Resonance");
+        resonanceKnob.addPropertyChangeListener(e -> {
+            associatedFilter.setQ((float)e.getNewValue());
+        });
+        qGainPane.add(resonanceKnob);
 
         gainKnob = new BlankKnob(new BlankKnob.Parameters(0, 1, 0.01f, false, true), BlankKnob.MEDIUM,1f, "Gain");
         gainKnob.addPropertyChangeListener(e -> {associatedFilter.setGain((float)(e.getNewValue()));});
@@ -119,6 +117,8 @@ public class FilterUI {
         this.ui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.ui.pack();
         this.ui.setResizable(false);
+
+        this.initializeFromFilter();
     }
 
     public void hide(){
@@ -127,5 +127,12 @@ public class FilterUI {
 
     public void show(){
         this.ui.setVisible(true);
+    }
+
+    private void initializeFromFilter(){
+        // TODO implement a way to set determine the value of the component by the actual type of the component
+        //this.filterType.setValue();
+        this.frequencyKnob.setValue(associatedFilter.getCutoff().getValue());
+        this.gainKnob.setValue(associatedFilter.getGain().getValue());
     }
 }

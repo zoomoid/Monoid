@@ -1,4 +1,4 @@
-package synth.filter;
+package synth.filter.models;
 
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.ugens.IIRFilter;
@@ -9,14 +9,11 @@ public class ButterworthBessel extends IIRFilter {
     /**
      * constants, determining which type of Butterworth filter ist calculated
      */
-    public static final int LOWPASS_FIRST_ORDER = 1;
-    public static final int HIGHPASS_FIRST_ORDER = 2;
-    public static final int LOWPASS_SECOND_ORDER = 3;
-    public static final int HIGHPASS_SECOND_ORDER = 4;
-    public static final int BANDPASS_SECOND_ORDER = 5;
-    public static final int PARAMETRIC_EQ_SECOND_ORDER = 6;
+    public enum Type {
+        LOWPASS_FIRST_ORDER, HIGHPASS_FIRST_ORDER, LOWPASS_SECOND_ORDER, HIGHPASS_SECOND_ORDER, BANDPASS_SECOND_ORDER, PARAMETRIC_EQ_SECOND_ORDER
+    }
 
-    public static int currType = 1; // inits filter as type Lowpass first order
+    public static Type currType = Type.LOWPASS_FIRST_ORDER; // inits filter as type Lowpass first order
 
     private float cutoff;
     private int sampleRate;
@@ -57,11 +54,11 @@ public class ButterworthBessel extends IIRFilter {
      * @param sampleRate current sample rate, later constant sample rate
      * @param type filter type
      */
-    public ButterworthBessel(AudioContext ac, int ins, int outs, float cutoff, int sampleRate, int type) {
+    public ButterworthBessel(AudioContext ac, int ins, int outs, float cutoff, int sampleRate, Type type) {
         super(ac, ins, outs);
         this.cutoff = cutoff;
         this.sampleRate = sampleRate;
-        if(type == 1 || type == 2) {
+        if(type == Type.LOWPASS_FIRST_ORDER || type == Type.HIGHPASS_FIRST_ORDER) {
             this.params = calculateFilterCoefficients(type);
         }
         response = calculateFilterResponse(setAndgetAs(type), setAndgetBs(type), this.cutoff, this.sampleRate);
@@ -78,12 +75,12 @@ public class ButterworthBessel extends IIRFilter {
      * @param q quality factor
      * @param type filter type
      */
-    public ButterworthBessel(AudioContext ac, int ins, int outs, float cutoff, int sampleRate, float q, int type) {
+    public ButterworthBessel(AudioContext ac, int ins, int outs, float cutoff, int sampleRate, float q, Type type) {
         super(ac, ins, outs);
         this.cutoff = cutoff;
         this.sampleRate = sampleRate;
         this.q = q;
-        if(1<= type && 5 >= type) {
+        if(type != Type.PARAMETRIC_EQ_SECOND_ORDER){
             this.params = calculateFilterCoefficients(type);
         }
         response = calculateFilterResponse(setAndgetAs(type), setAndgetBs(type), this.cutoff, this.sampleRate);
@@ -101,8 +98,7 @@ public class ButterworthBessel extends IIRFilter {
      * @param gain Gain for parametric EQ
      * @param type filter type
      */
-    public ButterworthBessel(AudioContext ac, int ins, int outs, float cutoff, int sampleRate, float q, float gain,
-                             int type) {
+    public ButterworthBessel(AudioContext ac, int ins, int outs, float cutoff, int sampleRate, float q, float gain, Type type) {
         super(ac, ins, outs);
         this.cutoff = cutoff;
         this.sampleRate = sampleRate;
@@ -150,31 +146,26 @@ public class ButterworthBessel extends IIRFilter {
      * @param type Filter type
      * @return Array of coefficients for IIR Filter (row 0 = a, row 1 = b)
      */
-    public float[][] calculateFilterCoefficients(int type) {
+    public float[][] calculateFilterCoefficients(Type type) {
+        currType = type;
         switch(type) {
             case LOWPASS_FIRST_ORDER:
-                currType = LOWPASS_FIRST_ORDER;
                 order = 1;
                 return calculateLowpassFirstOrder(this.cutoff, this.sampleRate);
             case HIGHPASS_FIRST_ORDER:
                 order = 1;
-                currType = HIGHPASS_FIRST_ORDER;
                 return calculateHighpassFirstOrder(this.cutoff, this.sampleRate);
             case LOWPASS_SECOND_ORDER:
                 order = 2;
-                currType = LOWPASS_SECOND_ORDER;
                 return calculateLowpassSecondOrder(this.cutoff, this.sampleRate, 0.71f);
             case HIGHPASS_SECOND_ORDER:
                 order = 2;
-                currType = HIGHPASS_SECOND_ORDER;
                 return calculateHighpassSecondOrder(this.cutoff, this.sampleRate, 0.71f);
             case BANDPASS_SECOND_ORDER:
                 order = 2;
-                currType = BANDPASS_SECOND_ORDER;
                 return calculateBandpassSecondOrder(this.cutoff, this.sampleRate, 0.71f);
             case PARAMETRIC_EQ_SECOND_ORDER:
                 order = 2;
-                currType = PARAMETRIC_EQ_SECOND_ORDER;
                 return calculateParametricEQSecondsOrder(this.cutoff, this.sampleRate, 0.71f, this.gain);
             default:
                     break;
@@ -314,7 +305,7 @@ public class ButterworthBessel extends IIRFilter {
      * @param type filter type
      * @return array of parameters A of IIR Filter
      */
-    public float[] setAndgetAs(int type) {
+    public float[] setAndgetAs(Type type) {
         for(int i = 0; i <= 2; i++) {
             as[i] = params[0][i];
         }
@@ -326,7 +317,7 @@ public class ButterworthBessel extends IIRFilter {
      * @param type filter type
      * @return array of parameters B of IIR Filter
      */
-    public float[] setAndgetBs(int type) {
+    public float[] setAndgetBs(Type type) {
         for(int i = 0; i <= 2; i++) {
             bs[i] = params[1][i];
         }
