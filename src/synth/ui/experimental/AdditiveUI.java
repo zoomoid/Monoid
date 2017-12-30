@@ -55,6 +55,18 @@ public class AdditiveUI {
         contentPane.updateUI();
     }
 
+    public AdditiveUI(int numberOfOscillators, AudioContext ac, int param, float basicFreq) {
+        this.numberOfOscillators = numberOfOscillators;
+        contentPane = new BlankPanel();
+        this.ac = ac;
+
+        setupOscillators(basicFreq, numberOfOscillators, param);
+
+        grid = new GridLayout(numberOfOscillators, 1, 5, 5);
+        contentPane.setLayout(grid);
+        contentPane.updateUI();
+    }
+
     private void setupOscillators(float basicFreq, int numberOfOscillators, int param) {
         for(int i = 1; i <= numberOfOscillators; i++) {
             BasicOscillator bscOsc = new BasicOscillator(this.ac, basicFreq, Buffer.SINE);

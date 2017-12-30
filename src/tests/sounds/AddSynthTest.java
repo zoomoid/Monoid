@@ -3,6 +3,7 @@ package tests.sounds;
 import net.beadsproject.beads.core.AudioContext;
 import synth.ui.components.swing.BlankButton;
 import synth.ui.components.swing.BlankPanel;
+import synth.ui.components.swing.BlankTextfield;
 import synth.ui.experimental.AdditiveUI;
 import tests.ContextProvider;
 
@@ -13,17 +14,25 @@ public class AddSynthTest {
     public static AudioContext ac = ContextProvider.ac();
 
     private static JFrame frame;
-
-    private static GridLayout mainGrid =  new GridLayout(2, 1);
+    //Layouts
     private static GridLayout presetGrid =  new GridLayout(1, 4);
 
+    //panels
     private static BlankPanel mainPane;
     private static BlankPanel presetPane;
     private static BlankPanel synthPane;
+
+    //buttons
     private static BlankButton presetDefault;
     private static BlankButton presetSaw;
     private static BlankButton presetSquare;
     private static BlankButton presetTriangle;
+
+    //textfields and labels
+    private static BlankTextfield basicFreq;
+    private static BlankTextfield voices;
+    private static JLabel basicFreqLabel;
+    private static JLabel voicesLabel;
 
     private static AdditiveUI currUI;
 
@@ -31,7 +40,7 @@ public class AddSynthTest {
         frame = new JFrame("Additive Synthesis");
         mainPane = new BlankPanel();
         presetPane = new BlankPanel();
-        currUI = new AdditiveUI(5, ac, AdditiveUI.DEFAULT);
+        currUI = new AdditiveUI(10, ac, AdditiveUI.DEFAULT);
         synthPane = currUI.contentPane;
 
         //setip layouts
@@ -43,7 +52,7 @@ public class AddSynthTest {
         presetDefault = new BlankButton("Default");
         presetDefault.addActionListener(e -> {
             removeSynthPane();
-            currUI = new AdditiveUI(5, ac, AdditiveUI.DEFAULT);
+            currUI = new AdditiveUI(Integer.parseInt(voices.getText()), ac, AdditiveUI.DEFAULT, Float.parseFloat(basicFreq.getText()));
             synthPane = currUI.contentPane;
             mainPane.add(synthPane);
             mainPane.updateUI();
@@ -53,7 +62,7 @@ public class AddSynthTest {
         presetSaw = new BlankButton("Saw");
         presetSaw.addActionListener(e -> {
             removeSynthPane();
-            currUI = new AdditiveUI(10, ac, AdditiveUI.SAW);
+            currUI = new AdditiveUI(Integer.parseInt(voices.getText()), ac, AdditiveUI.SAW, Float.parseFloat(basicFreq.getText()));
             synthPane = currUI.contentPane;
             mainPane.add(synthPane);
             mainPane.updateUI();
@@ -63,7 +72,7 @@ public class AddSynthTest {
         presetSquare = new BlankButton("Square");
         presetSquare.addActionListener(e -> {
             removeSynthPane();
-            currUI = new AdditiveUI(10, ac, AdditiveUI.SQUARE);
+            currUI = new AdditiveUI(Integer.parseInt(voices.getText()), ac, AdditiveUI.SQUARE, Float.parseFloat(basicFreq.getText()));
             synthPane = currUI.contentPane;
             mainPane.add(synthPane);
             mainPane.updateUI();
@@ -73,18 +82,28 @@ public class AddSynthTest {
         presetTriangle = new BlankButton("Triangle");
         presetTriangle.addActionListener(e -> {
             removeSynthPane();
-            currUI = new AdditiveUI(10, ac, AdditiveUI.TRIANGLE);
+            currUI = new AdditiveUI(Integer.parseInt(voices.getText()), ac, AdditiveUI.TRIANGLE, Float.parseFloat(basicFreq.getText()));
             synthPane = currUI.contentPane;
             mainPane.add(synthPane);
             mainPane.updateUI();
             frame.pack();
         });
 
+        //setup textfield and Label
+        basicFreq = new BlankTextfield("220.0");
+        basicFreqLabel =  new JLabel("Basic Freq.:");
+        voices = new BlankTextfield("10");
+        voicesLabel = new JLabel("Voices:");
+
         //add buttons
         presetPane.add(presetDefault);
         presetPane.add(presetSaw);
         presetPane.add(presetSquare);
         presetPane.add(presetTriangle);
+        presetPane.add(basicFreqLabel);
+        presetPane.add(basicFreq);
+        presetPane.add(voicesLabel);
+        presetPane.add(voices);
 
         //add panels
         mainPane.add(presetPane);

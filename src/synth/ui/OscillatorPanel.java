@@ -4,6 +4,7 @@ import synth.osc.Oscillator;
 import synth.ui.components.swing.BlankKnob;
 import synth.ui.components.swing.BlankPanel;
 import synth.ui.components.swing.BlankSlider;
+import synth.ui.components.swing.BlankTextfield;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -72,7 +73,7 @@ public class OscillatorPanel extends BlankPanel {
 
     public OscillatorPanel(Oscillator osc) {
         this.osc = osc;
-        JTextField freq = new JTextField(((Float)(osc.getFrequency().getValue())).toString());
+        BlankTextfield freq = new BlankTextfield(((Float)(osc.getFrequency().getValue())).toString());
         //slider to adjust frequency
         BlankSlider slider;
         if((int) osc.getFrequency().getValue() * 100 <= 440000) {
