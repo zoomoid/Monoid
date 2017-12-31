@@ -78,11 +78,11 @@ public class OscillatorUI extends SynthesizerUserInterfaceModule {
     private JFrame ui;
 
     private WaveType[] icons = {
-        new WaveType("src/sine.png", 0),
-        new WaveType("src/triangle.png",1),
-        new WaveType("src/saw.png",2),
-        new WaveType("src/square.png", 3),
-        new WaveType("src/noise.png", 4)
+        new WaveType("sine.png", 0),
+        new WaveType("triangle.png",1),
+        new WaveType("saw.png",2),
+        new WaveType("square.png", 3),
+        new WaveType("noise.png", 4)
     };
 
     public OscillatorUI(Oscillator associatedOscillator){
@@ -183,7 +183,7 @@ public class OscillatorUI extends SynthesizerUserInterfaceModule {
                     ((UnisonOscillator)associatedOscillator).setBlend(0f);
                 }
             });
-            unisonSpreadKnob = new BlankKnob(new BlankKnob.Parameters(0, 10, 0.1f, false, true), BlankKnob.SMALL, 0, "Spread");
+            unisonSpreadKnob = new BlankKnob(new BlankKnob.Parameters(0, 1, 0.01f, false, true), BlankKnob.SMALL, 0, "Spread");
             unisonSpreadKnob.addPropertyChangeListener(e -> {
                 ((UnisonOscillator) associatedOscillator).setSpread((float) e.getNewValue());
             });

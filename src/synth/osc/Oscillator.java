@@ -258,12 +258,12 @@ public abstract class Oscillator extends UGen implements Device {
         return velocityFactor;
     }
 
-    protected void noteOff(){
+    public void noteOff(){
         this.gain.noteOff();
         this.frequency.noteOff();
     }
 
-     void noteOn(){
+    public void noteOn(){
         this.gain.noteOn();
         this.frequency.noteOn();
     }

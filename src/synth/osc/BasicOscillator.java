@@ -88,7 +88,7 @@ public class BasicOscillator extends Oscillator implements WavetableOscillator {
         for(int j = 0; j < bufferSize; j++){
             cP = (float)(((cP + frequency.getValue(0, j) * one_over_sr) % 1.f) + 1.f) % 1.f;
             for(int i = 0; i < outs; i++){
-                bufOut[i][j] = gain.getValue(i, j) * this.wave.getValueFraction(cP);
+                bufOut[i][j] = gain.getValue(0, j) * this.wave.getValueFraction(cP);
             }
         }
 
