@@ -6,6 +6,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.LinkedList;
 
 public class MidiFileReader{
     /**The Midi File, can be NULL if there is an error */
@@ -17,11 +19,23 @@ public class MidiFileReader{
     /**The FileInputStream to read bytes and convert them to hex */
     FileInputStream reader;
 
+    /**The read index*/
+    int currentReadIndex;
+
     /** Necessary variables containing basic information about the midi file */
     int tracks; //number of tracks
     int fileFormat; //single track, synchronous tracks, asynchronous tracks (see analyze header)
     int deltaTicks; //TODO add reference
 
+    /**
+     *  List of lists for each track, holding the midi commands, where every command ia an int array of following order
+     *  0: delta time
+     *  1: command
+     *  2-pinf: values
+     * */
+    ArrayList<LinkedList<Integer[]>> trackLists;
+
+    //TODO rework javadoc
     /**Basic Constructor */
     public MidiFileReader(File midiFile, Oscillator osc) {
         this.midiFile = midiFile;
@@ -35,6 +49,12 @@ public class MidiFileReader{
             analyzeHeader();
         } catch (NoMidiFileException nomid) {
             this.midiFile = null;
+        }
+        if(this.midiFile != null) {
+            trackLists = new ArrayList<>();
+            for(int i = 0; i < tracks; i++) {
+                trackLists.add(new LinkedList<Integer[]>());
+            }
         }
     }
 
@@ -57,7 +77,7 @@ public class MidiFileReader{
      * Checks whether the midiFile header is correct or not
      * @throws NoMidiFileException if the midiFile header is not a header of a midiFile
      */
-    public void analyzeHeader()  throws NoMidiFileException{
+    public void analyzeHeader() throws NoMidiFileException{
         //check whether midi header is correct or not
         byte[] header = new byte[14];
         /*
@@ -88,6 +108,7 @@ public class MidiFileReader{
                 this.fileFormat = header[8] * 10 + header[9];
                 this.tracks = header[10] * 10 + header[11];
                 this.deltaTicks = header[12] * 10 + header[13];
+                currentReadIndex = 14; //set read index for offset calculation behind last read position
             } else {
                 System.out.println("Wrong header length");
                 throw new NoMidiFileException();
@@ -97,8 +118,38 @@ public class MidiFileReader{
         }
     }
 
-    //TODO analyzes all track chunks and buffers them into lists. allows synchronous use of tracks
-    public void analyzeChunks() {
+    /**
+     * Analyzes track header i in chronological order and calls fillTrackList
+     * @param index needed for call of fllTrackList function
+     * @throws NoMidiFileException
+     */
+    public void analyzeTrackHeader(int index) throws NoMidiFileException{
+        //check, whether track header is correct
+        if(isMidiFileCorrect()) {
+            byte[] header = new byte[8]; //8 is track header length
+            try{
+                if(this.reader.read(header, 14, 8) == 8) {
+                    int headerValue = header[0] * 1000 + header[1] * 100 + header[2] * 10 + header[3];
+                    //check if header is correct
+                    if(headerValue != hexToInt("4d54726b")) { //ASCII 'MTrk'
+                        System.out.println("Wrong Track header in track header check");
+                        throw new NoMidiFileException();
+                    } else {
+                        int length = header[4] * 1000 + header[5] * 100 + header[6] * 10 + header[7];
+                        fillTrackList(index, length);
+                    }
+                }
+            } catch (IOException e) {
+                System.out.println("Wrong Track Header");
+                throw new NoMidiFileException();
+            }
+        }
+    }
+
+    //TODO add javadoc
+    private void fillTrackList(int index, int length) {
+        //length is equal to number of midi commands
+        LinkedList<Integer[]> track = new LinkedList<Integer[]>();
 
     }
 
@@ -108,7 +159,7 @@ public class MidiFileReader{
      * @return hex as int
      */
     public int hexCharToInt(char hex) {
-        int result = -1;
+        int result = -1; //-1 means error, hex char cant be converted to int
         //convert hex char to int
         switch(hex) {
             case 'f': case 'F': return 15;
@@ -133,5 +184,14 @@ public class MidiFileReader{
         } else {
             return true;
         }
+    }
+
+    /**
+     * Returns the indexth track of the midi file
+     * @param index the tracks index
+     * @return List, containing the midi commands of the track
+     */
+    public LinkedList<Integer[]> getTrack(int index) {
+        return trackLists.get(index);
     }
 }
