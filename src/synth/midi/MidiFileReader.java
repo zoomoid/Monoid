@@ -19,9 +19,6 @@ public class MidiFileReader{
     /**The FileInputStream to read bytes and convert them to hex */
     FileInputStream reader;
 
-    /**The read index*/
-    int currentReadIndex;
-
     /** Necessary variables containing basic information about the midi file */
     int tracks; //number of tracks
     int fileFormat; //single track, synchronous tracks, asynchronous tracks (see analyze header)
@@ -30,10 +27,10 @@ public class MidiFileReader{
     /**
      *  List of lists for each track, holding the midi commands, where every command ia an int array of following order
      *  0: delta time
-     *  1: command
+     *  1: command and channel (0 - 15)
      *  2-pinf: values
      * */
-    ArrayList<LinkedList<Integer[]>> trackLists;
+    ArrayList<LinkedList<int[]>> trackLists;
 
     //TODO rework javadoc
     /**Basic Constructor */
@@ -53,7 +50,7 @@ public class MidiFileReader{
         if(this.midiFile != null) {
             trackLists = new ArrayList<>();
             for(int i = 0; i < tracks; i++) {
-                trackLists.add(new LinkedList<Integer[]>());
+                trackLists.add(new LinkedList<int[]>());
             }
         }
     }
@@ -108,7 +105,6 @@ public class MidiFileReader{
                 this.fileFormat = header[8] * 10 + header[9];
                 this.tracks = header[10] * 10 + header[11];
                 this.deltaTicks = header[12] * 10 + header[13];
-                currentReadIndex = 14; //set read index for offset calculation behind last read position
             } else {
                 System.out.println("Wrong header length");
                 throw new NoMidiFileException();
@@ -128,7 +124,7 @@ public class MidiFileReader{
         if(isMidiFileCorrect()) {
             byte[] header = new byte[8]; //8 is track header length
             try{
-                if(this.reader.read(header, 14, 8) == 8) {
+                if(this.reader.read(header, 0, 8) == 8) {
                     int headerValue = header[0] * 1000 + header[1] * 100 + header[2] * 10 + header[3];
                     //check if header is correct
                     if(headerValue != hexToInt("4d54726b")) { //ASCII 'MTrk'
@@ -146,11 +142,100 @@ public class MidiFileReader{
         }
     }
 
-    //TODO add javadoc
+    //TODO maybe replace List<int[]> with int[][]
+    /**
+     * Fills the list of commands of track with index index with arrays, that are one midi command or meta event
+     * @param index The index of the track
+     * @param length The length of the midi command list
+     */
     private void fillTrackList(int index, int length) {
         //length is equal to number of midi commands
         LinkedList<Integer[]> track = new LinkedList<Integer[]>();
+        int read = 0; //save last read byte here
+        boolean readDeltaTime = true; //assuming first midi command starts with a delta time in front
+        int currentDeltaTime = 0;
+        while(read != -1 && length > 0) {
+            //get the next byte
+            try {
+                read = this.reader.read();
+                length--;
+            } catch (IOException e) {
+                //TODO test, if java continues with trying to read the same byte again or reading the next one
+                continue;
+            }
 
+            //use list of integer, because it is not clear how many bytes belong to the next command
+            LinkedList<Integer> command = new LinkedList<>();
+
+            /*
+            * put into String form and check if it equals a new track header, should not occur, because of parameter
+            * length
+            */
+            if(command.size() == 4) {
+                String maybeHeader = command.get(0).toString() + command.get(1).toString() + command.get(2).toString() + command.get(3).toString();
+                if(maybeHeader.equals("4d54726b")) { //see analyzeTrackHeader
+                    break;
+                }
+            }
+
+            if(!(currentDeltaTime == 0 && read >= 248 && read <= 251)) {
+                if (read < 128) {
+                    currentDeltaTime += read;
+                    command.addFirst(currentDeltaTime);
+                    //reset delta time
+                    currentDeltaTime = 0;
+                    readDeltaTime = false;
+                } else if (readDeltaTime) {
+                    //success delta time by current delta time chunk
+                    currentDeltaTime += (read & 127);
+                    continue; //next byte is delta time chunk, so continue
+                }
+            }
+
+            //check whether next command is midi command or meta event
+            //meta event
+            if(read == 255) {
+                command.add(read);
+                continue;
+            } else if(read >= 128) { //midi command
+                //system messages TODO add system messages
+                command.add(read);
+                if(read < 208 || read > 223 && read < 248 || read > 251) {
+                    addNextBytes(command, 3);
+                } else if(read < 248 || read > 251) {
+                    addNextBytes(command, 2);
+                }
+            } else { //part two of the meta event
+                command.add(read); //indicator
+                command.add(read); //number of data bytes
+                addNextBytes(command, read); //data bytes
+            }
+
+            //setup command as array
+            int midiCommand[] = new int[command.size()];
+            for(int i = 0; i < command.size(); i++) {
+                midiCommand[i] = command.get(i);
+            }
+            LinkedList<int[]> currCommandList = trackLists.get(index);
+            currCommandList.add(midiCommand);
+            trackLists.set(index, currCommandList);
+        }
+    }
+
+    /**
+     * Adds next numberOfBytes' Bytes to List list
+     * @param list The list, which the bytes are appended to
+     * @param numberOfBytes The number of bytes to append, reader saves, where the next byte is
+     */
+    public void addNextBytes(LinkedList<Integer> list, int numberOfBytes) {
+        for(int i = 0; i < numberOfBytes; i++) {
+            try {
+                int read = this.reader.read();
+                list.add(read);
+            } catch (IOException e) {
+                continue;
+            }
+        }
     }
 
     /**
@@ -191,7 +276,7 @@ public class MidiFileReader{
      * @param index the tracks index
      * @return List, containing the midi commands of the track
      */
-    public LinkedList<Integer[]> getTrack(int index) {
+    public LinkedList<int[]> getTrack(int index) {
         return trackLists.get(index);
     }
 }
