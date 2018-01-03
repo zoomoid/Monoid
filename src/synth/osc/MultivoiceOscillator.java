@@ -11,9 +11,7 @@ import synth.modulation.Static;
 public class MultivoiceOscillator extends Oscillator {
 
     /** The array of frequencies of individual oscillators. */
-    private BasicOscillator[] backend;
-
-    private Modulatable[] frequency;
+    private Modulatable[] frequencies;
     private float[] phase;
     /** The buffer used by all oscillators. */
     private Buffer buffer;
@@ -26,7 +24,6 @@ public class MultivoiceOscillator extends Oscillator {
     private SmartOscillator dependent;
 
     private double one_over_sr;
-
     /**
      * Instantiates a new MultivoiceOscillator.
      *
@@ -38,8 +35,7 @@ public class MultivoiceOscillator extends Oscillator {
         super(context, 2);
         this.buffer = buffer;
         this.one_over_sr = 1f / context.getSampleRate();
-        this.backend = new BasicOscillator[0];
-        this.frequency = new Modulatable[0];
+        this.frequencies = new Modulatable[0];
         this.phase = new float[0];
         if(numOscillators > 0){
             setNumOscillators(numOscillators);
@@ -47,13 +43,6 @@ public class MultivoiceOscillator extends Oscillator {
         } else {
             this.gain.setValue(0f);
         }
-    }
-
-
-    MultivoiceOscillator(AudioContext context, SmartOscillator dependent, Buffer buffer, int numOscillators){
-        this(context, buffer, numOscillators);
-        this.dependent = dependent;
-        this.addDependent(this.dependent);
     }
 
     public MultivoiceOscillator setPhase(float phase) {
@@ -87,38 +76,23 @@ public class MultivoiceOscillator extends Oscillator {
      */
     public void setNumOscillators(int numOscillators) {
         this.numOscillators = numOscillators;
-        int p = this.backend.length;
-        BasicOscillator[] old = this.backend;
-        this.backend = new BasicOscillator[numOscillators];
-        for(int i = 0; i < numOscillators; i++){
-            if(i < p){
-                this.backend[i] = old[i];
-            } else {
-                this.backend[i] = new BasicOscillator(ac, 0f, this.buffer);
-            }
-        }
-
         updateFrequency();
         updatePhase();
         // Update gain to evenly scale each oscillation to 1
         this.gain.setValue(1f/numOscillators);
-
         this.update();
     }
 
     private void updateFrequency() {
-        Modulatable[] old = (this.frequency != null ? this.frequency : new Modulatable[numOscillators]);
-        this.frequency = new Modulatable[numOscillators];
+        Modulatable[] old = (this.frequencies != null ? this.frequencies : new Modulatable[numOscillators]);
+        this.frequencies = new Modulatable[numOscillators];
         for(int i = 0; i < numOscillators; i++) {
             if(i < old.length && old[i] != null){
-                this.frequency[i] = old[i];
+                this.frequencies[i] = old[i];
             } else {
                 // new frequencies new voices is not yet set
-                this.frequency[i] = new Static(this.context, 0f);
+                this.frequencies[i] = new Static(this.context, 0f);
             }
-        }
-        for(int i = 0; i < numOscillators; i++){
-            this.backend[i].setFrequency(this.frequency[i]);
         }
     }
 
@@ -133,9 +107,9 @@ public class MultivoiceOscillator extends Oscillator {
                 this.phase[i] = (float) phaseStart;
             }
         }
-        for(int i = 0; i < numOscillators; i++){
+        /*for(int i = 0; i < numOscillators; i++){
             this.backend[i].setPhase(this.phase[i]);
-        }
+        }*/
     }
 
     /**
@@ -146,9 +120,9 @@ public class MultivoiceOscillator extends Oscillator {
     public void setFrequencies(Modulatable[] frequency) {
         for(int i = 0; i < numOscillators; i++) {
             if(i < frequency.length) {
-                this.frequency[i] = frequency[i];
+                this.frequencies[i] = frequency[i];
             } else {
-                this.frequency[i].setValue(0f);
+                this.frequencies[i].setValue(0f);
             }
         }
     }
@@ -158,28 +132,29 @@ public class MultivoiceOscillator extends Oscillator {
      * @return array of frequencies.
      */
     public Modulatable[] getFrequencies() {
-        return frequency;
+        return frequencies;
     }
 
     /* (non-Javadoc)
      * @see com.olliebown.beads.core.UGen#calculateBuffer()
      */
     @Override
-    public synchronized void calculateBuffer() {
-        zeroOuts();
+    public void calculateBuffer() {
         this.gain.update();
         for (int n = 0; n < numOscillators; n++) {
-            frequency[n].update();
-            backend[n].update();
+            frequencies[n].update();
         }
-
         for(int j = 0; j < bufferSize; j++) {
+            this.bufOut[0][j] = 0;
+            this.bufOut[1][j] = 0;
             for(int k = 0; k < numOscillators; k++) {
                 // step forward in phase (in [0,1])
-                phase[k] = (float)(((phase[k] + frequency[k].getValue(0, j) * one_over_sr) % 1.0f) + 1.0f) % 1.0f;
+                float frequencySample = this.frequencies[k].getValue(0, j);
+                this.phase[k] = (float)(((phase[k] + frequencySample * one_over_sr) % 1.0f) + 1.0f) % 1.0f;
+                float sample = this.buffer.getValueFraction(this.phase[k]);
+                float gainSample = this.gain.getValue(0,j);
                 for(int i = 0; i < outs; i++) {
-                    float sample = buffer.getValueFraction(phase[k]);
-                    bufOut[i][j] += gain.getValue(i, j) * sample;
+                    this.bufOut[i][j] += gainSample * sample;
                 }
             }
         }

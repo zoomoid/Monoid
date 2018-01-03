@@ -20,15 +20,13 @@ public abstract class Oscillator extends UGen implements Device {
     /** Oscillator output gain */
     protected Modulatable gain;
     /** Phase UGen */
-    protected UGen phase;
+    //protected UGen phase;
 
     /** MIDI note value */
     protected int midiNote;
 
     /** The AudioContext the oscillator is working in */
     protected AudioContext ac;
-
-    protected boolean isUnisonOscillator;
 
     /** Volume Envelope */
     protected Envelope volumeEnvelope;
@@ -69,12 +67,12 @@ public abstract class Oscillator extends UGen implements Device {
 
         this.frequency = frequency;
         this.gain = new Static(ac, 1f);
-        this.phase = new Static(ac, -1f);
+        //this.phase = new Static(ac, -1f);
 
         velocityFactor = 1;
         isVelocitySensitive = false;
         midiNote = -1;
-        this.outputInitializationRegime = OutputInitializationRegime.RETAIN;
+        this.outputInitializationRegime = OutputInitializationRegime.ZERO;
         this.outputPauseRegime = OutputPauseRegime.ZERO;
         this.setType();
     }
@@ -105,9 +103,9 @@ public abstract class Oscillator extends UGen implements Device {
      * Returns the current phase offset
      * @return phase UGen
      */
-    public UGen getPhase(){
+    /*public UGen getPhase(){
         return this.phase;
-    }
+    }*/
 
     /**
      * Sets the frequency of oscillation
@@ -173,26 +171,26 @@ public abstract class Oscillator extends UGen implements Device {
      * @param phase phase offset in [-1, 1]. NOTE that -1 is to be used for random phase offset since -1 and 1 are equivalent in effect on the oscillation
      * @return this oscillator instance
      */
-    public Oscillator setPhase(float phase){
+    /*public Oscillator setPhase(float phase){
         if(this.phase != null){
             this.phase.setValue(phase);
             return this;
         } else {
             return this.setPhase(new Static(ac, phase));
         }
-    }
+    }*/
 
     /**
      * Sets a variable phase offset for the oscillation
      * @param phase variable phase offset UGen
      * @return this oscillator instance
      */
-    public Oscillator setPhase(UGen phase){
+    /*public Oscillator setPhase(UGen phase){
         if(phase != null){
             this.phase = phase;
         }
         return this;
-    }
+    }*/
 
     @Override
     public void calculateBuffer(){

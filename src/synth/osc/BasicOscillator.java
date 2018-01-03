@@ -26,7 +26,7 @@ public class BasicOscillator extends Oscillator implements WavetableOscillator {
         this(ac, frequency, wave);
         this.dependent = dependent;
         this.addDependent(this.dependent);
-        this.cP = super.phase.getValue();
+        this.cP = 0;
     }
 
     public BasicOscillator(AudioContext ac, Modulatable frequency, Buffer wave){
@@ -37,7 +37,6 @@ public class BasicOscillator extends Oscillator implements WavetableOscillator {
             this.wave = Buffer.SINE;
         }
         this.outputInitializationRegime = OutputInitializationRegime.RETAIN;
-        this.phase = new Static(ac, -1);
         this.one_over_sr = 1f / context.getSampleRate();
     }
 
@@ -49,7 +48,6 @@ public class BasicOscillator extends Oscillator implements WavetableOscillator {
         this(ac, frequency, wave);
         this.dependent = dependent;
         this.addDependent(this.dependent);
-        this.isUnisonOscillator = false;
     }
 
     public Buffer getWave(){
@@ -74,21 +72,17 @@ public class BasicOscillator extends Oscillator implements WavetableOscillator {
         return this;
     }
 
-    @Override
-    public BasicOscillator setPhase(UGen phase){
-        return this.setPhase(phase.getValue());
-    }
 
     @Override
-    public synchronized void calculateBuffer(){
-        zeroOuts();
+    public void calculateBuffer(){
         this.frequency.update();
         this.gain.update();
-        this.phase.update();
         for(int j = 0; j < bufferSize; j++){
-            cP = (float)(((cP + frequency.getValue(0, j) * one_over_sr) % 1.f) + 1.f) % 1.f;
+            cP = (float)(((cP + this.frequency.getValue(0, j) * one_over_sr) % 1.f) + 1.f) % 1.f;
+            float waveSample = this.wave.getValueFraction(cP);
+            float gainSample = this.gain.getValue(0, j);
             for(int i = 0; i < outs; i++){
-                bufOut[i][j] = gain.getValue(0, j) * this.wave.getValueFraction(cP);
+                this.bufOut[i][j] = gainSample * waveSample;
             }
         }
 

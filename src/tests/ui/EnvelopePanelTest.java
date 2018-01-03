@@ -20,7 +20,7 @@ public class EnvelopePanelTest {
         BasicOscillator osc = new BasicOscillator(ac, new Static(ac, 220f), Buffer.SAW);
         osc.setGain(e);
         pane = new JPanel();
-        p = new EnvelopePanel(e);
+        p = new EnvelopePanel(e, "Basic Envelope");
         pane.add(p);
         p.test();
         ac.start();

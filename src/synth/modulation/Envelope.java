@@ -6,6 +6,9 @@ import synth.container.Device;
 
 /**
  * A basic envelope wrapping class.
+ * TODO Build a field called baseLevel. It represents the zero value of the envelope. For normal gain modulation, this current implementation is sufficient,
+ * but since we want to also modulate values not in between 0 and 1, we need to implement a basic shift to the desired domain
+ *
  */
 public class Envelope extends Modulator implements Modulatable {
 
@@ -104,6 +107,7 @@ public class Envelope extends Modulator implements Modulatable {
      */
     public void setSustain(float sustain) {
         this.sustain = sustain;
+        this.current.setValue(sustain);
     }
     /**
      * Gets the release time in [ms]
@@ -125,7 +129,6 @@ public class Envelope extends Modulator implements Modulatable {
         current.update();
         for(int i = 0; i < bufferSize; i++){
             bufOut[0][i] = modulationStrength * current.getValue(0, i);
-
         }
     }
 

@@ -28,15 +28,15 @@ public class Static extends Modulator implements Modulatable {
     }
 
     public void setValue(float value) {
-        x = value;
+        this.x = value;
     }
 
     public float getValue(int a, int b) {
-        return x;
+        return this.x;
     }
 
     public float getValue() {
-        return x;
+        return this.x;
     }
 
     public Static clone(){
