@@ -112,6 +112,19 @@ public class SmartOscillator extends Oscillator implements UnisonOscillator, Wav
     }
 
     /**
+     * Sets the frequency of oscillation
+     * NOTE This REPLACES the frequency UGen with a new one
+     * @param frequency static oscillation frequency
+     * @return this oscillator instance
+     */
+    @Override
+    public SmartOscillator setFrequency(Modulatable frequency){
+        super.setFrequency(frequency);
+        this.refresh();
+        return this;
+    }
+
+    /**
      * Gets the blend ratio with which the center voice and the unison voices gets blended together
      * @return the blend ratio of center and unison in [0,1]
      */
@@ -306,5 +319,17 @@ public class SmartOscillator extends Oscillator implements UnisonOscillator, Wav
 
     public void setPhase(int phase) {
         this.unison.setPhase(phase);
+    }
+
+    public void noteOn(){
+        super.noteOn();
+        this.center.noteOn();
+        this.unison.noteOn();
+    }
+
+    public void noteOff(){
+        super.noteOff();
+        this.center.noteOff();
+        this.unison.noteOff();
     }
 }

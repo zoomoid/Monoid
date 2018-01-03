@@ -177,6 +177,7 @@ public class FMOscillator extends Modulator implements Modulatable {
     }
 
     public FMOscillator clone(){
-        return new FMOscillator(this.ac, this.type, this.mode, this.frequency, this.amplitude);
+        FMOscillator r = new FMOscillator(this.ac, this.type, this.mode, this.frequency, this.amplitude);
+        return (FMOscillator)(r.setModulationStrength(this.modulationStrength).setCenterValue(this.centerValue).setModulationMode(this.modulationMode));
     }
 }

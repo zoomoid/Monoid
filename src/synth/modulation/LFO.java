@@ -193,6 +193,7 @@ public class LFO extends Modulator implements Modulatable {
     }
 
     public LFO clone(){
-        return new LFO(this.ac, this.type, this.mode, this.frequency, this.amplitude);
+        LFO r = new LFO(this.ac, this.type, this.mode, this.frequency, this.amplitude);
+        return (LFO)(r.setModulationStrength(this.modulationStrength).setModulationMode(this.modulationMode).setCenterValue(this.centerValue));
     }
 }
