@@ -13,30 +13,32 @@ public class MidiFileReader{
     /**The Midi File, can be NULL if there is an error */
     public File midiFile;
 
-    /**The controlled Oscillator */
-    Oscillator controlledOsc;
-
     /**The FileInputStream to read bytes and convert them to hex */
     FileInputStream reader;
 
     /** Necessary variables containing basic information about the midi file */
     int tracks; //number of tracks
     int fileFormat; //single track, synchronous tracks, asynchronous tracks (see analyze header)
-    int deltaTicks; //TODO add reference
+    int deltaTicks; //ticks per quarter note
 
     /**
      *  List of lists for each track, holding the midi commands, where every command ia an int array of following order
      *  0: delta time
      *  1: command and channel (0 - 15)
      *  2-pinf: values
+     *
+     *  OR meta events beginning with ff and an indicator, followed by given parameters
+     *
      * */
     ArrayList<LinkedList<int[]>> trackLists;
 
-    //TODO rework javadoc
-    /**Basic Constructor */
+    /**
+     * Constructor for the MidiFileReader, organizes midi information in processable data
+     * @param midiFile the midiFile
+     * @param osc the controlled oscillator TODO maybe remove here
+     */
     public MidiFileReader(File midiFile, Oscillator osc) {
         this.midiFile = midiFile;
-        this.controlledOsc = osc;
         try {
             reader = new FileInputStream(this.midiFile);
         } catch (FileNotFoundException e) {
@@ -50,7 +52,13 @@ public class MidiFileReader{
         if(this.midiFile != null) {
             trackLists = new ArrayList<>();
             for(int i = 0; i < tracks; i++) {
-                trackLists.add(new LinkedList<int[]>());
+                trackLists.add(new LinkedList<>());
+                try {
+                    analyzeTrackHeader(i);
+                } catch(NoMidiFileException nomidi) {
+                    this.midiFile = null;
+                    System.out.println(nomidi);
+                }
             }
         }
     }
@@ -190,6 +198,8 @@ public class MidiFileReader{
                     currentDeltaTime += (read & 127);
                     continue; //next byte is delta time chunk, so continue
                 }
+            } else {
+                command.addFirst(0); // delta time is 0
             }
 
             //check whether next command is midi command or meta event
@@ -198,9 +208,9 @@ public class MidiFileReader{
                 command.add(read);
                 continue;
             } else if(read >= 128) { //midi command
-                //system messages TODO add system messages
+                //system messages
                 command.add(read);
-                if(read < 208 || read > 223 && read < 248 || read > 251) {
+                if(read < 192 || read > 223 && read < 248 || read > 251) {
                     addNextBytes(command, 3);
                 } else if(read < 248 || read > 251) {
                     addNextBytes(command, 2);
@@ -219,6 +229,7 @@ public class MidiFileReader{
             LinkedList<int[]> currCommandList = trackLists.get(index);
             currCommandList.add(midiCommand);
             trackLists.set(index, currCommandList);
+            readDeltaTime = true; //if we have a non delta time command, we just skip the delta time scan as seen above
         }
     }
 
@@ -278,5 +289,21 @@ public class MidiFileReader{
      */
     public LinkedList<int[]> getTrack(int index) {
         return trackLists.get(index);
+    }
+
+    /**
+     * Getter for deltaTicks
+     * @return deltaTicks
+     */
+    public int getDeltaTicks() {
+        return deltaTicks;
+    }
+
+    /**
+     * Returns Array of all tracks
+     * @return Array of all tracks
+     */
+    public ArrayList<LinkedList<int[]>> getTrackLists() {
+        return trackLists;
     }
 }
