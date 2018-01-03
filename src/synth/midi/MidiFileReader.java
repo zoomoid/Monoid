@@ -306,4 +306,12 @@ public class MidiFileReader{
     public ArrayList<LinkedList<int[]>> getTrackLists() {
         return trackLists;
     }
+
+    /**
+     * Gets the file format
+     * @return fileFormat
+     */
+    public int getFileFormat() {
+        return fileFormat;
+    }
 }

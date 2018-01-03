@@ -4,6 +4,7 @@ import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.ugens.Clock;
 import synth.midi.MidiFileReader;
 import synth.osc.Oscillator;
+import synth.osc.PolyphonyOscillator;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -25,6 +26,8 @@ public class MidiOscController {
     /**Boolean for getting information whether the MidiOscController is paused or not */
     private boolean isPaused = false;
 
+    AudioContext ac;
+
     /**
      * Basic Constructor
      * @param osc The controlled Oscillator
@@ -34,6 +37,10 @@ public class MidiOscController {
     public MidiOscController(Oscillator osc, File midiFile, AudioContext ac) {
         this.osc = osc;
         this.reader = new MidiFileReader(midiFile, osc);
+
+        this.ac = ac;
+        ac.out.addInput(osc);
+        ac.start();
         //setup clock
         this.clock = new Clock(ac);
         this.clock.setClick(false);
@@ -46,18 +53,22 @@ public class MidiOscController {
     public void start() {
         setActive(true);
         setPaused(false);
+        this.osc.pause(false);
+        this.osc.start();
     }
 
     //TODO implment method for pausing the audio
     public void pause() {
         setActive(false);
         setPaused(true);
+        this.osc.pause(true);
     }
 
     //TODO implement method for stopping the audio
     public void stop() {
         setActive(false);
         setPaused(false);
+        this.osc.pause(true);
     }
 
     /**
@@ -112,14 +123,29 @@ public class MidiOscController {
     }
 
     public void startPerformance() {
+         //currently not supporting synchronous play of tracks
         ArrayList<LinkedList<int[]>> tracks = reader.getTrackLists();
-        for(LinkedList<int[]> track: tracks) {
-            perform(track);
+        if(reader.getFileFormat() == 0 || reader.getFileFormat() == 2) {
+            for (LinkedList<int[]> track : tracks) {
+                perform(track);
+            }
+        } else {
+            //TODO implement synchronous
         }
     }
 
+    /**
+     * Performs all commands in the order of the track
+     * @param trackCommands the commands of the track
+     */
     public void perform(LinkedList<int[]> trackCommands) {
-
+        while(getActive() && !getPaused()) {
+            for (int[] command : trackCommands) {
+                //wait command[0] delta ticks
+                wait(command[0]);
+                control(command);
+            }
+        }
     }
 
     public void wait(int deltatime) {
@@ -134,11 +160,23 @@ public class MidiOscController {
     -----------------------------------------------------------------------------------------------------------------*/
 
     public void noteOff(Oscillator osc, int channel, int note, int velocity) {
-
+        //TODO check if osc can handle multiple voices
+        //later implement use of channels
+        if(!osc.isPaused()) {
+            osc.pause(true);
+        }
     }
 
     public void noteOn(Oscillator osc, int channel, int note, int velocity) {
-
+        //TODO check if osc can handle multiple voices
+        //later implement use of channels
+        osc.setMidiNote(note);
+        if(osc.isVelocitySensitive()) {
+            osc.setVelocityFactor((float) 1 / (256 - velocity));
+        }
+        if(osc.isPaused()) {
+            osc.start();
+        }
     }
 
     //german: abklingen
