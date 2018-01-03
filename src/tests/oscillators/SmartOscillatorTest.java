@@ -22,7 +22,8 @@ public class SmartOscillatorTest {
         } else {
             LFO freqLFO = new LFO(ac, LFO.Type.SINE, 2f, 1f);
             // modulator specific sets
-            freqLFO.setCenterValue(220f).setModulationStrength(20f);
+            freqLFO.setCenterValue(220f);
+            freqLFO.setModulationStrength(20f);
             osc.setFrequency(freqLFO);
         }
         if(UNISON){
@@ -35,7 +36,7 @@ public class SmartOscillatorTest {
             osc.setVoices(1).setBlend(1).setSpread(0).setSpreadFunction(1);
         }
         ac.start();
-
+        osc.noteOn();
 
 
     }

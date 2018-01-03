@@ -16,6 +16,7 @@ public class BasicOscillator extends Oscillator implements WavetableOscillator {
     private double one_over_sr;
 
     private SmartOscillator dependent;
+    private WaveType waveType;
 
     public BasicOscillator(AudioContext ac){
         this(ac, 0f, Buffer.SINE);
@@ -56,6 +57,7 @@ public class BasicOscillator extends Oscillator implements WavetableOscillator {
 
     public BasicOscillator setWave(Buffer wave){
         if(wave != null){
+            this.determineWaveType(wave);
             this.wave = wave;
         }
         return this;
@@ -72,6 +74,18 @@ public class BasicOscillator extends Oscillator implements WavetableOscillator {
         return this;
     }
 
+
+
+    @Override
+    public WaveType getWaveType() {
+        return this.waveType;
+    }
+
+    @Override
+    public BasicOscillator setWaveType(WaveType waveType){
+        this.waveType = waveType;
+        return this;
+    }
 
     @Override
     public void calculateBuffer(){

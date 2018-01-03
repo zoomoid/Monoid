@@ -8,6 +8,8 @@ import synth.modulation.Modulatable;
 
 import synth.modulation.Static;
 
+import java.util.stream.IntStream;
+
 public class MultivoiceOscillator extends Oscillator {
 
     /** The array of frequencies of individual oscillators. */
@@ -161,5 +163,20 @@ public class MultivoiceOscillator extends Oscillator {
 
     }
 
+    @Override
+    public void noteOn(){
+        super.noteOn();
+        for (Modulatable m : this.frequencies) {
+            m.noteOn();
+        }
+    }
+
+    @Override
+    public void noteOff(){
+        super.noteOff();
+        for (Modulatable m : this.frequencies) {
+            m.noteOff();
+        }
+    }
 
 }

@@ -3,10 +3,12 @@ package synth.ui;
 import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.data.Pitch;
 import synth.SynthController;
+import synth.modulation.LFO;
 import synth.osc.Oscillator;
 import synth.osc.UnisonOscillator;
 import synth.osc.WavetableOscillator;
 import synth.ui.components.swing.*;
+import synth.ui.composition.LFOPanel;
 
 import javax.swing.*;
 import java.awt.*;
@@ -130,12 +132,6 @@ public class OscillatorUI extends SynthesizerUserInterfaceModule {
             associatedOscillator.setFrequency(Pitch.mtof((float)e.getNewValue()));
         });
         frequencyPane.add(frequencyKnob);
-
-        /*phaseKnob = new BlankKnob(new BlankKnob.Parameters(-1, 1, 0.01f, false, true), BlankKnob.SMALL, -1, "Phase");
-        phaseKnob.addPropertyChangeListener(e -> {
-            associatedOscillator.setPhase((float)(e.getNewValue()));
-        });
-        gainPane.add(phaseKnob);*/
 
         gainKnob = new BlankKnob(new BlankKnob.Parameters(0,1, 0.01f, false, true), BlankKnob.MEDIUM, 1,"Gain");
         gainKnob.addPropertyChangeListener(e -> {
@@ -307,7 +303,9 @@ public class OscillatorUI extends SynthesizerUserInterfaceModule {
     private void initializeFromOscillator(){
         this.frequencyKnob.setValue(associatedOscillator.getFrequency().getValue());
         this.gainKnob.setValue(associatedOscillator.getGain().getValue());
-        // TODO implement wavetable switch case. (Wavetable)Oscillators need an enum for their wave type to compare against, since buffers get serialized and are returned as float arrays.
+        if(associatedOscillator instanceof WavetableOscillator){
+            this.wavetableSpinner.setValue(this.setWavetableType(((WavetableOscillator)associatedOscillator).getWaveType()));
+        }
         if(associatedOscillator instanceof UnisonOscillator){
             this.unisonVoicesSlider.setValue(((UnisonOscillator) associatedOscillator).getVoices());
             this.unisonSpreadKnob.setValue(((UnisonOscillator) associatedOscillator).getSpread());
@@ -318,5 +316,16 @@ public class OscillatorUI extends SynthesizerUserInterfaceModule {
 
     public Oscillator getAssociatedDevice() {
         return associatedOscillator;
+    }
+
+    private WaveType setWavetableType(WavetableOscillator.WaveType waveType){
+        switch(waveType){
+            case SINE : return icons[0];
+            case TRIANGLE : return icons[1];
+            case SAW : return icons[2];
+            case SQUARE : return icons[3];
+            case NOISE : return icons[4];
+            default : return icons[0];
+        }
     }
 }
