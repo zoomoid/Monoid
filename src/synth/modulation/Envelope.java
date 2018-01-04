@@ -10,22 +10,22 @@ import synth.container.Device;
 public class Envelope extends Modulator implements Modulatable {
 
     /** attack time in milliseconds */
-    private int attack;
+    protected int attack;
 
     /** decay time in milliseconds */
-    private int decay;
+    protected int decay;
 
     /** sustain level in [0,1] */
-    private float sustain;
+    protected float sustain;
 
     /** release time in milliseconds */
-    private int release;
+    protected int release;
 
     /** Audio context */
-    private AudioContext context;
+    protected AudioContext context;
 
     /** Backend Envelope UGen */
-    private net.beadsproject.beads.ugens.Envelope current;
+    protected net.beadsproject.beads.ugens.Envelope current;
 
     /** Default envelope */
     public Envelope(AudioContext ac){

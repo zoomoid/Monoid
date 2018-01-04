@@ -22,12 +22,8 @@ public class BasicOscillator extends Oscillator implements WavetableOscillator {
         this(ac, 0f, Buffer.SINE);
     }
 
-
-    BasicOscillator(AudioContext ac, SmartOscillator dependent, Modulatable frequency, Buffer wave){
-        this(ac, frequency, wave);
-        this.dependent = dependent;
-        this.addDependent(this.dependent);
-        this.cP = 0;
+    public BasicOscillator(AudioContext ac, float frequency, Buffer wave){
+        this(ac, new Static(ac, frequency), wave);
     }
 
     public BasicOscillator(AudioContext ac, Modulatable frequency, Buffer wave){
@@ -41,24 +37,14 @@ public class BasicOscillator extends Oscillator implements WavetableOscillator {
         this.one_over_sr = 1f / context.getSampleRate();
     }
 
-    public BasicOscillator(AudioContext ac, float frequency, Buffer wave){
-        this(ac, new Static(ac, frequency), wave);
-    }
-
-    BasicOscillator(AudioContext ac, SmartOscillator dependent, float frequency, Buffer wave){
-        this(ac, frequency, wave);
-        this.dependent = dependent;
-        this.addDependent(this.dependent);
-    }
-
     public Buffer getWave(){
         return this.wave;
     }
 
     public BasicOscillator setWave(Buffer wave){
         if(wave != null){
-            this.determineWaveType(wave);
             this.wave = wave;
+            this.determineWaveType(wave);
         }
         return this;
     }

@@ -64,8 +64,8 @@ public class LFOPanel extends BlankPanel {
     public LFOPanel(LFO lfo, String text){
         this.lfo = lfo;
         this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        a = new BlankKnob(new BlankKnob.Parameters(1f, 5000, 5, false, false), BlankKnob.SMALL, 5f, "AMP");
-        f = new BlankKnob(new BlankKnob.Parameters(1f, 5000, 5, false, false), BlankKnob.SMALL, 100f, "FREQ");
+        a = new BlankKnob(new BlankKnob.Parameters(0f, 1f, 0.01f, false, false), BlankKnob.SMALL, 5f, "AMP");
+        f = new BlankKnob(new BlankKnob.Parameters(0f, 100f, 1, false, false), BlankKnob.SMALL, 100f, "FREQ");
         mod = new BlankKnob(new BlankKnob.Parameters(-100f, 100f, 1f, false, true), BlankKnob.SMALL, 0f, "MOD");
         label = new BlankLabel(text);
         label.setFont(new Font("Fira Mono", Font.BOLD, 10));
@@ -116,7 +116,6 @@ public class LFOPanel extends BlankPanel {
         parameterPanel.add(separator);
         parameterPanel.add(f);
         parameterPanel.add(a);
-
 
         this.add(labelPanel);
         this.add(parameterPanel);
