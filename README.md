@@ -1,7 +1,7 @@
 # Monoid
 Monoid is a software synthesizer written in Java with Beads for educational purposes
 
-# About 'Monoid'
+## About 'Monoid'
 
 Monoid features modularity for both subtractive as well as additive synthesis. Its core parts are oscillators and filters,
 ordered and managed by controllers which allow routing to be made individually. Additionally, processing through effects

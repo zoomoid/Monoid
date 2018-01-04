@@ -7,6 +7,8 @@ import synth.osc.Oscillator;
 import synth.osc.UnisonOscillator;
 import synth.osc.WavetableOscillator;
 import synth.ui.components.swing.*;
+import synth.ui.composition.EnvelopePanel;
+import synth.ui.composition.LFOPanel;
 
 import javax.swing.*;
 import java.awt.*;
@@ -75,21 +77,26 @@ public class OscillatorUI extends SynthesizerUserInterfaceModule {
     private BlankSpinner _unisonBlend;
     private BlankImageSpinner _wavetableSpinner;
 
+    private BlankPanel modulationPanel;
+    private EnvelopePanel freqEnv, ampEnv;
+    private LFOPanel freqLFO, ampLFO;
+
     private JFrame ui;
 
     private WaveType[] icons = {
-        new WaveType("src/sine.png", 0),
-        new WaveType("src/triangle.png",1),
-        new WaveType("src/saw.png",2),
-        new WaveType("src/square.png", 3),
-        new WaveType("src/noise.png", 4)
+        new WaveType("sine.png", 0),
+        new WaveType("triangle.png",1),
+        new WaveType("saw.png",2),
+        new WaveType("square.png", 3),
+        new WaveType("noise.png", 4)
     };
 
     public OscillatorUI(Oscillator associatedOscillator){
         this.associatedOscillator = associatedOscillator;
         pane = new BlankPanel();
-        pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
-        mainPane = new BlankPanel(new GridLayout(2, 1));
+        //pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
+        mainPane = new BlankPanel();
+        mainPane.setLayout(new BoxLayout(mainPane, BoxLayout.Y_AXIS));
         topPane = new BlankPanel(new FlowLayout(FlowLayout.LEFT));
         basicPane = new BlankPanel(new FlowLayout(FlowLayout.LEFT));
         frequencyPane = new BlankPanel();
@@ -99,7 +106,8 @@ public class OscillatorUI extends SynthesizerUserInterfaceModule {
         unisonPane.setLayout(new BoxLayout(unisonPane, BoxLayout.Y_AXIS));
         unisonParameterPane = new BlankPanel(new FlowLayout(FlowLayout.LEFT));
         unisonVoicesPane = new BlankPanel(new FlowLayout(FlowLayout.LEFT));
-
+        modulationPanel = new BlankPanel();
+        modulationPanel.setLayout(new BoxLayout(modulationPanel, BoxLayout.Y_AXIS));
         oscillatorLabel = new BlankLabel("Oscillator " + associatedOscillator.getName());
         optionsButton = new BlankToggleButton("Options");
         optionsButton.pack();
@@ -118,11 +126,11 @@ public class OscillatorUI extends SynthesizerUserInterfaceModule {
         basicPane.add(frequencyPane);
         basicPane.add(gainPane);
 
+
         mainPane.add(topPane);
         mainPane.add(basicPane);
         mainPane.add(unisonPane);
-
-        pane.add(topPane);
+        mainPane.add(modulationPanel);
         pane.add(mainPane);
 
         frequencyKnob = new BlankKnob(new BlankKnob.Parameters(0, 127, 0.25f, true, true), new BlankKnob.Size(48, 48/3), 57, "Frequency");
@@ -130,12 +138,6 @@ public class OscillatorUI extends SynthesizerUserInterfaceModule {
             associatedOscillator.setFrequency(Pitch.mtof((float)e.getNewValue()));
         });
         frequencyPane.add(frequencyKnob);
-
-        /*phaseKnob = new BlankKnob(new BlankKnob.Parameters(-1, 1, 0.01f, false, true), BlankKnob.SMALL, -1, "Phase");
-        phaseKnob.addPropertyChangeListener(e -> {
-            associatedOscillator.setPhase((float)(e.getNewValue()));
-        });
-        gainPane.add(phaseKnob);*/
 
         gainKnob = new BlankKnob(new BlankKnob.Parameters(0,1, 0.01f, false, true), BlankKnob.MEDIUM, 1,"Gain");
         gainKnob.addPropertyChangeListener(e -> {
@@ -173,7 +175,7 @@ public class OscillatorUI extends SynthesizerUserInterfaceModule {
         if(associatedOscillator instanceof UnisonOscillator){
             unisonEnableButton = new BlankToggleButton("Unison");
             unisonEnableButton.addActionListener(e -> {
-                if(((BlankToggleButton)e.getSource()).isToggled()){
+                if(!((BlankToggleButton)e.getSource()).isToggled()){
                     ((UnisonOscillator)associatedOscillator).setVoices(unisonVoicesSlider.getValue());
                     ((UnisonOscillator)associatedOscillator).setSpread(unisonSpreadKnob.getValue());
                     ((UnisonOscillator)associatedOscillator).setBlend(unisonBlendKnob.getValue());
@@ -183,11 +185,11 @@ public class OscillatorUI extends SynthesizerUserInterfaceModule {
                     ((UnisonOscillator)associatedOscillator).setBlend(0f);
                 }
             });
-            unisonSpreadKnob = new BlankKnob(new BlankKnob.Parameters(0, 10, 0.1f, false, true), BlankKnob.SMALL, 0, "Spread");
+            unisonSpreadKnob = new BlankKnob(new BlankKnob.Parameters(0f, 1f, 0.01f, false, true), BlankKnob.SMALL, 0, "Spread");
             unisonSpreadKnob.addPropertyChangeListener(e -> {
                 ((UnisonOscillator) associatedOscillator).setSpread((float) e.getNewValue());
             });
-            unisonBlendKnob = new BlankKnob(new BlankKnob.Parameters(0, 1, 0.01f, false, true), BlankKnob.SMALL, 0.5f, "Blend");
+            unisonBlendKnob = new BlankKnob(new BlankKnob.Parameters(0f, 2f, 0.01f, false, true), BlankKnob.SMALL, 1f, "Blend");
             unisonBlendKnob.addPropertyChangeListener(e -> {
                 ((UnisonOscillator) associatedOscillator).setBlend((float) e.getNewValue());
             });
@@ -211,6 +213,18 @@ public class OscillatorUI extends SynthesizerUserInterfaceModule {
 
             unisonPane.add(unisonVoicesPane);
         }
+
+        freqEnv = new EnvelopePanel(associatedOscillator.frequencyEnvelope(), "FREQUENCY ENVELOPE");
+        ampEnv = new EnvelopePanel(associatedOscillator.gainEnvelope(), "AMPLITUDE ENVELOPE");
+
+        freqLFO = new LFOPanel(associatedOscillator.frequencyLFO(), "FREQUENCY LFO");
+        ampLFO = new LFOPanel(associatedOscillator.gainLFO(), "AMPLITUDE LFO");
+
+        modulationPanel.add(freqEnv);
+        modulationPanel.add(freqLFO);
+        modulationPanel.add(ampEnv);
+        modulationPanel.add(ampLFO);
+
         this.createFineTunePanel();
 
         pane.add(optionsPane);
@@ -241,14 +255,14 @@ public class OscillatorUI extends SynthesizerUserInterfaceModule {
         optionsPane.add(_headline);
         optionsPane.add(_pane);
         this._frequencyLabel = new BlankLabel("Frequency");
-        this._frequency = new BlankSpinner(new SpinnerNumberModel(associatedOscillator.getFrequency().getValue(), 0.0, 22000.0, 1));
+        this._frequency = new BlankSpinner(new SpinnerNumberModel(associatedOscillator.frequencyStatic().getValue(), 0.0, 22000.0, 1));
         this._frequency.addChangeListener(e -> {
             this.frequencyKnob.setValue(Float.parseFloat(_frequency.getValue() + ""));
         });
         _pane.add(_frequencyLabel);
         _pane.add(_frequency);
         this._gainLabel = new BlankLabel("Gain");
-        this._gain = new BlankSpinner(new SpinnerNumberModel(associatedOscillator.getGain().getValue(), 0.0, 1.0, 0.01));
+        this._gain = new BlankSpinner(new SpinnerNumberModel(associatedOscillator.gainStatic().getValue(), 0.0, 1.0, 0.01));
         this._gain.addChangeListener(e -> {
             this.gainKnob.setValue(Float.parseFloat(_gain.getValue() + ""));
         });
@@ -307,7 +321,9 @@ public class OscillatorUI extends SynthesizerUserInterfaceModule {
     private void initializeFromOscillator(){
         this.frequencyKnob.setValue(associatedOscillator.getFrequency().getValue());
         this.gainKnob.setValue(associatedOscillator.getGain().getValue());
-        // TODO implement wavetable switch case. (Wavetable)Oscillators need an enum for their wave type to compare against, since buffers get serialized and are returned as float arrays.
+        if(associatedOscillator instanceof WavetableOscillator){
+            this.wavetableSpinner.setValue(this.setWavetableType(((WavetableOscillator)associatedOscillator).getWaveType()));
+        }
         if(associatedOscillator instanceof UnisonOscillator){
             this.unisonVoicesSlider.setValue(((UnisonOscillator) associatedOscillator).getVoices());
             this.unisonSpreadKnob.setValue(((UnisonOscillator) associatedOscillator).getSpread());
@@ -318,5 +334,16 @@ public class OscillatorUI extends SynthesizerUserInterfaceModule {
 
     public Oscillator getAssociatedDevice() {
         return associatedOscillator;
+    }
+
+    private WaveType setWavetableType(WavetableOscillator.WaveType waveType){
+        switch(waveType){
+            case SINE : return icons[0];
+            case TRIANGLE : return icons[1];
+            case SAW : return icons[2];
+            case SQUARE : return icons[3];
+            case NOISE : return icons[4];
+            default : return icons[0];
+        }
     }
 }

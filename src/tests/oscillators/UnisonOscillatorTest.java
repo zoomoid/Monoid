@@ -3,7 +3,9 @@ package tests.oscillators;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.ugens.RangeLimiter;
-import net.beadsproject.beads.ugens.Static;
+import synth.modulation.LFO;
+import synth.modulation.Modulatable;
+import synth.modulation.Static;
 import synth.osc.SmartOscillator;
 import synth.osc.MultivoiceOscillator;
 import tests.ContextProvider;
@@ -11,16 +13,16 @@ import tests.ContextProvider;
 public class UnisonOscillatorTest {
     public static void main(String[] args){
         AudioContext ac = ContextProvider.ac();
-        MultivoiceOscillator osc = new MultivoiceOscillator(ac, Buffer.SAW, 5);
+        MultivoiceOscillator osc = new MultivoiceOscillator(ac, Buffer.SAW, 6);
 
-        float[] frequencies = SmartOscillator.calculateUnisonPitch(5, new Static(ac, 220f), 1, 0.001f);
-        osc.setPhase(0);
+        Modulatable[] frequencies = SmartOscillator.calculateUnisonPitch(6, new Static(ac, 110f), 1, 0.5f);
+        osc.setPhase(-1);
 
         osc.setFrequencies(frequencies);
 
-        ac.start();
         RangeLimiter l = new RangeLimiter(ac, 2);
         l.addInput(osc);
+        ac.start();
         ac.out.addInput(l);
     }
 }

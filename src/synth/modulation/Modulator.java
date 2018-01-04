@@ -23,25 +23,12 @@ public abstract class Modulator extends UGen implements MidiDevice {
         BIDIRECTIONAL, UNIDIRECTIONAL_UP, UNIDIRECTIONAL_DOWN
     }
 
-    private class Bounds {
-        public final float max;
-        public final float min;
-        public Bounds(float min, float max){
-            this.min = min;
-            this.max = max;
-        }
-    }
-
     /** modulation mode */
-    private Mode modulationMode;
-
-    /** maximum and minimum value for the modulated source */
-    private float maxValue;
-    private float minValue;
+    protected Mode modulationMode;
 
     /**
-     *
-     * @param ac
+     * Abstract modulator instance
+     * @param ac audio context
      */
     public Modulator(AudioContext ac){
         super(ac, 0 ,1);
@@ -49,28 +36,6 @@ public abstract class Modulator extends UGen implements MidiDevice {
         this.modulationMode = Mode.BIDIRECTIONAL;
         this.modulationStrength = 1;
         this.centerValue = 1;
-    }
-
-    /**
-     *
-     * @param min
-     * @param max
-     */
-    public void setBounds(float min, float max) {
-        if (min >= 0) {
-            this.minValue = min;
-        }
-        if (max >= 0) {
-            this.maxValue = max;
-        }
-    }
-
-    /**
-     *
-     * @return
-     */
-    public Bounds getBounds(){
-        return new Bounds(this.minValue, this.maxValue);
     }
 
     /**
@@ -124,15 +89,21 @@ public abstract class Modulator extends UGen implements MidiDevice {
 
     @Override
     public void calculateBuffer(){
-        /*for(int i = 0; i < bufferSize; i++){
-            bufOut[0][i] = modulationStrength * bufOut[0][i];
-        }*/
+
     }
 
+    /**
+     * Sets the value of the modulator
+     * @param value new center value
+     */
     @Override
     public void setValue(float value){
         this.centerValue = value;
     }
 
+    /**
+     * Abstract method for cloning a modulator
+     * @return Modulator
+     */
     public abstract Modulator clone();
 }

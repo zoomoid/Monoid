@@ -7,46 +7,27 @@ import synth.container.Device;
 /**
  * A basic envelope wrapping class.
  */
-public class Envelope extends Modulator {
+public class Envelope extends Modulator implements Modulatable {
 
-    /**
-     * attack time in milliseconds
-     */
-    private int attack;
+    /** attack time in milliseconds */
+    protected int attack;
 
-    /**
-     * maximum gain attack rises to
-     * this gets determined by the owning object
-     */
-    private float maximumGain;
-    /**
-     * decay time in milliseconds
-     */
-    private int decay;
+    /** decay time in milliseconds */
+    protected int decay;
 
-    /**
-     * sustain level in [0,1]
-     */
-    private float sustain;
+    /** sustain level in [0,1] */
+    protected float sustain;
 
-    /**
-     * release time in milliseconds
-     */
-    private int release;
+    /** release time in milliseconds */
+    protected int release;
 
-    /**
-     * Audio context
-     */
-    private AudioContext context;
+    /** Audio context */
+    protected AudioContext context;
 
-    /**
-     * Backend Envelope UGen
-     */
-    private net.beadsproject.beads.ugens.Envelope current;
+    /** Backend Envelope UGen */
+    protected net.beadsproject.beads.ugens.Envelope current;
 
-    /**
-     * Default envelope
-     */
+    /** Default envelope */
     public Envelope(AudioContext ac){
         this(ac,5, 0, 1f, 20);
     }
@@ -123,6 +104,7 @@ public class Envelope extends Modulator {
      */
     public void setSustain(float sustain) {
         this.sustain = sustain;
+        this.current.setValue(sustain);
     }
     /**
      * Gets the release time in [ms]
@@ -143,8 +125,7 @@ public class Envelope extends Modulator {
     public void calculateBuffer(){
         current.update();
         for(int i = 0; i < bufferSize; i++){
-            bufOut[0][i] = modulationStrength * current.getValue(0, i);
-
+            bufOut[0][i] = modulationStrength * current.getValue(0, i) + centerValue;
         }
     }
 
@@ -153,7 +134,8 @@ public class Envelope extends Modulator {
     }
 
     public Envelope clone(){
-        return new Envelope(this.ac, this.attack, this.decay, this.sustain, this.release);
+        Envelope e = new Envelope(this.ac, this.attack, this.decay, this.sustain, this.release);
+        return (Envelope)(e.setModulationStrength(this.modulationStrength).setModulationMode(this.modulationMode).setCenterValue(this.centerValue));
     }
 
     /**
@@ -162,7 +144,7 @@ public class Envelope extends Modulator {
     public void noteOn(){
         this.current.setValue(0);
         this.current.clear();
-        this.current.addSegment(this.maximumGain, this.attack);
+        this.current.addSegment(1f, this.attack);
         this.current.addSegment(this.sustain, this.decay);
     }
     /**

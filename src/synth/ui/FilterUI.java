@@ -60,9 +60,9 @@ public class FilterUI extends SynthesizerUserInterfaceModule {
     private BlankImageSpinner _type;
 
     FilterType[] icons = {
-            new FilterType("src/lpf.png", 0),
-            new FilterType("src/hpf.png",1),
-            new FilterType("src/bpf.png",2),
+            new FilterType("lpf.png", 0),
+            new FilterType("hpf.png",1),
+            new FilterType("bpf.png",2),
     };
 
     JFrame ui;

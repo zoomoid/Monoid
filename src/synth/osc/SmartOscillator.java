@@ -4,7 +4,8 @@ import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.data.Pitch;
-import synth.modulation.Modulator;
+import org.jetbrains.annotations.NotNull;
+import synth.modulation.*;
 
 public class SmartOscillator extends Oscillator implements UnisonOscillator, WavetableOscillator {
 
@@ -17,6 +18,7 @@ public class SmartOscillator extends Oscillator implements UnisonOscillator, Wav
 
     private MultivoiceOscillator unison;
     private BasicOscillator center;
+    private WaveType waveType;
 
     /**
      * Blank SmartOscillator
@@ -78,22 +80,19 @@ public class SmartOscillator extends Oscillator implements UnisonOscillator, Wav
      */
     public SmartOscillator(AudioContext ac, float frequency, Buffer wave, int voices, float spread, float blend){
         super(ac, frequency);
+
+        // submodule initialization
+        unison = new MultivoiceOscillator(ac, this.wave, this.voices);
+        center = new BasicOscillator(ac, frequency, this.wave);
         // wavetable specific initialization
-        this.wave = wave;
+        this.setWave(wave);
         // unison specific initialization
         this.spread = spread;
         this.voices = voices;
         this.spreadFunction = 1;
         this.blend = blend;
-        // submodule initialization
-        unison = new MultivoiceOscillator(ac, this, this.wave, this.voices);
-        unison.setPhase(this.phase);
-        center = new BasicOscillator(ac, this, frequency, this.wave);
-        center.setPhase(this.phase);
-        //this.addDependent(unison);
-        //this.addDependent(center);
         // output policy
-        this.outputInitializationRegime = OutputInitializationRegime.RETAIN;
+        this.outputInitializationRegime = OutputInitializationRegime.ZERO;
     }
 
     /**
@@ -111,6 +110,42 @@ public class SmartOscillator extends Oscillator implements UnisonOscillator, Wav
         if(this.type == null){
             this.type = "SmartOscillator";
         }
+    }
+
+    /**
+     * Sets the frequency of oscillation
+     * NOTE This REPLACES the frequency UGen with a new one
+     * @param frequency static oscillation frequency
+     * @return this oscillator instance
+     */
+    public SmartOscillator setFrequency(LFO frequency){
+        super.setFrequency(frequency);
+        this.refresh();
+        return this;
+    }
+
+    /**
+     * Sets the frequency of oscillation
+     * NOTE This REPLACES the frequency UGen with a new one
+     * @param frequency static oscillation frequency
+     * @return this oscillator instance
+     */
+    public SmartOscillator setFrequency(Envelope frequency){
+        super.setFrequency(frequency);
+        this.refresh();
+        return this;
+    }
+
+    /**
+     * Sets the frequency of oscillation
+     * NOTE This REPLACES the frequency UGen with a new one
+     * @param frequency static oscillation frequency
+     * @return this oscillator instance
+     */
+    public SmartOscillator setFrequency(Static frequency){
+        super.setFrequency(frequency.getValue());
+        this.refresh();
+        return this;
     }
 
     /**
@@ -167,10 +202,8 @@ public class SmartOscillator extends Oscillator implements UnisonOscillator, Wav
      * @param blend ratio in [0,1]
      */
     public SmartOscillator setBlend(float blend) {
-        if(blend <= 1 && blend >= 0){
-            // no need for super.hasChanged here, since this is just adjusting volume of two existing outputs
-            this.blend = blend;
-        }
+        // no need for super.hasChanged here, since this is just adjusting volume of two existing outputs
+        this.blend = Math.max(Math.min(blend, 2), 0);
         return this;
     }
 
@@ -179,10 +212,8 @@ public class SmartOscillator extends Oscillator implements UnisonOscillator, Wav
      * @param spread center offset in [0,1]
      */
     public SmartOscillator setSpread(float spread) {
-        if(spread >= 0 && spread <= 1){
-            this.spread = spread;
-            this.refresh();
-        }
+        this.spread = Math.max(Math.min(spread, 1), 0);
+        this.refresh();
         return this;
     }
 
@@ -191,9 +222,9 @@ public class SmartOscillator extends Oscillator implements UnisonOscillator, Wav
      * @param voices number of oscillator voices. 1 means there will be no unison voices
      */
     public SmartOscillator setVoices(int voices) {
-        if(voices != this.voices && voices > 0){
-            this.voices = voices;
-
+        if(voices != this.voices){
+            this.voices = Math.max(1, Math.min(voices, UnisonOscillator.MAX_NUM_VOICES));
+            this.unison.setNumOscillators(voices);
             this.refresh();
         }
         return this;
@@ -206,6 +237,11 @@ public class SmartOscillator extends Oscillator implements UnisonOscillator, Wav
     public SmartOscillator setWave(Buffer wave) {
         if(wave != null){
             this.wave = wave;
+            this.determineWaveType(wave);
+        }
+        if(center != null && unison != null){
+            this.center.setWave(wave);
+            this.unison.setWave(wave);
             this.refresh();
         }
         return this;
@@ -236,23 +272,16 @@ public class SmartOscillator extends Oscillator implements UnisonOscillator, Wav
     /**
      * Creates voices, either with unison or without
      */
-    @Override
-    public void updateOscillator(){
-        this.unison.setNumOscillators(voices);
-        this.center.setWave(wave);
-        this.unison.setWave(wave);
-        unison.setPhase(this.phase);
-        center.setPhase(this.phase);
-    }
+    public void updateOscillator(){}
 
     /**
      * Updates the frequency of each voice
      */
-    @Override
     public void updateFrequency() {
         if(unison != null && center != null){
-            this.unison.setFrequencies(this.calculateUnisonPitch());
-            this.center.setFrequency(this.frequency);
+            Modulatable[] nF = this.calculateUnisonPitch();
+            this.unison.setFrequencies(nF);
+            this.center.setFrequency((Sum)this.frequency);
         }
     }
 
@@ -260,12 +289,14 @@ public class SmartOscillator extends Oscillator implements UnisonOscillator, Wav
     public void calculateBuffer(){
         this.gain.update();
         this.frequency.update();
-        this.phase.update();
+        this.unison.update();
+        this.center.update();
         for(int i = 0; i < outs; i++){
-            unison.update();
-            center.update();
             for(int j = 0; j < bufferSize; j++){
-                bufOut[i][j] = this.gain.getValue(i, j) * ((1-0.5f*this.blend) * center.getValue(i, j) + (0.5f*this.blend) * unison.getValue(i, j));
+                float centerSample = this.center.getValue(i, j);
+                float unisonSample = this.unison.getValue(i, j);
+                float gainSample = this.gain.getValue(0, j);
+                bufOut[i][j] = gainSample * (((1-0.5f*this.blend) * centerSample) + ((0.5f*this.blend) * unisonSample));
             }
         }
     }
@@ -275,25 +306,35 @@ public class SmartOscillator extends Oscillator implements UnisonOscillator, Wav
      * Calculates the unison pitch spread of THIS oscillator
      * @return float array containing individual unison frequencies
      */
-    private Modulator[] calculateUnisonPitch(){
-        return calculateUnisonPitch(this.voices, this.frequency, this.spreadFunction, this.spread);
+    private Modulatable[] calculateUnisonPitch(){
+        Modulatable[] r = new Modulatable[this.voices];
+        // calculate absolute frequency range
+        float mtStart = Pitch.ftom(this.frequency.getValue()) - spread;
+        // note: case "voices = 1" is covered by this, so no need for compensation as in WaveOscillator
+        for(int i = 0; i < this.voices; i++){
+            r[i] = this.frequency.clone();
+            float midiValue = (float)(mtStart + (i/Math.pow(this.voices, this.spreadFunction)) * 2 * this.spread);
+            float frequency = Pitch.mtof(midiValue);
+            ((Sum)r[i]).setStatic(new Static(ac, frequency));
+        }
+        return r;
     }
 
     /**
      * Calculates a unison pitch offset
      * @param voices number of unison voices
      * @param spreadFunction exponent of spread function monomial
-     * @param spread spread range (Given in [0,1] * half tone step
+     * @param spread spread range (Given in [0,1] * half tone step)
      * @return array containing absolute frequency values
      */
-    public static Modulator[] calculateUnisonPitch(int voices, Modulator frequency, double spreadFunction, float spread){
-        Modulator[] r = new Modulator[voices];
+    public static Modulatable[] calculateUnisonPitch(int voices, Modulatable frequency, double spreadFunction, float spread){
+        Modulatable[] r = new Modulatable[voices];
         // calculate absolute frequency range
         float mtStart = Pitch.ftom(frequency.getValue()) - spread;
         // note: case "voices = 1" is covered by this, so no need for compensation as in WaveOscillator
         for(int i = 0; i < voices; i++){
             r[i] = frequency.clone();
-            r[i].setValue((float)(mtStart + (i/Math.pow(voices-1, spreadFunction)) * 2 * spread));
+            r[i].setValue(Pitch.mtof((float)(mtStart + (i/Math.pow(voices, spreadFunction)) * 2 * spread)));
         }
         return r;
     }
@@ -303,5 +344,32 @@ public class SmartOscillator extends Oscillator implements UnisonOscillator, Wav
         this.updateOscillator();
         this.updateFrequency();
         this.pause(false);
+    }
+
+    public void setPhase(int phase) {
+        this.unison.setPhase(phase);
+    }
+
+    public void noteOn(){
+        super.noteOn();
+        this.center.noteOn();
+        this.unison.noteOn();
+    }
+
+    public void noteOff(){
+        super.noteOff();
+        this.center.noteOff();
+        this.unison.noteOff();
+    }
+
+    @Override
+    public WaveType getWaveType() {
+        return this.waveType;
+    }
+
+    @Override
+    public SmartOscillator setWaveType(WaveType waveType){
+        this.waveType = waveType;
+        return this;
     }
 }

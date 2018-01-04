@@ -3,32 +3,29 @@ package synth.osc;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.data.Buffer;
-import synth.modulation.Modulator;
+import net.beadsproject.beads.ugens.Mult;
+import synth.modulation.Modulatable;
+
 import synth.modulation.Static;
 
-public class MultivoiceOscillator extends UGen {
+import java.util.stream.IntStream;
+
+public class MultivoiceOscillator extends Oscillator {
 
     /** The array of frequencies of individual oscillators. */
-    private Modulator[] frequency;
-
-    /** The array of current positions of individual oscillators. */
+    private Modulatable[] frequencies;
     private float[] phase;
-    /** The array of increment rates of individual oscillators, given their frequencies. */
-    private double[] increment;
-
     /** The buffer used by all oscillators. */
     private Buffer buffer;
 
     /** The number of oscillators. */
     private int numOscillators;
 
-    /** The sample rate and master gain of the OscillatorBank. */
-    private float gain;
-
     private double phaseStart;
 
     private SmartOscillator dependent;
 
+    private double one_over_sr;
     /**
      * Instantiates a new MultivoiceOscillator.
      *
@@ -39,32 +36,34 @@ public class MultivoiceOscillator extends UGen {
     public MultivoiceOscillator(AudioContext context, Buffer buffer, int numOscillators) {
         super(context, 2);
         this.buffer = buffer;
+        this.one_over_sr = 1f / context.getSampleRate();
+        this.frequencies = new Modulatable[0];
+        this.phase = new float[0];
         if(numOscillators > 0){
             setNumOscillators(numOscillators);
-            gain = 1f / (float)numOscillators;
+            this.gain.setValue(1f / (float)numOscillators);
         } else {
-            gain = 0f;
+            this.gain.setValue(0f);
         }
     }
 
-
-    MultivoiceOscillator(AudioContext context, SmartOscillator dependent, Buffer buffer, int numOscillators){
-        this(context, buffer, numOscillators);
-        this.dependent = dependent;
-        this.addDependent(this.dependent);
-    }
-
-    public void setPhase(double phase) {
+    public MultivoiceOscillator setPhase(float phase) {
         if (phase == -1) {
             this.phaseStart = -1;
         } else {
             this.phaseStart = phase % 1.0f;
         }
-        this.setNumOscillators(numOscillators);
+        this.updatePhase();
+        return this;
     }
 
-    public void setPhase(UGen phase){
+    public void setType(){
+        this.type = "MultivoiceOscillator";
+    }
+
+    public MultivoiceOscillator setPhase(UGen phase){
         this.setPhase(phase.getValue());
+        return this;
     }
 
     public void setWave(Buffer wave){
@@ -79,57 +78,54 @@ public class MultivoiceOscillator extends UGen {
      */
     public void setNumOscillators(int numOscillators) {
         this.numOscillators = numOscillators;
-        Modulator[] oldC = frequency;
-        frequency = new Modulator[numOscillators];
-        increment = new double[numOscillators];
-        int min = 0;
-        if(oldC != null){
-            min = Math.min(frequency.length, oldC.length);
-        }
-        for(int i = 0; i < min; i++) {
-            frequency[i] = oldC[i];
-            increment[i] = frequency[i].getValue() / context.getSampleRate();
-        }
-        for(int i = min; i < frequency.length; i++) {
-            frequency[i] = new Static(this.context, 0f);
-            increment[i] = frequency[i].getValue() / context.getSampleRate();
-        }
-        float[] old = phase;
-        phase = new float[numOscillators];
-        for(int i = 0; i < min; i++) {
-            if(this.phaseStart == -1){
-                // -1 as phase is defined to be random phase
-                float randomPhase = (float)(Math.random() * 2 * Math.PI);
-                phase[i] = randomPhase;
-            } else {
-                phase[i] = old[i];
-            }
-        }
-        for(int i = min; i < phase.length; i++){
-            if(this.phaseStart == -1){
-                // -1 as phase is defined to be random phase
-                float randomPhase = (float)(Math.random() * 2 * Math.PI);
-                phase[i] = randomPhase;
-            } else {
-                phase[i] = (float)phaseStart;
-            }
-        }
+        updateFrequency();
+        updatePhase();
+        // Update gain to evenly scale each oscillation to 1
+        this.gain.setValue(1f/numOscillators);
+        this.update();
+    }
 
+    private void updateFrequency() {
+        Modulatable[] old = (this.frequencies != null ? this.frequencies : new Modulatable[numOscillators]);
+        this.frequencies = new Modulatable[numOscillators];
+        for(int i = 0; i < numOscillators; i++) {
+            if(i < old.length && old[i] != null){
+                this.frequencies[i] = old[i];
+            } else {
+                // new frequencies new voices is not yet set
+                this.frequencies[i] = new Static(this.context, 0f);
+            }
+        }
+    }
+
+    private void updatePhase() {
+        // fill up phase array / shrink phase array
+        float[] old = (this.phase != null ? this.phase : new float[numOscillators]);
+        this.phase = new float[this.numOscillators];
+        for(int i = 0; i < numOscillators; i++) {
+            if (this.phaseStart == -1) {
+                this.phase[i] = (float) (Math.random());
+            } else {
+                this.phase[i] = (float) phaseStart;
+            }
+        }
+        /*for(int i = 0; i < numOscillators; i++){
+            this.backend[i].setPhase(this.phase[i]);
+        }*/
     }
 
     /**
      * Sets the frequencies of all oscillators.
      *
-     * @param frequencies the new frequencies.
+     * @param frequency the new frequencies.
      */
-    public void setFrequencies(Modulator[] frequencies) {
+    public void setFrequencies(Modulatable[] frequency) {
         for(int i = 0; i < numOscillators; i++) {
-            if(i < frequencies.length) {
-                this.frequency[i].setValue(Math.abs(frequencies[i].getValue()));
+            if(i < frequency.length) {
+                this.frequencies[i] = frequency[i];
             } else {
-                this.frequency[i].setValue(0f);
+                this.frequencies[i].setValue(0f);
             }
-            increment[i] = this.frequency[i].getValue() / context.getSampleRate();
         }
     }
 
@@ -137,16 +133,8 @@ public class MultivoiceOscillator extends UGen {
      * Gets the array of frequencies.
      * @return array of frequencies.
      */
-    public Modulator[] getFrequencies() {
-        return frequency;
-    }
-
-    /**
-     * Gets the array of gains.
-     * @return array of gains.
-     */
-    public float getGain() {
-        return gain;
+    public Modulatable[] getFrequencies() {
+        return frequencies;
     }
 
     /* (non-Javadoc)
@@ -154,25 +142,41 @@ public class MultivoiceOscillator extends UGen {
      */
     @Override
     public void calculateBuffer() {
-        zeroOuts();
-        for(int i = 0; i < numOscillators; i++) {
-            for(int j = 0; j < bufferSize; j++) {
+        this.gain.update();
+        for (int n = 0; n < numOscillators; n++) {
+            frequencies[n].update();
+        }
+        for(int j = 0; j < bufferSize; j++) {
+            this.bufOut[0][j] = 0;
+            this.bufOut[1][j] = 0;
+            for(int k = 0; k < numOscillators; k++) {
                 // step forward in phase (in [0,1])
-                phase[i] = (float)(((phase[i] + increment[i]) % 1.0f) + 1.0f) % 1.0f;
-
-                float sample = buffer.getValueFraction(phase[i]);
-
-                bufOut[0][j] += gain * sample;
-                if(bufOut[0][j] > 1){
-                    bufOut[0][j] = 1;
-                }
-                bufOut[1][j] += gain * sample;
-                if(bufOut[1][j] > 1){
-                    bufOut[1][j] = 1;
+                float frequencySample = this.frequencies[k].getValue(0, j);
+                this.phase[k] = (float)(((phase[k] + frequencySample * one_over_sr) % 1.0f) + 1.0f) % 1.0f;
+                float sample = this.buffer.getValueFraction(this.phase[k]);
+                float gainSample = this.gain.getValue(0,j);
+                for(int i = 0; i < outs; i++) {
+                    this.bufOut[i][j] += gainSample * sample;
                 }
             }
         }
+
     }
 
+    @Override
+    public void noteOn(){
+        super.noteOn();
+        for (Modulatable m : this.frequencies) {
+            m.noteOn();
+        }
+    }
+
+    @Override
+    public void noteOff(){
+        super.noteOff();
+        for (Modulatable m : this.frequencies) {
+            m.noteOff();
+        }
+    }
 
 }
