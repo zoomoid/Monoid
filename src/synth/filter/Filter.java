@@ -3,6 +3,7 @@ package synth.filter;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.ugens.Static;
+import synth.container.Device;
 import synth.filter.models.BiquadFilter;
 import synth.filter.models.FilterFactory;
 import synth.filter.models.FilterModel;
@@ -11,7 +12,7 @@ import synth.filter.models.FilterModel;
  * A Basic 2-channel filter wrapper implementation for Monoid.
  * Different filter types can be chosen from at creation.
  */
-public class Filter extends UGen {
+public class Filter extends UGen implements Device{
 
     /** Quality factor of the filter */
     private UGen q;

@@ -1,4 +1,6 @@
 package synth.container;
 
-public class MidiDevice {
+public interface MidiDevice {
+    void noteOn();
+    void noteOff();
 }

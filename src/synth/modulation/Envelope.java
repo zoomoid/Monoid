@@ -1,7 +1,6 @@
 package synth.modulation;
 
 import net.beadsproject.beads.core.AudioContext;
-import net.beadsproject.beads.core.UGen;
 import synth.container.Device;
 
 /**

@@ -1,4 +1,12 @@
 package synth.ui;
 
-public class SynthesizerUserInterfaceModule {
+import synth.container.Device;
+
+public abstract class SynthesizerUserInterfaceModule {
+
+    Device associatedDevice;
+
+    public Device getAssociatedDevice() {
+        return associatedDevice;
+    }
 }
