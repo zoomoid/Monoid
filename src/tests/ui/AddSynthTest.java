@@ -4,7 +4,7 @@ import net.beadsproject.beads.core.AudioContext;
 import synth.ui.components.swing.BlankButton;
 import synth.ui.components.swing.BlankPanel;
 import synth.ui.components.swing.BlankTextfield;
-import synth.ui.experimental.AdditiveUI;
+import synth.ui.AdditiveUI;
 import tests.ContextProvider;
 
 import javax.swing.*;

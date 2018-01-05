@@ -7,7 +7,7 @@ import org.jaudiolibs.beads.AudioServerIO;
 public class ASIOAudioContext extends AudioContext {
 
     public ASIOAudioContext(){
-        super(new AudioServerIO.JavaSound("Komplete Audio 6 WDM Audio"), 192, new IOAudioFormat(44100, 16, 0, 2));
+        super(new AudioServerIO.JavaSound("Komplete Audio 6 WDM Audio"), 8192, new IOAudioFormat(48000, 24, 0, 2));
     }
 
     public ASIOAudioContext(int bufferSize){
