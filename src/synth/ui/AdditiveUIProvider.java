@@ -17,8 +17,8 @@ public class AdditiveUIProvider {
 
     //panels
     public static BlankPanel mainPane;
-    private static BlankPanel presetPane;
-    private static BlankPanel synthPane;
+    public static BlankPanel presetPane;
+    public static BlankPanel synthPane;
 
     //buttons
     private static BlankButton presetDefault;
@@ -34,7 +34,7 @@ public class AdditiveUIProvider {
 
     private static AdditiveUI currUI;
 
-    public AdditiveUIProvider(AudioContext ac) {
+    public AdditiveUIProvider(AudioContext ac, JFrame frame) {
         this.ac = ac;
         mainPane = new BlankPanel();
         presetPane = new BlankPanel();
@@ -54,8 +54,7 @@ public class AdditiveUIProvider {
             synthPane = currUI.contentPane;
             mainPane.add(synthPane);
             mainPane.updateUI();
-            //TODO maybe fix frame.pack() problems
-            //frame.pack();
+            frame.pack();
         });
 
         presetSaw = new BlankButton("Saw");
@@ -65,7 +64,7 @@ public class AdditiveUIProvider {
             synthPane = currUI.contentPane;
             mainPane.add(synthPane);
             mainPane.updateUI();
-            //frame.pack();
+            frame.pack();
         });
 
         presetSquare = new BlankButton("Square");
@@ -75,7 +74,7 @@ public class AdditiveUIProvider {
             synthPane = currUI.contentPane;
             mainPane.add(synthPane);
             mainPane.updateUI();
-            //frame.pack();
+            frame.pack();
         });
 
         presetTriangle = new BlankButton("Triangle");
@@ -85,7 +84,7 @@ public class AdditiveUIProvider {
             synthPane = currUI.contentPane;
             mainPane.add(synthPane);
             mainPane.updateUI();
-            //frame.pack();
+            frame.pack();
         });
 
         //setup textfield and Label

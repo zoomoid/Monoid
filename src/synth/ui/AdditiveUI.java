@@ -21,7 +21,7 @@ public class AdditiveUI {
     public static final int SQUARE = 2;
     public static final int TRIANGLE = 3;
 
-    public static int numberOfOscillators = 0;
+    public int numberOfOscillators = 0;
 
     /**List of active oscillators*/
     ArrayList<Oscillator> activeOscillators = new ArrayList<Oscillator>();
@@ -60,13 +60,16 @@ public class AdditiveUI {
      */
     public AdditiveUI(int numberOfOscillators, AudioContext ac, int param) {
         limiter = new RangeLimiter(ac, 2);
-        compensator = new Gain(ac, numberOfOscillators, (float) 1 / (float) numberOfOscillators);
+        compensator = new Gain(ac, 2, ((float) 1f / (float) numberOfOscillators));
 
         this.numberOfOscillators = numberOfOscillators;
         contentPane = new BlankPanel();
         this.ac = ac;
 
         setupOscillators(220f, numberOfOscillators, param);
+
+        //add limiter to whole sound
+        limiter.addInput(compensator);
 
         this.ac.out.addInput(limiter);
 
@@ -84,14 +87,20 @@ public class AdditiveUI {
      */
     public AdditiveUI(int numberOfOscillators, AudioContext ac, int param, float basicFreq) {
         limiter = new RangeLimiter(ac, 2);
-        compensator = new Gain(ac, numberOfOscillators, (float) 1 / (float) numberOfOscillators);
+        compensator = new Gain(ac, 2, ((float) 1f / (float) numberOfOscillators));
 
         this.numberOfOscillators = numberOfOscillators;
         contentPane = new BlankPanel();
         this.ac = ac;
 
         setupOscillators(basicFreq, numberOfOscillators, param);
+        compensator.start();
+        compensator.update();
 
+        //add limiter to whole sound
+        limiter.addInput(compensator);
+        limiter.start();
+        limiter.update();
         this.ac.out.addInput(limiter);
         grid = new GridLayout(numberOfOscillators, 1, 5, 5);
         contentPane.setLayout(grid);
@@ -113,7 +122,7 @@ public class AdditiveUI {
                 default:
                 case DEFAULT:
                     if(i == 0) {
-                        bscOsc.setGain(0.2f);
+                        bscOsc.setGain(0.5f);
                         bscOsc.setFrequency(basicFreq);
                     } else {
                         bscOsc.setGain(0f);
@@ -137,10 +146,11 @@ public class AdditiveUI {
             OscController oscCon = new OscController(bscOsc);
             //add graphic
             contentPane.add(oscCon.panel);
-            //ad limiter and compensator to whole sound
+            //add compensator to whole sound
             compensator.addInput(bscOsc);
-            limiter.addInput(compensator);
+
         }
+
     }
 
     public int getNumberOfOscillators() {

@@ -46,7 +46,7 @@ public class OscillatorPanel extends BlankPanel {
         @Override
         public void propertyChange(PropertyChangeEvent evt) {
             BlankKnob source = (BlankKnob) evt.getSource();
-            this.osc = this.osc.setGain(source.getValue() / 100f);
+            this.osc = this.osc.setGain(source.getValue());
             //this.osc.update();
         }
     }

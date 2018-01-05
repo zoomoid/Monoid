@@ -1,16 +1,30 @@
 package tests.ui;
 
+import net.beadsproject.beads.core.AudioContext;
+import synth.ui.AdditiveUI;
+import synth.ui.AdditiveUIProvider;
+import synth.ui.components.swing.BlankToggle;
 import synth.ui.components.swing.BlankToggleButton;
+import tests.ContextProvider;
 
 import javax.swing.*;
+import java.awt.*;
 
 public class LauncherLayoutTest {
+    public static AudioContext ac = ContextProvider.ac();
+
     /**The frame*/
     private static JFrame frame;
 
     /**All the used Panes*/
     private static JPanel mainPane;
     private static JPanel tabPane;
+
+    //preset Panes
+    private static JPanel oscPreset;
+    private static JPanel oscAndFilterPreset;
+    private static JPanel amPreset;
+    private static JPanel fmPreset;
 
     /**Toggle buttons for tabs*/
     private static BlankToggleButton oscButton;
@@ -20,6 +34,11 @@ public class LauncherLayoutTest {
     private static BlankToggleButton fmSynth;
 
     private static BlankToggleButton currSelected;
+    private static JPanel currPresetPane;
+    private static JPanel currSynthPane;
+
+    /**Providers*/
+    private static AdditiveUIProvider addUIprovider;
 
     public static void main(String args[]) {
         frame = new JFrame("Monoid");
@@ -28,9 +47,89 @@ public class LauncherLayoutTest {
         //setup tab pane
         tabPane = new JPanel();
         //and buttons for tab pane
+        setupButtons();
+        //and presetPanes
+        setupPresetPanes();
+
+        currSynthPane = new JPanel();
+
+        //set Layout of tab pane
+        tabPane.add(oscButton);
+        tabPane.add(addSynthButton);
+        tabPane.add(oscAndFilter);
+        tabPane.add(amSynth);
+        tabPane.add(fmSynth);
+        tabPane.setLayout(new GridLayout(1, 5, 5, 5));
+
+        //add panes to main pane
+        mainPane.add(tabPane);
+        mainPane.add(oscPreset);
+        mainPane.add(currSynthPane);
+        //setup layout
+        mainPane.setLayout(new BoxLayout(mainPane, BoxLayout.Y_AXIS));
+
+        frame.setContentPane(mainPane);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setResizable(true);
+        frame.pack();
+        frame.setVisible(true);
+    }
+
+    public static void changeButton(BlankToggleButton button) {
+        if(!(currSelected == button)) {
+            ac.stop();
+            ac = ContextProvider.ac();
+            currSelected.toggle();
+            currSelected = button;
+            mainPane.remove(currPresetPane);
+            mainPane.remove(currSynthPane);
+            currPresetPane = loadPresetPane(button);
+            mainPane.add(currPresetPane);
+            currSynthPane = loadSynthPane(button);
+            mainPane.add(currSynthPane);
+            frame.pack();
+        } else {
+            button.toggle();
+        }
+    }
+
+    public static JPanel loadPresetPane(BlankToggleButton button) {
+        //select right preset pane
+        if(button == oscButton) {
+            return oscPreset;
+        } else if(button == oscAndFilter) {
+            return oscAndFilterPreset;
+        } else if(button == addSynthButton) {
+            return new JPanel();
+        } else if(button == amSynth) {
+            return amPreset;
+        } else if(button == fmSynth) {
+            return fmPreset;
+        }
+        return new JPanel();
+    }
+
+    public static JPanel loadSynthPane(BlankToggleButton button) {
+        //select right synth pane
+        if(button == oscButton) {
+            return new JPanel();
+        } else if(button == oscAndFilter) {
+            return new JPanel();
+        } else if(button == addSynthButton) {
+            JPanel additiveSynth = new AdditiveUIProvider(ac, frame).mainPane;
+            return additiveSynth;
+        } else if(button == amSynth) {
+            return new JPanel();
+        } else if(button == fmSynth) {
+            return new JPanel();
+        }
+        return new JPanel();
+    }
+
+    public static void setupButtons() {
         oscButton = new BlankToggleButton("Oscillator");
-        addSynthButton = new BlankToggleButton("Additive Section");
         oscAndFilter = new BlankToggleButton("Osc. and Filter");
+        addSynthButton = new BlankToggleButton("Additive Oscillator");
         amSynth = new BlankToggleButton("AM");
         fmSynth = new BlankToggleButton("FM");
 
@@ -58,32 +157,13 @@ public class LauncherLayoutTest {
         fmSynth.addActionListener(e -> {
             changeButton(fmSynth);
         });
-
-        //set Layout of tab pane
-        tabPane.add(oscButton);
-        tabPane.add(addSynthButton);
-        tabPane.add(oscAndFilter);
-        tabPane.add(amSynth);
-        tabPane.add(fmSynth);
-        tabPane.setLayout(new BoxLayout(tabPane, BoxLayout.X_AXIS));
-
-        //add panes to main pane
-        mainPane.add(tabPane);
-
-        //setup layout
-        mainPane.setLayout(new BoxLayout(mainPane, BoxLayout.Y_AXIS));
-
-        frame.setContentPane(mainPane);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setResizable(true);
-        frame.pack();
-        frame.setVisible(true);
     }
 
-    public static void changeButton(BlankToggleButton button) {
-        if(!(currSelected == button)) {
-            currSelected.toggle();
-            currSelected = button;
-        }
+    public static void setupPresetPanes() {
+        oscPreset = new JPanel();
+        currPresetPane = oscPreset;
+        oscAndFilterPreset = new JPanel();
+        amPreset = new JPanel();
+        fmPreset = new JPanel();
     }
 }

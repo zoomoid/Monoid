@@ -30,9 +30,9 @@ public class MidiReaderTest {
 
         BasicOscillator osc = new BasicOscillator(ac, 220f, Buffer.SQUARE);
 
-        MidiOscController controller = new MidiOscController(osc, bach_bourree.mid, ac);
+        //MidiOscController controller = new MidiOscController(osc, bach_bourree.mid, ac);
 
-        controller.start();
+        //controller.start();
 
         frame.setContentPane(contentPane);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

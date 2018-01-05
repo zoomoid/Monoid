@@ -40,7 +40,7 @@ public class AddSynthTest {
         frame = new JFrame("Additive Synthesis");
         mainPane = new BlankPanel();
         presetPane = new BlankPanel();
-        currUI = new AdditiveUI(10, ac, AdditiveUI.DEFAULT);
+        currUI = new AdditiveUI(10, ac, AdditiveUI.DEFAULT, 220f);
         synthPane = currUI.contentPane;
 
         //setip layouts
