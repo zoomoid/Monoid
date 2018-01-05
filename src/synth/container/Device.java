@@ -1,4 +1,4 @@
 package synth.container;
 
-public class Device {
+public interface Device {
 }

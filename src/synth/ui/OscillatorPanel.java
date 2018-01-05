@@ -46,8 +46,8 @@ public class OscillatorPanel extends BlankPanel {
         @Override
         public void propertyChange(PropertyChangeEvent evt) {
             BlankKnob source = (BlankKnob) evt.getSource();
-            this.osc = this.osc.setGain(source.getValue() / 100);
-            this.osc.update();
+            this.osc = this.osc.setGain(source.getValue() / 100f);
+            //this.osc.update();
         }
     }
 
@@ -91,7 +91,8 @@ public class OscillatorPanel extends BlankPanel {
         slider.addChangeListener(new SliderListener(osc, freq));
 
         //knobs to control velocity
-        BlankKnob blankKnob = new BlankKnob(BlankKnob.DEFAULT, BlankKnob.SMALL, (osc.getGain().getValue() * 100f), "Amp");
+        BlankKnob.Parameters params = new BlankKnob.Parameters(0, 1, 0.01f, false, true);
+        BlankKnob blankKnob = new BlankKnob(params, BlankKnob.SMALL, (osc.getGain().getValue()), "Amp");
 
         blankKnob.addPropertyChangeListener(new KnobListener(osc));
 

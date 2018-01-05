@@ -1,4 +1,4 @@
-package tests.sounds;
+package tests.ui;
 
 import net.beadsproject.beads.core.AudioContext;
 import synth.ui.components.swing.BlankButton;

@@ -1,4 +1,4 @@
-package synth.ui.experimental;
+package synth.ui;
 
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.data.Buffer;
@@ -6,7 +6,6 @@ import net.beadsproject.beads.ugens.Gain;
 import net.beadsproject.beads.ugens.RangeLimiter;
 import synth.osc.BasicOscillator;
 import synth.osc.Oscillator;
-import synth.ui.OscillatorPanel;
 import synth.ui.components.swing.BlankPanel;
 
 import java.awt.*;
