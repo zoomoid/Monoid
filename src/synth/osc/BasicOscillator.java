@@ -3,34 +3,34 @@ package synth.osc;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.data.Buffer;
-import net.beadsproject.beads.ugens.Static;
+import synth.modulation.Modulatable;
+import synth.modulation.Static;
 
 public class BasicOscillator extends Oscillator implements WavetableOscillator {
 
-    /** The phase envelope. */
-    private UGen phaseEnvelope;
     /* Phase sampler */
-    private float currentPhase;
+    private float cP;
     /** The Buffer. */
     private Buffer wave;
     /** To store the inverse of the sampling frequency. */
-    private float one_over_sr;
+    private double one_over_sr;
 
     private SmartOscillator dependent;
+    private WaveType waveType;
 
     public BasicOscillator(AudioContext ac){
         this(ac, 0f, Buffer.SINE);
     }
 
 
-    BasicOscillator(AudioContext ac, SmartOscillator dependent, UGen frequency, Buffer wave){
+    BasicOscillator(AudioContext ac, SmartOscillator dependent, Modulatable frequency, Buffer wave){
         this(ac, frequency, wave);
         this.dependent = dependent;
         this.addDependent(this.dependent);
-        this.currentPhase = super.phase.getValue();
+        this.cP = 0;
     }
 
-    public BasicOscillator(AudioContext ac, UGen frequency, Buffer wave){
+    public BasicOscillator(AudioContext ac, Modulatable frequency, Buffer wave){
         super(ac, frequency);
         if(wave != null){
             this.wave = wave;
@@ -38,7 +38,6 @@ public class BasicOscillator extends Oscillator implements WavetableOscillator {
             this.wave = Buffer.SINE;
         }
         this.outputInitializationRegime = OutputInitializationRegime.RETAIN;
-        this.phase = new Static(ac, -1);
         this.one_over_sr = 1f / context.getSampleRate();
     }
 
@@ -50,7 +49,6 @@ public class BasicOscillator extends Oscillator implements WavetableOscillator {
         this(ac, frequency, wave);
         this.dependent = dependent;
         this.addDependent(this.dependent);
-        this.isUnisonOscillator = false;
     }
 
     public Buffer getWave(){
@@ -59,6 +57,7 @@ public class BasicOscillator extends Oscillator implements WavetableOscillator {
 
     public BasicOscillator setWave(Buffer wave){
         if(wave != null){
+            this.determineWaveType(wave);
             this.wave = wave;
         }
         return this;
@@ -70,26 +69,36 @@ public class BasicOscillator extends Oscillator implements WavetableOscillator {
         }
     }
 
+    public BasicOscillator setPhase(float phase){
+        this.cP = phase % 1.f;
+        return this;
+    }
+
+
+
+    @Override
+    public WaveType getWaveType() {
+        return this.waveType;
+    }
+
+    @Override
+    public BasicOscillator setWaveType(WaveType waveType){
+        this.waveType = waveType;
+        return this;
+    }
+
     @Override
     public void calculateBuffer(){
         this.frequency.update();
         this.gain.update();
-        this.phase.update();
-        float prevPhase = currentPhase;
-        for(int i = 0; i < outs; i++){
-            currentPhase = prevPhase;
-            for(int j = 0; j < bufferSize; j++){
-                currentPhase = (((currentPhase + frequency.getValue(i, j) * one_over_sr) % 1.f) + 1.f) % 1.f;
-                bufOut[i][j] = gain.getValue(i, j) * this.wave.getValueFraction(currentPhase);
+        for(int j = 0; j < bufferSize; j++){
+            cP = (float)(((cP + this.frequency.getValue(0, j) * one_over_sr) % 1.f) + 1.f) % 1.f;
+            float waveSample = this.wave.getValueFraction(cP);
+            float gainSample = this.gain.getValue(0, j);
+            for(int i = 0; i < outs; i++){
+                this.bufOut[i][j] = gainSample * waveSample;
             }
         }
-    }
-
-    public void createOscillator(){
-
-    }
-
-    public void updateFrequency(){
 
     }
 }

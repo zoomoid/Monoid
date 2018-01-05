@@ -3,30 +3,30 @@ package synth.osc;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.data.Pitch;
-import net.beadsproject.beads.ugens.Static;
-import synth.auxilliary.Device;
 import synth.modulation.Envelope;
+import synth.container.Device;
+import synth.modulation.Modulatable;
+import synth.modulation.Modulator;
+import synth.modulation.Static;
 
-import javax.sound.midi.ShortMessage;
+import javax.sound.midi.*;
 
 public abstract class Oscillator extends UGen implements Device {
 
     protected String type;
 
     /** The frequency the oscillation is happening at  */
-    protected UGen frequency;
+    protected Modulatable frequency;
     /** Oscillator output gain */
-    protected UGen gain;
+    protected Modulatable gain;
     /** Phase UGen */
-    protected UGen phase;
+    //protected UGen phase;
 
     /** MIDI note value */
     protected int midiNote;
 
     /** The AudioContext the oscillator is working in */
     protected AudioContext ac;
-
-    protected boolean isUnisonOscillator;
 
     /** Volume Envelope */
     protected Envelope volumeEnvelope;
@@ -59,7 +59,7 @@ public abstract class Oscillator extends UGen implements Device {
         this(ac, new Static(ac, frequency));
     }
 
-    public Oscillator(AudioContext ac, UGen frequency){
+    public Oscillator(AudioContext ac, Modulatable frequency){
         super(ac, 2, 2);
         this.ac = ac;
         this.volumeEnvelope = new Envelope(this.ac, 5, 0, 1f, 20);
@@ -67,34 +67,15 @@ public abstract class Oscillator extends UGen implements Device {
 
         this.frequency = frequency;
         this.gain = new Static(ac, 1f);
-        this.phase = new Static(ac, -1f);
+        //this.phase = new Static(ac, -1f);
 
         velocityFactor = 1;
         isVelocitySensitive = false;
         midiNote = -1;
-        this.outputInitializationRegime = OutputInitializationRegime.RETAIN;
+        this.outputInitializationRegime = OutputInitializationRegime.ZERO;
         this.outputPauseRegime = OutputPauseRegime.ZERO;
         this.setType();
-        this.createOscillator();
-        this.updateFrequency();
     }
-
-    /*****************************************************************************
-     * KEY METHODS FOR EACH OSCILLATOR. THESE MUST BE PROVIDED.
-     *****************************************************************************/
-    /**
-     * Creates the voice(s) of the oscillator
-     */
-    public abstract void createOscillator();
-
-    /**
-     * Sets the frequency / frequencies of the voice(s)
-     */
-    public abstract void updateFrequency();
-
-    /*****************************************************************************
-     * END OF KEY METHODS
-     *****************************************************************************/
 
     public String getType(){
         return this.type;
@@ -106,7 +87,7 @@ public abstract class Oscillator extends UGen implements Device {
      * Returns the current frequency of oscillation
      * @return frequency UGen
      */
-    public UGen getFrequency(){
+    public Modulatable getFrequency(){
         return this.frequency;
     }
 
@@ -114,7 +95,7 @@ public abstract class Oscillator extends UGen implements Device {
      * Returns the current oscillator output gain
      * @return gain UGen
      */
-    public UGen getGain(){
+    public Modulatable getGain(){
         return this.gain;
     }
 
@@ -122,16 +103,17 @@ public abstract class Oscillator extends UGen implements Device {
      * Returns the current phase offset
      * @return phase UGen
      */
-    public UGen getPhase(){
+    /*public UGen getPhase(){
         return this.phase;
-    }
+    }*/
 
     /**
      * Sets the frequency of oscillation
+     * NOTE This REPLACES the frequency UGen with a new one
      * @param frequency static oscillation frequency
      * @return this oscillator instance
      */
-    public Oscillator setFrequency(UGen frequency){
+    public Oscillator setFrequency(Modulatable frequency){
         if(frequency != null){
             this.frequency = frequency;
         }
@@ -140,19 +122,28 @@ public abstract class Oscillator extends UGen implements Device {
 
     /**
      * Sets the frequency of oscillation
+     * NOTE This only SETS the value of the current UGen (which might be a modulator)
+     *      to the new static float value. To replace the UGen, rather use {@see Oscillator.setFrequency(UGen frequency)}
      * @param frequency static oscillation frequency
      * @return this oscillator instance
      */
     public Oscillator setFrequency(float frequency){
-        return this.setFrequency(new Static(ac, frequency));
+        if(this.frequency != null){
+            this.frequency.setValue(frequency);
+            return this;
+        } else {
+            return this.setFrequency(new Static(ac, frequency));
+        }
+
     }
 
     /**
      * Sets the gain of the oscillator
+     * NOTE This REPLACES the gain UGen with a new one
      * @param gain gain UGen
      * @return this oscillator instance
      */
-    public Oscillator setGain(UGen gain){
+    public Oscillator setGain(Modulatable gain){
         if(gain != null){
             this.gain = gain;
         }
@@ -161,11 +152,18 @@ public abstract class Oscillator extends UGen implements Device {
 
     /**
      * Sets the gain of the oscillator
+     * NOTE This only SETS the value of the current UGen (which might be a modulator)
+     *      to the new static float value. To replace the UGen, rather use {@see Oscillator.setGain(UGen gain)}
      * @param gain static gain value as float
      * @return this oscillator instance
      */
     public Oscillator setGain(float gain){
-        return this.setGain(new Static(ac, gain));
+        if(this.gain != null){
+            this.gain.setValue(gain);
+            return this;
+        } else {
+            return this.setGain(new Static(ac, gain));
+        }
     }
 
     /**
@@ -173,21 +171,26 @@ public abstract class Oscillator extends UGen implements Device {
      * @param phase phase offset in [-1, 1]. NOTE that -1 is to be used for random phase offset since -1 and 1 are equivalent in effect on the oscillation
      * @return this oscillator instance
      */
-    public Oscillator setPhase(float phase){
-        return this.setPhase(new Static(ac, phase));
-    }
+    /*public Oscillator setPhase(float phase){
+        if(this.phase != null){
+            this.phase.setValue(phase);
+            return this;
+        } else {
+            return this.setPhase(new Static(ac, phase));
+        }
+    }*/
 
     /**
      * Sets a variable phase offset for the oscillation
      * @param phase variable phase offset UGen
      * @return this oscillator instance
      */
-    public Oscillator setPhase(UGen phase){
+    /*public Oscillator setPhase(UGen phase){
         if(phase != null){
             this.phase = phase;
         }
         return this;
-    }
+    }*/
 
     @Override
     public void calculateBuffer(){
@@ -253,14 +256,14 @@ public abstract class Oscillator extends UGen implements Device {
         return velocityFactor;
     }
 
-    protected void noteOff(){
-        this.volumeEnvelope.noteOff();
-        this.frequencyEnvelope.noteOff();
+    public void noteOff(){
+        this.gain.noteOff();
+        this.frequency.noteOff();
     }
 
-     void noteOn(){
-        this.volumeEnvelope.noteOn();
-        this.frequencyEnvelope.noteOn();
+    public void noteOn(){
+        this.gain.noteOn();
+        this.frequency.noteOn();
     }
 
     public void send(ShortMessage message, long timeStamp){
@@ -272,7 +275,7 @@ public abstract class Oscillator extends UGen implements Device {
             this.setMidiNote(message.getData1());
             // if oscillator is velocity sensitive, adjust volume
             if(this.isVelocitySensitive){
-                this.setGain(message.getData2() / 127f * this.getGain().getValue());
+                this.setGain(message.getData2() / 127f * this.gain.getValue());
             }
             this.noteOn();
         }

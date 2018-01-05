@@ -10,7 +10,7 @@ import net.beadsproject.beads.ugens.Gain;
  * A class where you can synthesize sounds via manual or preset driven additive synthesis. Uses as many Oscilaltors
  * using only sines to generate a sound
  */
-public class AdditiveOscillator extends UGen{
+public class AdditiveOscillator extends UGen {
     /** The AudioContext the oscillator is working in */
     protected AudioContext ac;
 
