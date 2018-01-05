@@ -16,7 +16,7 @@ import java.util.Objects;
 public class LFO extends Modulator implements Modulatable {
 
     /** Audio Context */
-    private AudioContext context;
+    protected AudioContext context;
     /** Available types indicator */
     public enum Type {
         SINE, TRIANGLE, SAW, SQUARE, NOISE, CUSTOM_TYPE
@@ -26,21 +26,21 @@ public class LFO extends Modulator implements Modulatable {
         RETRIGGER, FREE
     }
     /** LFO waveform buffer */
-    private Buffer buffer;
+    protected Buffer buffer;
     /** LFO waveform type indicator */
-    private Type type;
+    protected Type type;
     /** LFO mode */
-    private Mode mode;
+    protected Mode mode;
     /** LFO frequency */
-    private float frequency;
+    protected float frequency;
     /** LFO amplitude */
-    private float amplitude;
+    protected float amplitude;
     /** The playback point in the Buffer, expressed as a fraction. double for more precision*/
-    private double phase;
+    protected double phase;
     /** current sampling rate with which the device got initialized */
-    private float one_over_sr;
+    protected float one_over_sr;
 
-    private float gate;
+    protected float gate;
 
     public LFO(AudioContext ac){
         this(ac, Type.SINE, 1f, 1f);
