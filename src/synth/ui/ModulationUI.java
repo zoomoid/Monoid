@@ -25,7 +25,6 @@ public class ModulationUI {
     private BlankSpinner type;
     private BlankKnob amCarrierFrequency, amModulatorRatio, amModulationStrength, amGain;
     private BlankKnob fmCarrierFrequency, fmModulatorRatio, fmModulationStrength, fmGain;
-    private Canvas signal;
 
     Oscillator carrier;
     ModulationOscillator amModulator;
@@ -61,7 +60,7 @@ public class ModulationUI {
         });
 
         amModulatorRatio.addPropertyChangeListener(e -> {
-            this.amModulator.setValue(this.carrier.getFrequency().getValue() * (float)e.getNewValue());
+            this.amModulator.setFrequency(Pitch.mtof(this.amCarrierFrequency.getValue()) * (float)e.getNewValue());
         });
 
         amModulationStrength.addPropertyChangeListener(e -> {
@@ -76,7 +75,7 @@ public class ModulationUI {
         amPane.add(amCarrierFrequency);
         amPane.add(amModulatorRatio);
         amPane.add(amModulationStrength);
-        //amPane.add(amGain);
+        amPane.add(amGain);
 
         fmCarrierFrequency = new BlankKnob(new BlankKnob.Parameters(0, 127, 0.25f, true, true), BlankKnob.LARGE, 57, "Frequency");
         fmModulatorRatio = new BlankKnob(new BlankKnob.Parameters(0.125f, 8f, 0.1f, false, true), BlankKnob.LARGE, 0, "Ratio");
