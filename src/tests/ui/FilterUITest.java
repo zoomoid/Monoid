@@ -16,7 +16,12 @@ public class FilterUITest {
         AudioContext ac = ContextProvider.ac();
         ac.start();
 
-        SmartOscillator osc = new SmartOscillator(ac, Pitch.mtof(57), Buffer.SINE, 1, 0f);
+        SmartOscillator osc = new SmartOscillator(ac);
+        osc.setFrequency(Pitch.mtof(48));
+        osc.setBlend(2);
+        osc.setSpread(0.25f);
+        osc.setVoices(5);
+        osc.setWave(Buffer.SAW);
         osc.setName("Oscillator A");
 
         Filter f = new Filter(ac, Filter.Type.BiquadFilter, BiquadFilter.Type.LPF, 300f, 0.76f, 0.71f);

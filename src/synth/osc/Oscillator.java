@@ -173,6 +173,16 @@ public abstract class Oscillator extends UGen implements Device {
         return this;
     }
 
+    public Oscillator setFrequency(ModulationOscillator frequencyOsc){
+        if(frequencyOsc != null){
+            this.frequency = frequencyOsc;
+            this.frequencyStatic = null;
+            this.frequencyEnvelope = null;
+            this.frequencyLFO = null;
+        }
+        return this;
+    }
+
     /**
      * Sets the gain of the oscillator
      * NOTE This REPLACES the gain UGen with a new one
@@ -220,6 +230,16 @@ public abstract class Oscillator extends UGen implements Device {
             this.gainStatic = gain.getStatic();
             this.gainEnvelope = gain.getEnvelope();
             this.gainLFO = gain.getLFO();
+        }
+        return this;
+    }
+
+    public Oscillator setGain(ModulationOscillator gainOsc){
+        if(gainOsc != null){
+            this.gain = gainOsc;
+            this.gainStatic = null;
+            this.gainEnvelope = null;
+            this.gainLFO = null;
         }
         return this;
     }

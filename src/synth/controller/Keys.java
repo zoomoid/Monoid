@@ -18,8 +18,6 @@ public class Keys{
      */
     int octave = 4;
 
-
-
     /**
      * Array of chars, in which the Index is a midi code: (octave+1)*12+i,  charToIndex[i] = key
      */
@@ -33,7 +31,7 @@ public class Keys{
         fillCharArray();
     }
 
-    LinkedList<Integer> active = new LinkedList<Integer>();
+    LinkedList<Integer> active = new LinkedList<>();
 
     /**
      * transforming the key on the keyboard into a key of a piano and creating a ShortMessage(MIDI)
@@ -110,15 +108,15 @@ public class Keys{
                 if(!active.contains(midiCode)) {
                     active.clear();
                     active.add(midiCode);
-                    System.out.println(octave);
+                    //System.out.println(octave);
                     return new ShortMessage(ShortMessage.NOTE_ON, midiCode, 88);
                 } else {
                     active.remove((Integer) midiCode);
-                    System.out.println("Note off" + octave);
+                    //System.out.println("Note off" + octave);
                     return new ShortMessage(ShortMessage.NOTE_OFF, midiCode, 88);
                 }
             } catch (InvalidMidiDataException e) {
-                System.out.println("Invalid Midi Data");
+                //System.out.println("Invalid Midi Data");
                 return null;
             }
         }

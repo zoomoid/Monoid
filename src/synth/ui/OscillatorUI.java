@@ -298,7 +298,7 @@ public class OscillatorUI extends SynthesizerUserInterfaceModule {
             _pane.add(_unisonSpreadLabel);
             _pane.add(_unisonSpread);
             this._unisonBlendLabel = new BlankLabel("Unison Blend");
-            this._unisonBlend = new BlankSpinner(new SpinnerNumberModel(((UnisonOscillator) associatedOscillator).getBlend(), 0.0, 1.0, 0.01));
+            this._unisonBlend = new BlankSpinner(new SpinnerNumberModel(((UnisonOscillator) associatedOscillator).getBlend(), 0.0, 2.0, 0.01));
             this._unisonBlend.addChangeListener(e -> {
                 this.unisonBlendKnob.setValue(Float.parseFloat(this._unisonBlend.getValue() + ""));
             });
