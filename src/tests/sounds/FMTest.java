@@ -5,7 +5,7 @@ import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.ugens.Gain;
 import synth.modulation.ModulationOscillator;
 import synth.osc.BasicOscillator;
-import tests.ContextProvider;
+import synth.auxilliary.ContextProvider;
 
 public class FMTest {
     public static void main(String[] args){

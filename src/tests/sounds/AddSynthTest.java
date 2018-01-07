@@ -1,14 +1,10 @@
 package tests.sounds;
 
 import net.beadsproject.beads.core.AudioContext;
-import net.beadsproject.beads.core.IOAudioFormat;
 import net.beadsproject.beads.data.Buffer;
-import net.beadsproject.beads.ugens.Gain;
-import org.jaudiolibs.beads.AudioServerIO;
 import synth.osc.AdditiveOscillator;
-import synth.ui.FilterUI;
 import synth.ui.experimental.AdditiveUI;
-import tests.ContextProvider;
+import synth.auxilliary.ContextProvider;
 
 import javax.swing.*;
 

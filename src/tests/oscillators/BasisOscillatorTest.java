@@ -4,7 +4,7 @@ import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.data.Buffer;
 import synth.modulation.LFO;
 import synth.osc.BasicOscillator;
-import tests.ContextProvider;
+import synth.auxilliary.ContextProvider;
 
 public class BasisOscillatorTest {
 

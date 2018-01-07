@@ -6,7 +6,7 @@ import net.beadsproject.beads.ugens.RangeLimiter;
 import synth.auxilliary.SignalProcessor;
 import synth.osc.BasicOscillator;
 import synth.ui.components.Signal;
-import tests.ContextProvider;
+import synth.auxilliary.ContextProvider;
 
 public class SignalTest {
 

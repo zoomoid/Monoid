@@ -11,12 +11,12 @@ public class NormLFO extends LFO {
         this(ac, Type.SINE, 1f, 1f);
     }
 
-    public NormLFO(AudioContext ac, Type lfoType, float frequency, float amplitude){
-        this(ac, lfoType, Mode.RETRIGGER, frequency, amplitude);
+    public NormLFO(AudioContext ac, Type type, float frequency, float amplitude){
+        this(ac, type, Mode.RETRIGGER, frequency, amplitude);
     }
 
-    public NormLFO(AudioContext ac, Type lfoType, Mode lfoMode, float frequency, float amplitude){
-        super(ac, lfoType, lfoMode, frequency, amplitude);
+    public NormLFO(AudioContext ac, Type type, Mode mode, float frequency, float amplitude){
+        super(ac, type, mode, frequency, amplitude);
     }
 
     /**

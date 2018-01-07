@@ -5,11 +5,10 @@ import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.data.Pitch;
 import synth.filter.Filter;
 import synth.filter.models.BiquadFilter;
-import synth.filter.models.MonoMoog;
 import synth.osc.SmartOscillator;
 import synth.ui.FilterUI;
 import synth.ui.OscillatorUI;
-import tests.ContextProvider;
+import synth.auxilliary.ContextProvider;
 
 public class FilterUITest {
     public static void main(String[] args){

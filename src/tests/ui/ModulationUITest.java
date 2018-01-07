@@ -8,9 +8,8 @@ import synth.modulation.ModulationOscillator;
 import synth.osc.BasicOscillator;
 import synth.ui.ModulationUI;
 import synth.ui.components.Canvas;
-import synth.ui.components.Signal;
 import synth.ui.components.swing.BlankPanel;
-import tests.ContextProvider;
+import synth.auxilliary.ContextProvider;
 
 import javax.swing.*;
 

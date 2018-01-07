@@ -6,7 +6,7 @@ import synth.modulation.Envelope;
 import synth.modulation.Static;
 import synth.osc.BasicOscillator;
 import synth.ui.composition.EnvelopePanel;
-import tests.ContextProvider;
+import synth.auxilliary.ContextProvider;
 
 import javax.swing.*;
 

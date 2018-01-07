@@ -46,20 +46,20 @@ public class LFO extends Modulator implements Modulatable {
         this(ac, Type.SINE, 1f, 1f);
     }
 
-    public LFO(AudioContext ac, Type lfoType, float frequency, float amplitude){
-        this(ac, lfoType, Mode.RETRIGGER, frequency, amplitude);
+    public LFO(AudioContext ac, Type type, float frequency, float amplitude){
+        this(ac, type, Mode.RETRIGGER, frequency, amplitude);
     }
 
-    public LFO(AudioContext ac, Type lfoType, Mode lfoMode, float frequency, float amplitude){
+    public LFO(AudioContext ac, Type type, Mode mode, float frequency, float amplitude){
         super(ac);
         this.context = ac;
-        if(lfoMode == Mode.FREE){
+        if(mode == Mode.FREE){
             this.gate = 1;
         } else {
             this.gate = 0;
         }
         this.one_over_sr = 1f / context.getSampleRate();
-        this.setFrequency(frequency).setAmplitude(amplitude).setType(lfoType).setMode(lfoMode);
+        this.setFrequency(frequency).setAmplitude(amplitude).setType(type).setMode(mode);
     }
 
 
@@ -195,5 +195,9 @@ public class LFO extends Modulator implements Modulatable {
     public LFO clone(){
         LFO r = new LFO(this.ac, this.type, this.mode, this.frequency, this.amplitude);
         return (LFO)(r.setModulationStrength(this.modulationStrength).setModulationMode(this.modulationMode).setCenterValue(this.centerValue));
+    }
+
+    public NormLFO normalize(){
+        return new NormLFO(ac, this.type, this.mode, this.frequency, this.amplitude);
     }
 }

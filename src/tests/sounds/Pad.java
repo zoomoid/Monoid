@@ -4,12 +4,10 @@ import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.ugens.RangeLimiter;
 import synth.filter.Filter;
-import synth.filter.models.BiquadFilter;
 import synth.filter.models.FilterModel;
 import synth.osc.BasicOscillator;
-import synth.osc.SmartOscillator;
 import synth.ui.FilterUI;
-import tests.ContextProvider;
+import synth.auxilliary.ContextProvider;
 
 import javax.swing.*;
 
