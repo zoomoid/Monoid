@@ -33,7 +33,7 @@ public class AdditiveUIProvider {
     private BlankLabel basicFreqLabel;
     private BlankLabel voicesLabel;
 
-    private AdditiveUI currUI;
+    public AdditiveUI currUI;
 
     public AdditiveUIProvider(AudioContext ac, JFrame frame) {
         this.ac = ac;

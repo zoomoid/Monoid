@@ -1,6 +1,7 @@
 package tests.ui;
 
 import net.beadsproject.beads.core.AudioContext;
+import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.data.Pitch;
 import net.beadsproject.beads.ugens.RangeLimiter;
@@ -10,6 +11,7 @@ import synth.filter.Filter;
 import synth.filter.models.BiquadFilter;
 import synth.modulation.ModulationOscillator;
 import synth.osc.BasicOscillator;
+import synth.osc.Oscillator;
 import synth.osc.SmartOscillator;
 import synth.ui.AdditiveUIProvider;
 import synth.ui.FilterUI;
@@ -21,6 +23,7 @@ import synth.ui.components.swing.BlankToggleButton;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.LinkedList;
 
 public class LauncherLayoutTest {
     public static AudioContext ac = ContextProvider.ac();
@@ -49,6 +52,7 @@ public class LauncherLayoutTest {
     /**Gives us ability to close these frames*/
     private static JFrame oscFrame;
     private static JFrame filterFrame;
+    private static LinkedList<UGen> allActive = new LinkedList<>();
 
     /**Providers*/
     private static AdditiveUIProvider addUIprovider;
@@ -63,6 +67,8 @@ public class LauncherLayoutTest {
         setupButtons();
         //and presetPanes
         setupPresetPanes();
+
+        addUIprovider = new AdditiveUIProvider(ac,frame);
 
         currSynthPane = new JPanel();
 
@@ -98,6 +104,8 @@ public class LauncherLayoutTest {
 
             oscFrame.setVisible(false);
             filterFrame.setVisible(false);
+            //addUIprovider.currUI.killAllOscillators();
+            killAll();
 
             currPresetPane = loadPresetPane(button);
             mainPane.add(currPresetPane);
@@ -145,6 +153,8 @@ public class LauncherLayoutTest {
 
             oscFrame = oUI.ui;
             filterFrame = new JFrame();
+            allActive.add(osc);
+            allActive.add(l);
 
             return new JPanel();
         } else if(button == oscAndFilter) {
@@ -169,10 +179,13 @@ public class LauncherLayoutTest {
 
             oscFrame = oUI.ui;
             filterFrame = fUI.ui;
+            allActive.add(osc);
+            allActive.add(f);
 
             return new JPanel();
         } else if(button == addSynthButton) {
-            JPanel additiveSynth = new AdditiveUIProvider(ac, frame).mainPane;
+            addUIprovider = new AdditiveUIProvider(ac, frame);
+            JPanel additiveSynth = addUIprovider.mainPane;
             return additiveSynth;
         } else if(button == amFmSynth) {
             ModulationOscillator amModulator = new ModulationOscillator(ac, ModulationOscillator.Type.SINE, 0f, 0.5f);
@@ -208,6 +221,10 @@ public class LauncherLayoutTest {
 
             oscFrame = ui.ui;
             filterFrame = signalUI;
+            allActive.add(amModulator);
+            allActive.add(fmModulator);
+            allActive.add(carrier);
+            allActive.add(l);
 
             return new JPanel();
         }
@@ -247,5 +264,12 @@ public class LauncherLayoutTest {
         currPresetPane = oscPreset;
         oscAndFilterPreset = new JPanel();
         amPreset = new JPanel();
+    }
+
+    public static void killAll() {
+        for(UGen u : allActive) {
+            u.kill();
+        }
+        allActive.clear();
     }
 }
