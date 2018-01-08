@@ -1,9 +1,15 @@
 package tests.ui;
 
 import net.beadsproject.beads.core.AudioContext;
-import synth.ui.AdditiveUI;
+import net.beadsproject.beads.data.Buffer;
+import net.beadsproject.beads.data.Pitch;
+import net.beadsproject.beads.ugens.RangeLimiter;
+import synth.filter.Filter;
+import synth.filter.models.BiquadFilter;
+import synth.osc.SmartOscillator;
 import synth.ui.AdditiveUIProvider;
-import synth.ui.components.swing.BlankToggle;
+import synth.ui.FilterUI;
+import synth.ui.OscillatorUI;
 import synth.ui.components.swing.BlankToggleButton;
 import tests.ContextProvider;
 
@@ -37,6 +43,10 @@ public class LauncherLayoutTest {
     private static JPanel currPresetPane;
     private static JPanel currSynthPane;
 
+    /**Gives us ability to close these frames*/
+    private static JFrame oscFrame;
+    private static JFrame filterFrame;
+
     /**Providers*/
     private static AdditiveUIProvider addUIprovider;
 
@@ -55,8 +65,8 @@ public class LauncherLayoutTest {
 
         //set Layout of tab pane
         tabPane.add(oscButton);
-        tabPane.add(addSynthButton);
         tabPane.add(oscAndFilter);
+        tabPane.add(addSynthButton);
         tabPane.add(amSynth);
         tabPane.add(fmSynth);
         tabPane.setLayout(new GridLayout(1, 5, 5, 5));
@@ -64,7 +74,7 @@ public class LauncherLayoutTest {
         //add panes to main pane
         mainPane.add(tabPane);
         mainPane.add(oscPreset);
-        mainPane.add(currSynthPane);
+        mainPane.add(loadSynthPane(oscButton));
         //setup layout
         mainPane.setLayout(new BoxLayout(mainPane, BoxLayout.Y_AXIS));
 
@@ -83,6 +93,10 @@ public class LauncherLayoutTest {
             currSelected = button;
             mainPane.remove(currPresetPane);
             mainPane.remove(currSynthPane);
+
+            oscFrame.setVisible(false);
+            filterFrame.setVisible(false);
+
             currPresetPane = loadPresetPane(button);
             mainPane.add(currPresetPane);
             currSynthPane = loadSynthPane(button);
@@ -112,8 +126,50 @@ public class LauncherLayoutTest {
     public static JPanel loadSynthPane(BlankToggleButton button) {
         //select right synth pane
         if(button == oscButton) {
+            //method as gotten from test
+            ac.start();
+            SmartOscillator osc = new SmartOscillator(ac);
+            osc.setFrequency(Pitch.mtof(48));
+            osc.setBlend(1);
+            osc.setSpread(0);
+            osc.setVoices(1);
+            osc.setWave(Buffer.SINE);
+
+            RangeLimiter l = new RangeLimiter(ac,1);
+            l.addInput(osc);
+            ac.out.addInput(l);
+
+            OscillatorUI oUI = new OscillatorUI(osc);
+            oUI.show();
+            //end of method
+
+            oscFrame = oUI.ui;
+            filterFrame = new JFrame();
+
             return new JPanel();
         } else if(button == oscAndFilter) {
+            //method as gotten from test
+            ac.start();
+
+            SmartOscillator osc = new SmartOscillator(ac, Pitch.mtof(57), Buffer.SINE, 1, 0f);
+            osc.setName("Oscillator A");
+
+            Filter f = new Filter(ac, Filter.Type.BiquadFilter, BiquadFilter.Type.LPF, 300f, 0.76f, 0.71f);
+            f.setName("Filter A");
+            f.addInput(osc);
+
+            ac.out.addInput(f);
+            ac.out.setGain(0.66f);
+            OscillatorUI oUI = new OscillatorUI(osc);
+            oUI.show();
+
+            FilterUI fUI = new FilterUI(f);
+            fUI.show();
+            //method end
+
+            oscFrame = oUI.ui;
+            filterFrame = fUI.ui;
+
             return new JPanel();
         } else if(button == addSynthButton) {
             JPanel additiveSynth = new AdditiveUIProvider(ac, frame).mainPane;

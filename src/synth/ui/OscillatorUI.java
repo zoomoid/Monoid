@@ -81,7 +81,7 @@ public class OscillatorUI extends SynthesizerUserInterfaceModule {
     private EnvelopePanel freqEnv, ampEnv;
     private LFOPanel freqLFO, ampLFO;
 
-    private JFrame ui;
+    public JFrame ui;
 
     private WaveType[] icons = {
         new WaveType("sine.png", 0),
@@ -234,6 +234,7 @@ public class OscillatorUI extends SynthesizerUserInterfaceModule {
         this.ui = new JFrame(associatedOscillator.getName());
         this.ui.setContentPane(this.pane);
         this.ui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.ui.setLocation(0,85);
         this.ui.pack();
         this.ui.setResizable(true);
     }

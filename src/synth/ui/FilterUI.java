@@ -65,7 +65,7 @@ public class FilterUI extends SynthesizerUserInterfaceModule {
             new FilterType("bpf.png",2),
     };
 
-    JFrame ui;
+    public JFrame ui;
     // TODO Adjust FilterUI to be a lot more dense and more controllable
     public FilterUI(Filter associatedFilter){
         this.associatedFilter = associatedFilter;
@@ -140,6 +140,7 @@ public class FilterUI extends SynthesizerUserInterfaceModule {
         this.ui = new JFrame(associatedFilter.getName());
         this.ui.setContentPane(this.pane);
         this.ui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.ui.setLocation(300, 300);
         this.ui.pack();
         this.ui.setResizable(false);
 
