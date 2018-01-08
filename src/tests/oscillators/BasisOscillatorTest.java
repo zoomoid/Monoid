@@ -8,7 +8,7 @@ import synth.auxilliary.ContextProvider;
 
 public class BasisOscillatorTest {
 
-    public static boolean STATIC_FREQUENCY = false;
+    public static boolean STATIC_FREQUENCY = true;
 
     public static void main(String[] args){
         AudioContext ac = ContextProvider.ac();

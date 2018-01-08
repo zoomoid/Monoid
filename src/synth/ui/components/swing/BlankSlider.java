@@ -57,6 +57,8 @@ public class BlankSlider extends JSlider {
     private boolean isLinearScale;
     private double yMin, yMax;
 
+    private BlankLabel label;
+
     public BlankSlider(){
         this.setLayout();
         this.initialize();
@@ -115,16 +117,14 @@ public class BlankSlider extends JSlider {
         return isLinearScale;
     }
 
-    /*public void setLinearScale(){
-        this.isLinearScale = true;
-        this.yMin = 0;
-        this.yMax = 0;
+    public void setLabel(BlankLabel label){
+        if(label != null){
+            this.label = label;
+        }
     }
 
-    public void setLogScale(double yMin, double yMax){
-        this.isLinearScale = false;
-        this.yMin = yMin;
-        this.yMax = yMax;
-    }*/
+    public BlankLabel getLabel(){
+        return this.label;
+    }
 }
 

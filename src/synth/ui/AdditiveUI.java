@@ -3,10 +3,13 @@ package synth.ui;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.ugens.Gain;
+import net.beadsproject.beads.ugens.Panner;
 import net.beadsproject.beads.ugens.RangeLimiter;
+import synth.auxilliary.BufferDebugger;
 import synth.osc.BasicOscillator;
 import synth.osc.Oscillator;
 import synth.ui.components.swing.BlankPanel;
+import synth.ui.composition.OscillatorPanel;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -28,6 +31,8 @@ public class AdditiveUI {
 
     Gain compensator;
     RangeLimiter limiter;
+
+    BufferDebugger beforeGain, afterGain;
 
     /**structure to combine oscillator and oscillatorPanel*/
     class OscController {
@@ -59,26 +64,7 @@ public class AdditiveUI {
      * @param param which type of preset
      */
     public AdditiveUI(int numberOfOscillators, AudioContext ac, int param) {
-        limiter = new RangeLimiter(ac, 2);
-        compensator = new Gain(ac, 2, ((float) 1f / (float) numberOfOscillators));
-
-        this.numberOfOscillators = numberOfOscillators;
-        contentPane = new BlankPanel();
-        this.ac = ac;
-
-        setupOscillators(220f, numberOfOscillators, param);
-        compensator.start();
-        compensator.update();
-
-        //add limiter to whole sound
-        limiter.addInput(compensator);
-        limiter.start();
-        limiter.update();
-        this.ac.out.addInput(limiter);
-
-        grid = new GridLayout(numberOfOscillators, 1, 5, 5);
-        contentPane.setLayout(grid);
-        contentPane.updateUI();
+        this(numberOfOscillators, ac, param, 220f);
     }
 
     /**
@@ -90,21 +76,24 @@ public class AdditiveUI {
      */
     public AdditiveUI(int numberOfOscillators, AudioContext ac, int param, float basicFreq) {
         limiter = new RangeLimiter(ac, 2);
-        compensator = new Gain(ac, 2, ((float) 1f / (float) numberOfOscillators));
+        compensator = new Gain(ac, 2, (1f / (float) numberOfOscillators));
 
         this.numberOfOscillators = numberOfOscillators;
         contentPane = new BlankPanel();
         this.ac = ac;
 
-        setupOscillators(basicFreq, numberOfOscillators, param);
-        compensator.start();
-        compensator.update();
+        beforeGain = new BufferDebugger(ac);
+        beforeGain.setName("Before");
+        compensator.addInput(beforeGain);
+        afterGain = new BufferDebugger(ac);
+        afterGain.addInput(compensator);
+        afterGain.setName("After");
+        Panner panner = new Panner(ac);
+        panner.addInput(afterGain);
+        this.ac.out.addInput(panner);
 
-        //add limiter to whole sound
-        limiter.addInput(compensator);
-        limiter.start();
-        limiter.update();
-        this.ac.out.addInput(limiter);
+        setupOscillators(basicFreq, numberOfOscillators, param);
+
         grid = new GridLayout(numberOfOscillators, 1, 5, 5);
         contentPane.setLayout(grid);
         contentPane.updateUI();
@@ -141,7 +130,7 @@ public class AdditiveUI {
                     bscOsc.setFrequency(basicFreq * (i * 2 + 1f));
                     break;
                 case TRIANGLE:
-                    bscOsc.setGain((float) 1 / ((float) (i * 2 + 1f) * (i * 2 + 1f)) );
+                    bscOsc.setGain((float) 1 / ((i * 2 + 1f) * (i * 2 + 1f)) );
                     bscOsc.setFrequency(basicFreq * (i * 2 + 1f));
                     break;
             }
@@ -149,8 +138,8 @@ public class AdditiveUI {
             OscController oscCon = new OscController(bscOsc);
             //add graphic
             contentPane.add(oscCon.panel);
-            //add compensator to whole sound
-            compensator.addInput(bscOsc);
+            // chain oscillator to gain compensator
+            beforeGain.addInput(bscOsc);
         }
 
     }

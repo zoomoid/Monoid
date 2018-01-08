@@ -3,6 +3,7 @@ package synth.ui;
 import net.beadsproject.beads.core.AudioContext;
 import synth.auxilliary.ContextProvider;
 import synth.ui.components.swing.BlankButton;
+import synth.ui.components.swing.BlankLabel;
 import synth.ui.components.swing.BlankPanel;
 import synth.ui.components.swing.BlankTextfield;
 
@@ -10,29 +11,29 @@ import javax.swing.*;
 import java.awt.*;
 
 public class AdditiveUIProvider {
-    public static AudioContext ac;
+    public AudioContext ac;
 
     //Layouts
-    private static GridLayout presetGrid =  new GridLayout(1, 4);
+    private GridLayout presetGrid =  new GridLayout(1, 4);
 
     //panels
-    public static BlankPanel mainPane;
-    public static BlankPanel presetPane;
-    public static BlankPanel synthPane;
+    public BlankPanel mainPane;
+    public BlankPanel presetPane;
+    public BlankPanel synthPane;
 
     //buttons
-    private static BlankButton presetDefault;
-    private static BlankButton presetSaw;
-    private static BlankButton presetSquare;
-    private static BlankButton presetTriangle;
+    private BlankButton presetDefault;
+    private BlankButton presetSaw;
+    private BlankButton presetSquare;
+    private BlankButton presetTriangle;
 
     //textfields and labels
-    private static BlankTextfield basicFreq;
-    private static BlankTextfield voices;
-    private static JLabel basicFreqLabel;
-    private static JLabel voicesLabel;
+    private BlankTextfield basicFreq;
+    private BlankTextfield voices;
+    private BlankLabel basicFreqLabel;
+    private BlankLabel voicesLabel;
 
-    private static AdditiveUI currUI;
+    private AdditiveUI currUI;
 
     public AdditiveUIProvider(AudioContext ac, JFrame frame) {
         this.ac = ac;
@@ -41,12 +42,12 @@ public class AdditiveUIProvider {
         currUI = new AdditiveUI(10, ac, AdditiveUI.DEFAULT);
         synthPane = currUI.contentPane;
 
-        //setip layouts
+        // setup layouts
         mainPane.setLayout(new BoxLayout(mainPane, BoxLayout.Y_AXIS));
-        //presetPane.setLayout(new BoxLayout(presetPane, BoxLayout.X_AXIS));
+        // presetPane.setLayout(new BoxLayout(presetPane, BoxLayout.X_AXIS));
         presetPane.setLayout(presetGrid);
 
-        //setup preset Buttons
+        // setup preset Buttons
         presetDefault = new BlankButton("Default");
         presetDefault.addActionListener(e -> {
             removeSynthPane();
@@ -89,9 +90,9 @@ public class AdditiveUIProvider {
 
         //setup textfield and Label
         basicFreq = new BlankTextfield("220.0");
-        basicFreqLabel =  new JLabel("Basic Freq.:");
+        basicFreqLabel =  new BlankLabel("Basic Freq.:");
         voices = new BlankTextfield("10");
-        voicesLabel = new JLabel("Voices:");
+        voicesLabel = new BlankLabel("Voices:");
 
         //add buttons
         presetPane.add(presetDefault);
@@ -111,7 +112,7 @@ public class AdditiveUIProvider {
         ac.start();
     }
 
-    public static void removeSynthPane() {
+    public void removeSynthPane() {
         currUI.killAllOscillators();
         mainPane.remove(synthPane);
         mainPane.updateUI();
