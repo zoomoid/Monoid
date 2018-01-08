@@ -1,11 +1,11 @@
 package tests.ui;
 
 import net.beadsproject.beads.core.AudioContext;
+import synth.auxilliary.ContextProvider;
+import synth.ui.AdditiveUI;
 import synth.ui.components.swing.BlankButton;
 import synth.ui.components.swing.BlankPanel;
 import synth.ui.components.swing.BlankTextfield;
-import synth.ui.AdditiveUI;
-import tests.ContextProvider;
 
 import javax.swing.*;
 import java.awt.*;

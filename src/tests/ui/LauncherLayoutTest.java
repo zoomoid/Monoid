@@ -4,6 +4,7 @@ import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.data.Pitch;
 import net.beadsproject.beads.ugens.RangeLimiter;
+import synth.auxilliary.ContextProvider;
 import synth.filter.Filter;
 import synth.filter.models.BiquadFilter;
 import synth.osc.SmartOscillator;
@@ -11,7 +12,6 @@ import synth.ui.AdditiveUIProvider;
 import synth.ui.FilterUI;
 import synth.ui.OscillatorUI;
 import synth.ui.components.swing.BlankToggleButton;
-import tests.ContextProvider;
 
 import javax.swing.*;
 import java.awt.*;
