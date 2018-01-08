@@ -21,7 +21,7 @@ public class MultivoiceOscillator extends Oscillator {
     /** The number of oscillators. */
     private int numOscillators;
 
-    private double phaseStart;
+    private double phaseStart = -1;
 
     private SmartOscillator dependent;
 

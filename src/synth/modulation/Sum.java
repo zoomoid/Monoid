@@ -65,7 +65,7 @@ public class Sum extends Modulator implements Modulatable {
     }
 
     public void setLFO(LFO lfo){
-        this.aLFO = (NormLFO)lfo;
+        this.aLFO = lfo.normalize();
     }
 
     public void setStatic(Static pStatic){
@@ -73,6 +73,6 @@ public class Sum extends Modulator implements Modulatable {
     }
 
     public void setEnvelope(Envelope envelope){
-        this.anEnvelope = (NormEnvelope)envelope;
+        this.anEnvelope = envelope.normalize();
     }
 }

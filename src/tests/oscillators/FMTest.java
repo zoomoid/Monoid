@@ -3,9 +3,8 @@ package tests.oscillators;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.ugens.WavePlayer;
-import synth.modulation.FMOscillator;
-import synth.modulation.LFO;
-import tests.ContextProvider;
+import synth.modulation.ModulationOscillator;
+import synth.auxilliary.ContextProvider;
 
 public class FMTest {
 
@@ -18,7 +17,7 @@ public class FMTest {
         ac.start();
         ac.out.setGain(0.1f);
         if(FM_BY_MODULATOR){
-            FMOscillator fmOsc = new FMOscillator(ac, FMOscillator.Type.SINE, FMOscillator.Mode.FREE,444f, 1);
+            ModulationOscillator fmOsc = new ModulationOscillator(ac, ModulationOscillator.Type.SINE, ModulationOscillator.Mode.FREE,444f, 1);
             // modulator specific sets
             fmOsc.setCenterValue(444f);
             fmOsc.setModulationStrength(444f);

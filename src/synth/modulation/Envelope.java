@@ -153,4 +153,7 @@ public class Envelope extends Modulator implements Modulatable {
         this.current.addSegment(0f, this.release);
     }
 
+    public NormEnvelope normalize(){
+        return new NormEnvelope(ac, this.attack, this.decay, this.sustain, this.release);
+    }
 }

@@ -2,9 +2,8 @@ package tests.sounds;
 
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.data.Buffer;
-import net.beadsproject.beads.ugens.Panner;
 import synth.osc.SmartOscillator;
-import tests.ContextProvider;
+import synth.auxilliary.ContextProvider;
 
 public class Supersaw {
     public static void main(String[] args){

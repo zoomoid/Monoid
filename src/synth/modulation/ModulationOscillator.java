@@ -3,7 +3,7 @@ package synth.modulation;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.data.Buffer;
 
-public class FMOscillator extends Modulator implements Modulatable {
+public class ModulationOscillator extends Modulator implements Modulatable {
     /** Audio Context */
     private AudioContext context;
     /** Available types indicator */
@@ -14,15 +14,15 @@ public class FMOscillator extends Modulator implements Modulatable {
     public enum Mode {
         RETRIGGER, FREE
     }
-    /** FMOscillator waveform buffer */
+    /** ModulationOscillator waveform buffer */
     private Buffer buffer;
-    /** FMOscillator waveform type indicator */
-    private FMOscillator.Type type;
-    /** FMOscillator mode */
-    private FMOscillator.Mode mode;
-    /** FMOscillator frequency */
+    /** ModulationOscillator waveform type indicator */
+    private ModulationOscillator.Type type;
+    /** ModulationOscillator mode */
+    private ModulationOscillator.Mode mode;
+    /** ModulationOscillator frequency */
     private float frequency;
-    /** FMOscillator amplitude */
+    /** ModulationOscillator amplitude */
     private float amplitude;
     /** The playback point in the Buffer, expressed as a fraction. double for more precision*/
     private double phase;
@@ -31,18 +31,18 @@ public class FMOscillator extends Modulator implements Modulatable {
 
     private float gate;
 
-    public FMOscillator(AudioContext ac){
-        this(ac, FMOscillator.Type.SINE, 1f, 1f);
+    public ModulationOscillator(AudioContext ac){
+        this(ac, ModulationOscillator.Type.SINE, 1f, 1f);
     }
 
-    public FMOscillator(AudioContext ac, FMOscillator.Type mode, float frequency, float amplitude){
-        this(ac, mode, FMOscillator.Mode.RETRIGGER, frequency, amplitude);
+    public ModulationOscillator(AudioContext ac, ModulationOscillator.Type mode, float frequency, float amplitude){
+        this(ac, mode, ModulationOscillator.Mode.RETRIGGER, frequency, amplitude);
     }
 
-    public FMOscillator(AudioContext ac, FMOscillator.Type lfoType, FMOscillator.Mode mode, float frequency, float amplitude){
+    public ModulationOscillator(AudioContext ac, ModulationOscillator.Type lfoType, ModulationOscillator.Mode mode, float frequency, float amplitude){
         super(ac);
         this.context = ac;
-        if(mode == FMOscillator.Mode.FREE){
+        if(mode == ModulationOscillator.Mode.FREE){
             this.gate = 1;
         } else {
             this.gate = 0;
@@ -53,33 +53,33 @@ public class FMOscillator extends Modulator implements Modulatable {
 
 
     /**
-     * Sets the frequency of the FMOscillator in Hz
+     * Sets the frequency of the ModulationOscillator in Hz
      * @param frequency frequency in Hz
-     * @return FMOscillator instance
+     * @return ModulationOscillator instance
      */
-    public FMOscillator setFrequency(float frequency) {
+    public ModulationOscillator setFrequency(float frequency) {
         this.frequency = Math.abs(frequency);
         return this;
     }
 
     /**
-     * Sets the amplitude of the FMOscillator
-     * NOTE: This does not indicate the ratio at which the FMOscillator is modulating another parameter
-     * @param amplitude FMOscillator amplitude
-     * @return this FMOscillator instance
+     * Sets the amplitude of the ModulationOscillator
+     * NOTE: This does not indicate the ratio at which the ModulationOscillator is modulating another parameter
+     * @param amplitude ModulationOscillator amplitude
+     * @return this ModulationOscillator instance
      */
-    public FMOscillator setAmplitude(float amplitude) {
+    public ModulationOscillator setAmplitude(float amplitude) {
         if(amplitude <= 1f && amplitude >= 0f)
             this.amplitude = amplitude;
         return this;
     }
 
     /**
-     * Sets the FMOscillator type
-     * @param type FMOscillator type enum keyword
-     * @return this FMOscillator instance
+     * Sets the ModulationOscillator type
+     * @param type ModulationOscillator type enum keyword
+     * @return this ModulationOscillator instance
      */
-    public FMOscillator setType(FMOscillator.Type type){
+    public ModulationOscillator setType(ModulationOscillator.Type type){
         this.type = type;
         switch(type){
             case SINE : this.buffer = Buffer.SINE; break;
@@ -98,19 +98,19 @@ public class FMOscillator extends Modulator implements Modulatable {
      * @param customBuffer custom buffer for the LFO
      * @return this LFO instance
      */
-    public FMOscillator setType(FMOscillator.Type customType, Buffer customBuffer){
+    public ModulationOscillator setType(ModulationOscillator.Type customType, Buffer customBuffer){
         switch(customType){
-            case CUSTOM_TYPE : this.type = FMOscillator.Type.CUSTOM_TYPE; this.buffer = customBuffer; break;
+            case CUSTOM_TYPE : this.type = ModulationOscillator.Type.CUSTOM_TYPE; this.buffer = customBuffer; break;
             default : this.setType(customType); break;
         }
         return this;
     }
 
-    public FMOscillator.Type type() {
+    public ModulationOscillator.Type type() {
         return type;
     }
 
-    public FMOscillator.Mode mode() {
+    public ModulationOscillator.Mode mode() {
         return mode;
     }
 
@@ -127,7 +127,7 @@ public class FMOscillator extends Modulator implements Modulatable {
      * @param mode Retrigger or Free-running mode
      * @return this LFO instance
      */
-    public FMOscillator setMode(FMOscillator.Mode mode){
+    public ModulationOscillator setMode(ModulationOscillator.Mode mode){
         this.mode = mode;
         return this;
     }
@@ -161,7 +161,7 @@ public class FMOscillator extends Modulator implements Modulatable {
     public void noteOn(){
         // switch on gate
         this.gate = 1;
-        if(this.mode == FMOscillator.Mode.RETRIGGER){
+        if(this.mode == ModulationOscillator.Mode.RETRIGGER){
             // reset current phase to 0 to reset oscillation to start
             this.phase = 0;
         } else {
@@ -176,8 +176,8 @@ public class FMOscillator extends Modulator implements Modulatable {
         this.calculateBuffer();
     }
 
-    public FMOscillator clone(){
-        FMOscillator r = new FMOscillator(this.ac, this.type, this.mode, this.frequency, this.amplitude);
-        return (FMOscillator)(r.setModulationStrength(this.modulationStrength).setCenterValue(this.centerValue).setModulationMode(this.modulationMode));
+    public ModulationOscillator clone(){
+        ModulationOscillator r = new ModulationOscillator(this.ac, this.type, this.mode, this.frequency, this.amplitude);
+        return (ModulationOscillator)(r.setModulationStrength(this.modulationStrength).setCenterValue(this.centerValue).setModulationMode(this.modulationMode));
     }
 }

@@ -4,7 +4,7 @@ import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.ugens.WavePlayer;
 import synth.modulation.LFO;
-import tests.ContextProvider;
+import synth.auxilliary.ContextProvider;
 
 public class WaveplayerTest {
     public static boolean STATIC_FREQUENCY = false;

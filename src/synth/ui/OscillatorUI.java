@@ -52,7 +52,7 @@ public class OscillatorUI extends SynthesizerUserInterfaceModule {
     private Oscillator associatedOscillator;
 
     private BlankPanel pane, mainPane, optionsPane;
-    private BlankPanel topPane, basicPane;
+    private BlankPanel topPane, basicPane, noteTriggerPane;
     private BlankPanel frequencyPane, unisonPane, gainPane, unisonParameterPane, unisonVoicesPane;
     private BlankKnob frequencyKnob;
     private BlankKnob phaseKnob;
@@ -126,8 +126,21 @@ public class OscillatorUI extends SynthesizerUserInterfaceModule {
         basicPane.add(frequencyPane);
         basicPane.add(gainPane);
 
+        noteTriggerPane = new BlankPanel(new GridLayout(1, 2));
+        BlankButton noteOn = new BlankButton("Note On");
+        BlankButton noteOff = new BlankButton("Note Off");
+        noteOn.addActionListener(e -> {
+            associatedOscillator.noteOn();
+        });
+
+        noteOff.addActionListener(e -> {
+            associatedOscillator.noteOff();
+        });
+        noteTriggerPane.add(noteOn);
+        noteTriggerPane.add(noteOff);
 
         mainPane.add(topPane);
+        mainPane.add(noteTriggerPane);
         mainPane.add(basicPane);
         mainPane.add(unisonPane);
         mainPane.add(modulationPanel);
@@ -299,7 +312,7 @@ public class OscillatorUI extends SynthesizerUserInterfaceModule {
             _pane.add(_unisonSpreadLabel);
             _pane.add(_unisonSpread);
             this._unisonBlendLabel = new BlankLabel("Unison Blend");
-            this._unisonBlend = new BlankSpinner(new SpinnerNumberModel(((UnisonOscillator) associatedOscillator).getBlend(), 0.0, 1.0, 0.01));
+            this._unisonBlend = new BlankSpinner(new SpinnerNumberModel(((UnisonOscillator) associatedOscillator).getBlend(), 0.0, 2.0, 0.01));
             this._unisonBlend.addChangeListener(e -> {
                 this.unisonBlendKnob.setValue(Float.parseFloat(this._unisonBlend.getValue() + ""));
             });

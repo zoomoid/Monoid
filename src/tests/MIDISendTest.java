@@ -3,7 +3,7 @@ package tests;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.ugens.RangeLimiter;
-import synth.osc.Oscillator;
+import synth.auxilliary.ContextProvider;
 import synth.osc.SmartOscillator;
 
 import javax.sound.midi.ShortMessage;
