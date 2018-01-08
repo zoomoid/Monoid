@@ -25,7 +25,7 @@ import net.beadsproject.beads.ugens.Static;
  * <p>
  * <code>filt.setFreq(200).setQ(30).setStaticGain(.4);</code>
  * <p>
- * 
+ *
  * @beads.category filter
  * @author Benito Crawford
  * @version 0.9.6
@@ -36,8 +36,8 @@ public class BiquadFilter extends FilterModel implements DataBeadReceiver {
 
 	public final static Type HPF = Type.HPF;
 
-    protected float bo1 = 0, bo2 = 0, bi1 = 0, bi2 = 0;
-    protected float[] bo1m, bo2m, bi1m, bi2m;
+  protected float bo1 = 0, bo2 = 0, bi1 = 0, bi2 = 0;
+  protected float[] bo1m, bo2m, bi1m, bi2m;
 
 	protected int channels = 1;
 	protected Type type = null;
@@ -62,7 +62,7 @@ public class BiquadFilter extends FilterModel implements DataBeadReceiver {
 	 * Constructor for a multi-channel biquad filter UGen of specified type with
 	 * the specified number of channels. See {@link #setType(int) setType} for a
 	 * list of supported filter types.
-	 * 
+	 *
 	 * @param context The AudioContext.
 	 * @param channels The number of channels.
 	 * @param itype
@@ -210,7 +210,7 @@ public class BiquadFilter extends FilterModel implements DataBeadReceiver {
 	 * <li>"q": (float or UGen) The filter Q-value.</li>
 	 * <li>"gain": (float or UGen) The filter gain.</li>
 	 * </ul>
-	 * 
+	 *
 	 * @param paramBead The DataBead specifying parameters.
 	 * @return This filter instance.
 	 */
@@ -260,7 +260,7 @@ public class BiquadFilter extends FilterModel implements DataBeadReceiver {
 
 	/**
 	 * Equivalent to {@link #setParams(DataBead)}.
-	 * 
+	 *
 	 * @return This filter instance.
 	 */
 	public DataBeadReceiver sendData(DataBead db) {
@@ -271,7 +271,7 @@ public class BiquadFilter extends FilterModel implements DataBeadReceiver {
 	/**
 	 * Gets a DataBead with the filter's parameters (whether float or UGen),
 	 * stored in the keys "frequency", "q", "gain", and "filterType".
-	 * 
+	 *
 	 * @return The DataBead with stored parameters.
 	 */
 	public DataBead getParams() {
@@ -286,7 +286,7 @@ public class BiquadFilter extends FilterModel implements DataBeadReceiver {
 	/**
 	 * Gets a DataBead with properties "frequency", "q", and "gain" set to their
 	 * current float values and "type" set appropriately.
-	 * 
+	 *
 	 * @return The DataBead with static float parameter values.
 	 */
 	public DataBead getStaticParams() {
