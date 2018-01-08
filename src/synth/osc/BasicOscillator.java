@@ -85,5 +85,6 @@ public class BasicOscillator extends Oscillator implements WavetableOscillator {
                 this.bufOut[i][j] = gainSample * waveSample;
             }
         }
+
     }
 }

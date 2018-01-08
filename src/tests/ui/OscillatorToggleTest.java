@@ -5,7 +5,7 @@ import net.beadsproject.beads.data.Buffer;
 import synth.osc.BasicOscillator;
 import synth.osc.SmartOscillator;
 import synth.ui.components.swing.OscillatorToggle;
-import tests.ContextProvider;
+import synth.auxilliary.ContextProvider;
 
 import javax.swing.*;
 

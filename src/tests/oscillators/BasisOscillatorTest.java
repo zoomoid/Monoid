@@ -4,7 +4,7 @@ import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.data.Buffer;
 import synth.modulation.LFO;
 import synth.osc.BasicOscillator;
-import tests.ContextProvider;
+import synth.auxilliary.ContextProvider;
 
 public class BasisOscillatorTest {
 
@@ -20,11 +20,11 @@ public class BasisOscillatorTest {
         if(STATIC_FREQUENCY){
             osc.setFrequency(220f);
         } else {
-            LFO freqLFO = new LFO(ac, LFO.Type.SINE, 2f, 1f);
+            LFO freqLFO = new LFO(ac, LFO.Type.SINE, LFO.Mode.FREE,2f, 1f);
             freqLFO.start();
             // modulator specific sets
             freqLFO.setCenterValue(220f);
-            freqLFO.setRange(20f);
+            freqLFO.setModulationStrength(20f);
             osc.setFrequency(freqLFO);
         }
     }

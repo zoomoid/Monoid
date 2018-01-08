@@ -5,11 +5,8 @@ import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.data.Pitch;
 import net.beadsproject.beads.ugens.RangeLimiter;
 import synth.osc.SmartOscillator;
-import synth.ui.FilterUI;
 import synth.ui.OscillatorUI;
-import tests.ContextProvider;
-
-import javax.swing.*;
+import synth.auxilliary.ContextProvider;
 
 public class OscillatorUITest {
     public static void main(String[] args){

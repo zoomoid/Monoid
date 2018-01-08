@@ -11,8 +11,16 @@ import java.beans.PropertyChangeSupport;
 
 public class BlankKnob extends JComponent implements MouseListener, MouseMotionListener {
 
+    protected boolean isLinearTransformed;
+    protected float shift;
+    protected float factor;
+
     /**
      * Layout class for a BlankKnob
+     * Note that for negative values a linear transformation is applied to the values to only contain non-negative values.
+     * Internally this needs to be like this since calculating the angle of the knob is not robust to negative values
+     * Internally you MUST directly use {@link #value} since its the transformed domain, externally you can only use
+     * {@link #getValue()} / {@link #setValue(float)} this transforms / invertes the transformation to return the original values
      * This gets applied at construction by default
      */
     private class BlankKnobUI extends ComponentUI {
@@ -30,15 +38,28 @@ public class BlankKnob extends JComponent implements MouseListener, MouseMotionL
         /** Knob outline stroke and indicator line color */
         protected Color knob;
 
+        protected int textStart;
+        protected int lowerStart;
+
         public BlankKnobUI(BlankKnob b){
             background = Color.WHITE;
             this.knob = Color.BLACK;
-            this.dimensionWidth = 2*b.size.radius + 2*b.size.offset;
-            this.dimensionHeight = 2*b.size.radius + 4*b.size.offset;
+
             this.strokeCircle = b.size.radius / 4;
             this.strokeIndicator = (int)Math.sqrt(this.strokeCircle * 2);
             this.theta = theta(b);
-
+            Font font = new Font("Fira Mono", Font.BOLD, b.size.fontSize);
+            Font fontLower = new Font("Fira Mono", Font.BOLD, b.size.fontSize-2);
+            FontMetrics metrics = getFontMetrics(font);
+            FontMetrics lowerMetrics = getFontMetrics(fontLower);
+            int textHeightLower = lowerMetrics.getHeight();
+            int textHeight = metrics.getHeight();
+            int paddingText = 4;
+            this.dimensionWidth = 2*b.size.radius + 2*b.size.offset;
+            this.dimensionHeight = 2*b.size.radius + 2*b.size.offset + textHeight + paddingText + textHeightLower;
+            this.textStart = 2*b.size.radius + 2*b.size.offset;
+            this.lowerStart = textStart + textHeight + paddingText;
+            setPreferredSize(new Dimension(dimensionWidth, dimensionHeight));
         }
         /**
          * Draws the Knob
@@ -53,7 +74,7 @@ public class BlankKnob extends JComponent implements MouseListener, MouseMotionL
             Graphics2D g2d = (Graphics2D) g;
             g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             Rectangle r = g2d.getClipBounds();
-            g.setClip(r.x, r.y, dimensionWidth, dimensionHeight);
+            //g.setClip(r.x, r.y, dimensionWidth, dimensionHeight);
             // Draw the knob backdrop
             g.setColor(this.knob);
             g2d.setStroke(new BasicStroke(strokeCircle));
@@ -69,6 +90,23 @@ public class BlankKnob extends JComponent implements MouseListener, MouseMotionL
             g.setColor(knob);
             g2d.drawLine(xc, yc, b.size.radius + b.size.offset, b.size.radius + b.size.offset);
             paintLabel(g2d, b);
+
+            if(b.pressed){
+                Font font = new Font("Fira Mono", Font.BOLD, b.size.fontSize - 2);
+                FontMetrics metrics = g.getFontMetrics(font);
+                String s = ((Math.round((float)b.getValue() * 1000) / 1000f) + "");
+                s = s.substring(0, Math.min(s.length(), 6));
+                int textWidth = metrics.stringWidth(s);
+                int textHeight = metrics.getHeight();
+                int width = 2*b.size.offset + 2*b.size.radius;
+                int x = r.x + (width - textWidth) / 2;
+                g.setColor(Color.BLACK);
+                g.fillRoundRect(r.x, lowerStart - textHeight / 2 - 1, r.width, textHeight, 5, 5);
+                g.setColor(Color.WHITE);
+                g.setFont(font);
+
+                g.drawString(s, x, lowerStart + 2);
+            }
         }
 
         /**
@@ -91,9 +129,9 @@ public class BlankKnob extends JComponent implements MouseListener, MouseMotionL
             FontMetrics metrics = g.getFontMetrics(font);
             int textWidth = metrics.stringWidth(b.label);
             int textHeight = metrics.getHeight();
-            int width = 2*b.size.offset + 2*b.size.radius;
+            int width = rect.width;
             int x = rect.x + (width - textWidth) / 2;
-            int y = rect.y + b.size.offset * 2 + b.size.radius * 2 + textHeight / 2 + 2;
+            int y = textStart + textHeight / 2;
             g.setFont(font);
             g.drawString(b.label, x, y);
         }
@@ -200,6 +238,7 @@ public class BlankKnob extends JComponent implements MouseListener, MouseMotionL
     protected Parameters params;
     /** Containing the current state of the mouse */
     protected boolean pressed;
+
     /** Point used to calculate whether a MouseClicked event is in the area of the knob to be dragged */
     protected Point mousePt;
     /** Contains the previous state from where to pick up a drag again */
@@ -246,6 +285,20 @@ public class BlankKnob extends JComponent implements MouseListener, MouseMotionL
         } else {
             value = 0;
         }
+
+        this.shift = 0;
+        this.factor = 1;
+        this.isLinearTransformed = false;
+        // TODO since calculating theta like the current implementation does not handle negative values well, we initially transform the domain to non-negative values
+        if(this.minValue < 0 || this.maxValue < 0){
+            // since value is in the domain as assured before
+            this.isLinearTransformed = true;
+            this.shift = Math.abs(this.minValue);
+            this.setValue(this.value);
+            this.setMaxValue(this.maxValue);
+            this.setMinValue(this.minValue);
+        }
+
         this.label = label;
         this.scrollFactor = (params.scrollFactor > 0 ? params.scrollFactor : 1);
         // add default listeners to the knob
@@ -284,7 +337,7 @@ public class BlankKnob extends JComponent implements MouseListener, MouseMotionL
      * @return the current value of the knob
      */
     public float getValue(){
-        return this.value;
+        return ((this.value - this.shift) / this.factor);
     }
 
     /**
@@ -313,15 +366,31 @@ public class BlankKnob extends JComponent implements MouseListener, MouseMotionL
 
     /**
      * Sets the current value of the knob if its in range of minValue and maxValue.
+     * NOTE The fired PropertyChangeListener contains the untransformed values!
      * Also repaints knob on change
      * @param value new current value of the knob
      */
     public void setValue(float value){
-        double temp = this.value;
+        double temp = this.getValue();
+        float tValue = this.factor * value + this.shift;
+        if(tValue <= maxValue && tValue >= minValue){
+            this.value = tValue;
+            repaint();
+            valueChange.firePropertyChange("value", temp, value);
+        }
+    }
+
+    /**
+     * Sets the value untransformed
+     * NOTE only for internal usage
+     * @param value new value
+     */
+    protected void _setValue(float value){
+        double temp = this.getValue();
         if(value <= maxValue && value >= minValue){
             this.value = value;
             repaint();
-            valueChange.firePropertyChange("value", temp, this.value);
+            valueChange.firePropertyChange("value", temp, value);
         }
     }
 
@@ -338,8 +407,8 @@ public class BlankKnob extends JComponent implements MouseListener, MouseMotionL
      * @param minValue minimal value of the knob
      */
     public void setMinValue(float minValue) {
-        this.minValue = minValue;
-        this.params.min = minValue;
+        this.minValue = this.factor * minValue + this.shift;
+        this.params.min = this.factor * minValue + this.shift;;
         repaint();
     }
 
@@ -348,8 +417,8 @@ public class BlankKnob extends JComponent implements MouseListener, MouseMotionL
      * @param maxValue
      */
     public void setMaxValue(float maxValue) {
-        this.maxValue = maxValue;
-        this.params.max = maxValue;
+        this.maxValue = this.factor * maxValue + this.shift;;
+        this.params.max = this.factor * maxValue + this.shift;;
         repaint();
     }
 
@@ -412,6 +481,7 @@ public class BlankKnob extends JComponent implements MouseListener, MouseMotionL
      */
     public void mouseReleased(MouseEvent e) {
         this.pressed = false;
+        repaint();
         this.prev = this.mousePt.y;
     }
 
@@ -422,14 +492,14 @@ public class BlankKnob extends JComponent implements MouseListener, MouseMotionL
             float dy = (prev - e.getY()) * this.scrollFactor;
             // check for the value to be in range of minValue and maxValue
             if(this.value + dy <= maxValue && this.value + dy >= minValue){
-                this.setValue(this.value + dy);
+                this._setValue(this.value + dy);
             } else if (this.value + dy > maxValue){
-                this.setValue(maxValue);
+                this._setValue(maxValue);
             } else if (this.value + dy < minValue){
-                this.setValue(minValue);
+                this._setValue(minValue);
             }
             if(this.snapToTicks){
-                this.setValue((int)this.value);
+                this._setValue((int)this.value);
             }
             // update previous state variable
             prev = e.getY();

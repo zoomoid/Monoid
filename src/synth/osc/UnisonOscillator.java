@@ -2,13 +2,7 @@ package synth.osc;
 
 public interface UnisonOscillator {
 
-    int voices = 0;
-
-    float spread = 0f;
-
-    float blend = 0f;
-
-    float spreadFunction = 0f;
+    int MAX_NUM_VOICES = 8;
 
     float getBlend();
 
@@ -17,8 +11,6 @@ public interface UnisonOscillator {
     float getSpread();
 
     float getSpreadFunction();
-
-    //MultivoiceOscillator getUnison();
 
     UnisonOscillator setBlend(float blend);
 

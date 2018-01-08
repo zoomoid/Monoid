@@ -6,7 +6,7 @@ package net.beadsproject.beads.analysis;
 import net.beadsproject.beads.core.TimeStamp;
 
 /**
- * SegmentListeners get notified with a {@link newSegment()} event by a {@link SegmentMaker}.
+ * SegmentListeners get notified with a {@link SegmentListener#newSegment(TimeStamp, TimeStamp)} event by a {@link SegmentMaker}.
  */
 public interface SegmentListener {
 
