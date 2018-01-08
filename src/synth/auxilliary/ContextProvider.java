@@ -7,6 +7,6 @@ import synth.auxilliary.ASIOAudioContext;
 
 public class ContextProvider {
     public static AudioContext ac(){
-        return new AdvancedAudioContext(new AudioServerIO.JavaSound("Primärer Soundtreiber"), 8192, new IOAudioFormat(48000, 24, 0, 2));
+        return new AudioContext(new AudioServerIO.JavaSound("Primärer Soundtreiber"), 8192, new IOAudioFormat(48000, 24, 0, 2));
     }
 }

@@ -21,7 +21,7 @@ public class AdditiveUI {
     public static final int SQUARE = 2;
     public static final int TRIANGLE = 3;
 
-    public int numberOfOscillators = 0;
+    public int numberOfOscillators;
 
     /**List of active oscillators*/
     ArrayList<Oscillator> activeOscillators = new ArrayList<Oscillator>();
@@ -67,10 +67,13 @@ public class AdditiveUI {
         this.ac = ac;
 
         setupOscillators(220f, numberOfOscillators, param);
+        compensator.start();
+        compensator.update();
 
         //add limiter to whole sound
         limiter.addInput(compensator);
-
+        limiter.start();
+        limiter.update();
         this.ac.out.addInput(limiter);
 
         grid = new GridLayout(numberOfOscillators, 1, 5, 5);
@@ -148,7 +151,6 @@ public class AdditiveUI {
             contentPane.add(oscCon.panel);
             //add compensator to whole sound
             compensator.addInput(bscOsc);
-
         }
 
     }

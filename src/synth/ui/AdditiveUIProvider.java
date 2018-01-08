@@ -10,7 +10,7 @@ import javax.swing.*;
 import java.awt.*;
 
 public class AdditiveUIProvider {
-    public static AudioContext ac = ContextProvider.ac();
+    public static AudioContext ac;
 
     //Layouts
     private static GridLayout presetGrid =  new GridLayout(1, 4);

@@ -18,7 +18,7 @@ import java.lang.reflect.ParameterizedType;
 
 public class ModulationUI {
 
-    private JFrame ui;
+    public JFrame ui;
     private BlankPanel mainPane, topPane, pane;
     private BlankPanel fmPane, amPane;
     private BlankLabel label;
@@ -138,7 +138,8 @@ public class ModulationUI {
 
         this.ui = new JFrame("Modulation Demo");
         this.ui.setContentPane(this.pane);
-        this.ui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.ui.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+        this.ui.setLocation(0,90);
         this.ui.pack();
         this.ui.setResizable(true);
 

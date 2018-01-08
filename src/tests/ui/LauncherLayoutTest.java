@@ -5,12 +5,18 @@ import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.data.Pitch;
 import net.beadsproject.beads.ugens.RangeLimiter;
 import synth.auxilliary.ContextProvider;
+import synth.auxilliary.SignalProcessor;
 import synth.filter.Filter;
 import synth.filter.models.BiquadFilter;
+import synth.modulation.ModulationOscillator;
+import synth.osc.BasicOscillator;
 import synth.osc.SmartOscillator;
 import synth.ui.AdditiveUIProvider;
 import synth.ui.FilterUI;
+import synth.ui.ModulationUI;
 import synth.ui.OscillatorUI;
+import synth.ui.components.Canvas;
+import synth.ui.components.swing.BlankPanel;
 import synth.ui.components.swing.BlankToggleButton;
 
 import javax.swing.*;
@@ -30,14 +36,11 @@ public class LauncherLayoutTest {
     private static JPanel oscPreset;
     private static JPanel oscAndFilterPreset;
     private static JPanel amPreset;
-    private static JPanel fmPreset;
-
     /**Toggle buttons for tabs*/
     private static BlankToggleButton oscButton;
     private static BlankToggleButton addSynthButton;
     private static BlankToggleButton oscAndFilter;
-    private static BlankToggleButton amSynth;
-    private static BlankToggleButton fmSynth;
+    private static BlankToggleButton amFmSynth;
 
     private static BlankToggleButton currSelected;
     private static JPanel currPresetPane;
@@ -67,8 +70,7 @@ public class LauncherLayoutTest {
         tabPane.add(oscButton);
         tabPane.add(oscAndFilter);
         tabPane.add(addSynthButton);
-        tabPane.add(amSynth);
-        tabPane.add(fmSynth);
+        tabPane.add(amFmSynth);
         tabPane.setLayout(new GridLayout(1, 5, 5, 5));
 
         //add panes to main pane
@@ -115,10 +117,8 @@ public class LauncherLayoutTest {
             return oscAndFilterPreset;
         } else if(button == addSynthButton) {
             return new JPanel();
-        } else if(button == amSynth) {
+        } else if(button == amFmSynth) {
             return amPreset;
-        } else if(button == fmSynth) {
-            return fmPreset;
         }
         return new JPanel();
     }
@@ -174,9 +174,41 @@ public class LauncherLayoutTest {
         } else if(button == addSynthButton) {
             JPanel additiveSynth = new AdditiveUIProvider(ac, frame).mainPane;
             return additiveSynth;
-        } else if(button == amSynth) {
-            return new JPanel();
-        } else if(button == fmSynth) {
+        } else if(button == amFmSynth) {
+            ModulationOscillator amModulator = new ModulationOscillator(ac, ModulationOscillator.Type.SINE, 0f, 0.5f);
+            ModulationOscillator fmModulator = new ModulationOscillator(ac, ModulationOscillator.Type.SINE, 0f, 1);
+            amModulator.noteOn();
+            fmModulator.noteOn();
+            BasicOscillator carrier = new BasicOscillator(ac, 0f, Buffer.SINE);
+
+            ModulationUI ui = new ModulationUI(carrier, amModulator, fmModulator);
+            ui.show();
+
+            SignalProcessor pc = new SignalProcessor(ac);
+            pc.addInput(carrier);
+
+            RangeLimiter l = new RangeLimiter(ac, 2);
+            l.addInput(pc);
+
+            ac.out.addInput(l);
+            ac.start();
+
+            BlankPanel signalPane = new BlankPanel();
+            synth.ui.components.Canvas c = new Canvas();
+            pc.bind(c);
+            signalPane.add(c);
+            JFrame signalUI = new JFrame("Modulation Demo");
+            signalUI.setContentPane(signalPane);
+            signalUI.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+            signalUI.setLocation(0,500);
+            signalUI.pack();
+            signalUI.setResizable(true);
+            signalUI.setVisible(true);
+
+
+            oscFrame = ui.ui;
+            filterFrame = signalUI;
+
             return new JPanel();
         }
         return new JPanel();
@@ -186,8 +218,7 @@ public class LauncherLayoutTest {
         oscButton = new BlankToggleButton("Oscillator");
         oscAndFilter = new BlankToggleButton("Osc. and Filter");
         addSynthButton = new BlankToggleButton("Additive Oscillator");
-        amSynth = new BlankToggleButton("AM");
-        fmSynth = new BlankToggleButton("FM");
+        amFmSynth = new BlankToggleButton("AM/FM");
 
         //start with standard synthesizer
         currSelected = oscButton;
@@ -206,12 +237,8 @@ public class LauncherLayoutTest {
             changeButton(oscAndFilter);
         });
 
-        amSynth.addActionListener(e -> {
-            changeButton(amSynth);
-        });
-
-        fmSynth.addActionListener(e -> {
-            changeButton(fmSynth);
+        amFmSynth.addActionListener(e -> {
+            changeButton(amFmSynth);
         });
     }
 
@@ -220,6 +247,5 @@ public class LauncherLayoutTest {
         currPresetPane = oscPreset;
         oscAndFilterPreset = new JPanel();
         amPreset = new JPanel();
-        fmPreset = new JPanel();
     }
 }
