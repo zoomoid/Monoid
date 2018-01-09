@@ -93,7 +93,6 @@ public class OscillatorUI extends SynthesizerUserInterfaceModule {
 
     public OscillatorUI(Oscillator associatedOscillator){
         this.associatedOscillator = associatedOscillator;
-        this.associatedOscillator.noteOn();
 
         pane = new BlankPanel();
         //pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
@@ -128,24 +127,7 @@ public class OscillatorUI extends SynthesizerUserInterfaceModule {
         basicPane.add(frequencyPane);
         basicPane.add(gainPane);
 
-        noteTriggerPane = new BlankPanel();
-        BlankToggleButton noteTrigger = new BlankToggleButton("Note On");
-        noteTrigger.toggle();
-        noteTrigger.addActionListener(e -> {
-            BlankToggleButton b = ((BlankToggleButton)e.getSource());
-            if(b.isToggled()){
-                associatedOscillator.noteOn();
-                b.setText("Note Off");
-            } else {
-                associatedOscillator.noteOff();
-                b.setText("Note On");
-            }
-        });
-
-        noteTriggerPane.add(noteTrigger);
-
         mainPane.add(topPane);
-        mainPane.add(noteTriggerPane);
         mainPane.add(basicPane);
         mainPane.add(unisonPane);
         mainPane.add(modulationPanel);

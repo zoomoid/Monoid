@@ -12,7 +12,7 @@ import synth.filter.models.FilterModel;
  * A Basic 2-channel filter wrapper implementation for Monoid.
  * Different filter types can be chosen from at creation.
  */
-public class Filter extends UGen implements Device{
+public class Filter extends UGen implements Device {
 
     /** Quality factor of the filter */
     private UGen q;
@@ -26,6 +26,7 @@ public class Filter extends UGen implements Device{
 
     /** Audio Context */
     private AudioContext context;
+    private float gate;
 
     public enum Type {BiquadFilter, MonoMoog}
 
@@ -91,6 +92,7 @@ public class Filter extends UGen implements Device{
         } else {
             this.setQ(new Static(ac, 1f));
         }
+        this.gate = 0;
     }
 
     /**
@@ -194,8 +196,18 @@ public class Filter extends UGen implements Device{
         this.gain.update();
         for(int k = 0; k < outs; k++){
             for(int i = 0; i < bufferSize; i++){
-                bufOut[k][i] = gain.getValue(0, i) * filterBackend.getValue(k, i);
+                bufOut[k][i] = gate * gain.getValue(0, i) * filterBackend.getValue(k, i);
             }
         }
+    }
+
+    public void noteOn(){
+        this.gate = 1;
+        filterBackend.noteOn();
+    }
+
+    public void noteOff(){
+        this.gate = 0;
+        filterBackend.noteOff();
     }
 }

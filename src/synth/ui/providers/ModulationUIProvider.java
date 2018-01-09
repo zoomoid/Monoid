@@ -3,6 +3,7 @@ package synth.ui.providers;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.ugens.RangeLimiter;
+import synth.Launcher;
 import synth.auxilliary.ContextProvider;
 import synth.auxilliary.SignalProcessor;
 import synth.modulation.ModulationOscillator;
@@ -59,6 +60,7 @@ public class ModulationUIProvider implements Provider {
         this.frame = new JFrame("Modulation");
         this.frame.setContentPane(ui.pane());
         this.frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        this.frame.setLocation(0, 85);
         this.frame.addWindowListener(new WindowListener() {
             @Override
             public void windowOpened(WindowEvent e) {}
@@ -68,6 +70,7 @@ public class ModulationUIProvider implements Provider {
                 ac.stop();
                 frame.setVisible(false);
                 frame.dispose();
+                Launcher.main.modulationButton().toggle(false);
             }
 
             @Override
