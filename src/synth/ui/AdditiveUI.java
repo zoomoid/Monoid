@@ -18,11 +18,15 @@ public class AdditiveUI {
     /**The Audio Context */
     AudioContext ac;
 
+    public enum Preset {
+        DEFAULT, SAW, SQUARE, TRIANGLE
+    }
+
     /**Preset fields*/
-    public static final int DEFAULT = 0;
-    public static final int SAW = 1;
-    public static final int SQUARE = 2;
-    public static final int TRIANGLE = 3;
+    public static final Preset DEFAULT = Preset.DEFAULT;
+    public static final Preset SAW = Preset.SAW;
+    public static final Preset SQUARE = Preset.SQUARE;
+    public static final Preset TRIANGLE = Preset.TRIANGLE;
 
     public int numberOfOscillators;
 
@@ -63,7 +67,7 @@ public class AdditiveUI {
      * @param ac the audio context
      * @param param which type of preset
      */
-    public AdditiveUI(int numberOfOscillators, AudioContext ac, int param) {
+    public AdditiveUI(int numberOfOscillators, AudioContext ac, Preset param) {
         this(numberOfOscillators, ac, param, 220f);
     }
 
@@ -74,7 +78,7 @@ public class AdditiveUI {
      * @param param
      * @param basicFreq
      */
-    public AdditiveUI(int numberOfOscillators, AudioContext ac, int param, float basicFreq) {
+    public AdditiveUI(int numberOfOscillators, AudioContext ac, Preset param, float basicFreq) {
         limiter = new RangeLimiter(ac, 2);
         compensator = new Gain(ac, 2, (1f / (float) numberOfOscillators));
 
@@ -105,14 +109,12 @@ public class AdditiveUI {
      * @param numberOfOscillators number of oscillators
      * @param param the chosen preset
      */
-    private void setupOscillators(float basicFreq, int numberOfOscillators, int param) {
+    private void setupOscillators(float basicFreq, int numberOfOscillators, Preset param) {
         for(int i = 0; i < numberOfOscillators; i++) {
             BasicOscillator bscOsc = new BasicOscillator(this.ac, basicFreq, Buffer.SINE);
             activeOscillators.add(bscOsc);
-
             switch(param) {
-                default:
-                case DEFAULT:
+                default: case DEFAULT:
                     if(i == 0) {
                         bscOsc.setGain(0.5f);
                         bscOsc.setFrequency(basicFreq);

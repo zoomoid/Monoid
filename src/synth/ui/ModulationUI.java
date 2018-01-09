@@ -18,7 +18,6 @@ import java.lang.reflect.ParameterizedType;
 
 public class ModulationUI {
 
-    public JFrame ui;
     private BlankPanel mainPane, topPane, pane;
     private BlankPanel fmPane, amPane;
     private BlankLabel label;
@@ -127,7 +126,6 @@ public class ModulationUI {
                 fmModulationStrength.setValue(0f);
                 fmModulatorRatio.setValue(1f);
             }
-            ui.pack();
         });
 
         mainPane.add(amPane);
@@ -135,13 +133,6 @@ public class ModulationUI {
 
         pane.add(topPane);
         pane.add(mainPane);
-
-        this.ui = new JFrame("Modulation Demo");
-        this.ui.setContentPane(this.pane);
-        this.ui.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-        this.ui.setLocation(0,90);
-        this.ui.pack();
-        this.ui.setResizable(true);
 
         fmPane.setVisible(false);
 
@@ -160,11 +151,19 @@ public class ModulationUI {
         amModulatorRatio.setValue(1f);
     }
 
+    /**
+     * Returns the root pane of the UI
+     * @return root ui
+     */
+    public JPanel pane(){
+        return this.pane;
+    }
+
     public void hide(){
-        this.ui.setVisible(false);
+        this.pane().setVisible(false);
     }
 
     public void show(){
-        this.ui.setVisible(true);
+        this.pane().setVisible(true);
     }
 }

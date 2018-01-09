@@ -1,14 +1,12 @@
-package tests;
+package tests.oscillators;
 
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.IOAudioFormat;
-import net.beadsproject.beads.core.io.JavaSoundAudioIO;
 import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.ugens.WavePlayer;
 
 import net.beadsproject.beads.ugens.*;
 import org.jaudiolibs.beads.AudioServerIO;
-import synth.auxilliary.ASIOAudioContext;
 
 public class FMOscillator {
 

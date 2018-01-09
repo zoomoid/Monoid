@@ -93,6 +93,8 @@ public class OscillatorUI extends SynthesizerUserInterfaceModule {
 
     public OscillatorUI(Oscillator associatedOscillator){
         this.associatedOscillator = associatedOscillator;
+        this.associatedOscillator.noteOn();
+
         pane = new BlankPanel();
         //pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
         mainPane = new BlankPanel();
@@ -126,18 +128,21 @@ public class OscillatorUI extends SynthesizerUserInterfaceModule {
         basicPane.add(frequencyPane);
         basicPane.add(gainPane);
 
-        noteTriggerPane = new BlankPanel(new GridLayout(1, 2));
-        BlankButton noteOn = new BlankButton("Note On");
-        BlankButton noteOff = new BlankButton("Note Off");
-        noteOn.addActionListener(e -> {
-            associatedOscillator.noteOn();
+        noteTriggerPane = new BlankPanel();
+        BlankToggleButton noteTrigger = new BlankToggleButton("Note On");
+        noteTrigger.toggle();
+        noteTrigger.addActionListener(e -> {
+            BlankToggleButton b = ((BlankToggleButton)e.getSource());
+            if(b.isToggled()){
+                associatedOscillator.noteOn();
+                b.setText("Note Off");
+            } else {
+                associatedOscillator.noteOff();
+                b.setText("Note On");
+            }
         });
 
-        noteOff.addActionListener(e -> {
-            associatedOscillator.noteOff();
-        });
-        noteTriggerPane.add(noteOn);
-        noteTriggerPane.add(noteOff);
+        noteTriggerPane.add(noteTrigger);
 
         mainPane.add(topPane);
         mainPane.add(noteTriggerPane);
@@ -243,21 +248,14 @@ public class OscillatorUI extends SynthesizerUserInterfaceModule {
         pane.add(optionsPane);
 
         this.initializeFromOscillator();
-
-        this.ui = new JFrame(associatedOscillator.getName());
-        this.ui.setContentPane(this.pane);
-        this.ui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.ui.setLocation(0,85);
-        this.ui.pack();
-        this.ui.setResizable(true);
     }
 
     public void hide(){
-        this.ui.setVisible(false);
+        this.pane().setVisible(false);
     }
 
     public void show(){
-        this.ui.setVisible(true);
+        this.pane().setVisible(true);
     }
 
     private void createFineTunePanel(){
@@ -324,12 +322,10 @@ public class OscillatorUI extends SynthesizerUserInterfaceModule {
 
     private void showFineTunePanel(){
         optionsPane.setVisible(true);
-        this.ui.pack();
     }
 
     private void hideFineTunePanel(){
         optionsPane.setVisible(false);
-        this.ui.pack();
     }
 
     private void initializeFromOscillator(){
@@ -359,5 +355,9 @@ public class OscillatorUI extends SynthesizerUserInterfaceModule {
             case NOISE : return icons[4];
             default : return icons[0];
         }
+    }
+
+    public JPanel pane(){
+        return this.pane;
     }
 }

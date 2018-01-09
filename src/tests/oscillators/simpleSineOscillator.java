@@ -1,4 +1,4 @@
-package tests;
+package tests.oscillators;
 
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.IOAudioFormat;

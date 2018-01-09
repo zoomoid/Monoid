@@ -137,13 +137,6 @@ public class FilterUI extends SynthesizerUserInterfaceModule {
 
         qGainPane.add(gainKnob);
 
-        this.ui = new JFrame(associatedFilter.getName());
-        this.ui.setContentPane(this.pane);
-        this.ui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.ui.setLocation(300, 300);
-        this.ui.pack();
-        this.ui.setResizable(false);
-
         this.createFineTunePanel();
 
         optionsPane = new BlankPanel();
@@ -156,11 +149,11 @@ public class FilterUI extends SynthesizerUserInterfaceModule {
     }
 
     public void hide(){
-        this.ui.setVisible(false);
+        this.pane().setVisible(false);
     }
 
     public void show(){
-        this.ui.setVisible(true);
+        this.pane().setVisible(true);
     }
 
     private void showFineTunePanel(){
@@ -224,5 +217,9 @@ public class FilterUI extends SynthesizerUserInterfaceModule {
 
     public Filter getAssociatedDevice(){
         return this.associatedFilter;
+    }
+
+    public JPanel pane(){
+        return this.pane;
     }
 }

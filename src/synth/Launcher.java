@@ -1,7 +1,9 @@
 package synth;
 
+import synth.ui.composition.PresetPanel;
+
 public class Launcher {
     public static void main(String[] args){
-        SynthController synth = new SynthController();
+        PresetPanel main = new PresetPanel("Monoid");
     }
 }

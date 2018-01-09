@@ -1,4 +1,4 @@
-package tests;
+package tests.ui;
 
 import synth.ui.components.swing.*;
 
