@@ -14,6 +14,8 @@ public abstract class FilterModel extends IIRFilter {
 
     float tfreq, tq, tgain;
 
+    float gate;
+
     /** Coefficients */
     protected float a0 = 1;
     protected float a1 = 0;
@@ -126,5 +128,13 @@ public abstract class FilterModel extends IIRFilter {
     @NotNull
     public static BiquadFilter createBiquadFilter(AudioContext ac, FilterModel.Type type){
         return new BiquadFilter(ac, type, 0f, 1f, 1f);
+    }
+
+    public void noteOn(){
+        gate = 1;
+    }
+
+    public void noteOff(){
+        gate = 0;
     }
 }

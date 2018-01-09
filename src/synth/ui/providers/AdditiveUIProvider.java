@@ -2,6 +2,7 @@ package synth.ui.providers;
 
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.ugens.Add;
+import synth.Launcher;
 import synth.auxilliary.ContextProvider;
 import synth.ui.AdditiveUI;
 import synth.ui.components.swing.BlankButton;
@@ -105,6 +106,7 @@ public class AdditiveUIProvider implements Provider {
                 ac.stop();
                 ui.setVisible(false);
                 ui.dispose();
+                Launcher.main.additivButton().toggle(false);
             }
 
             @Override

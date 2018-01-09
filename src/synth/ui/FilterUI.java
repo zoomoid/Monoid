@@ -66,9 +66,9 @@ public class FilterUI extends SynthesizerUserInterfaceModule {
     };
 
     public JFrame ui;
-    // TODO Adjust FilterUI to be a lot more dense and more controllable
     public FilterUI(Filter associatedFilter){
         this.associatedFilter = associatedFilter;
+
         pane = new BlankPanel();
         topPane = new BlankPanel();
         filterLabel = new BlankLabel("Filter " + associatedFilter.getName());
@@ -144,6 +144,7 @@ public class FilterUI extends SynthesizerUserInterfaceModule {
         optionsPane.add(filterFineTuneLabel);
         optionsPane.add(_pane);
         pane.add(optionsPane);
+        pane.setVisible(true);
         optionsPane.setVisible(false);
         this.initializeFromFilter();
     }
@@ -158,12 +159,10 @@ public class FilterUI extends SynthesizerUserInterfaceModule {
 
     private void showFineTunePanel(){
         optionsPane.setVisible(true);
-        this.ui.pack();
     }
 
     private void hideFineTunePanel(){
         optionsPane.setVisible(false);
-        this.ui.pack();
     }
 
     private void initializeFromFilter(){

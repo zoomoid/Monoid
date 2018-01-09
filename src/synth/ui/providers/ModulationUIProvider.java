@@ -3,6 +3,7 @@ package synth.ui.providers;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.ugens.RangeLimiter;
+import synth.Launcher;
 import synth.auxilliary.ContextProvider;
 import synth.auxilliary.SignalProcessor;
 import synth.modulation.ModulationOscillator;
@@ -68,6 +69,7 @@ public class ModulationUIProvider implements Provider {
                 ac.stop();
                 frame.setVisible(false);
                 frame.dispose();
+                Launcher.main.modulationButton().toggle(false);
             }
 
             @Override

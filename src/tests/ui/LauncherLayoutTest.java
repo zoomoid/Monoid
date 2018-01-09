@@ -24,8 +24,6 @@ import javax.swing.*;
 import java.awt.*;
 
 public class LauncherLayoutTest {
-
-
     public static void main(String args[]) {
         PresetPanel main = new PresetPanel("Monoid");
     }
