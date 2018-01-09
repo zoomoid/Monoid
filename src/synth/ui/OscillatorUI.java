@@ -158,6 +158,7 @@ public class OscillatorUI extends SynthesizerUserInterfaceModule {
         frequencyPane.add(frequencyKnob);
 
         gainKnob = new BlankKnob(new BlankKnob.Parameters(0,1, 0.01f, false, true), BlankKnob.MEDIUM, 1,"Gain");
+        // TODO this should rather update the sustain value of the gain envelope
         gainKnob.addPropertyChangeListener(e -> {
             associatedOscillator.setGain((float) e.getNewValue());
         });
