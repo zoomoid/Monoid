@@ -37,6 +37,21 @@ public class BasicOscillator extends Oscillator implements WavetableOscillator {
         this.one_over_sr = 1f / context.getSampleRate();
     }
 
+    /**
+     * Initialises a REAL BasicOscillator, meaning initial gain value does not default to 1, but rather to 0 allowing
+     * envelopes to control the volume in complete. NoteOn triggers now rather work as a gate than a constant value
+     * @param ac AudioContext
+     * @param frequency frequency modulatable
+     * @param wave wave buffer
+     * @param realOscillator gain initialisation policy
+     */
+    public BasicOscillator(AudioContext ac, Modulatable frequency, Buffer wave, boolean realOscillator){
+        this(ac, frequency, wave);
+        if(realOscillator){
+            this.setGain(0);
+        }
+    }
+
     public Buffer getWave(){
         return this.wave;
     }

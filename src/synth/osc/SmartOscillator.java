@@ -80,7 +80,6 @@ public class SmartOscillator extends Oscillator implements UnisonOscillator, Wav
      */
     public SmartOscillator(AudioContext ac, float frequency, Buffer wave, int voices, float spread, float blend){
         super(ac, frequency);
-
         // submodule initialization
         unison = new MultivoiceOscillator(ac, this.wave, this.voices);
         center = new BasicOscillator(ac, frequency, this.wave);
@@ -93,6 +92,19 @@ public class SmartOscillator extends Oscillator implements UnisonOscillator, Wav
         this.blend = blend;
         // output policy
         this.outputInitializationRegime = OutputInitializationRegime.ZERO;
+    }
+
+    /**
+     * Initialises a REAL BasicOscillator, meaning initial gain value does not default to 1, but rather to 0 allowing
+     * envelopes to control the volume in complete. NoteOn triggers now rather work as a gate than a constant value
+     * @param ac audio context
+     * @param realOscillator gain initialisation policy
+     */
+    public SmartOscillator(AudioContext ac, boolean realOscillator){
+        this(ac);
+        if(realOscillator){
+            this.setGain(0);
+        }
     }
 
     /**
@@ -299,6 +311,7 @@ public class SmartOscillator extends Oscillator implements UnisonOscillator, Wav
                 bufOut[i][j] = gainSample * (((1-0.5f*this.blend) * centerSample) + ((0.5f*this.blend) * unisonSample));
             }
         }
+        this.gain.update();
     }
 
 

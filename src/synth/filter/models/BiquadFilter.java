@@ -36,8 +36,8 @@ public class BiquadFilter extends FilterModel implements DataBeadReceiver {
 
 	public final static Type HPF = Type.HPF;
 
-  protected float bo1 = 0, bo2 = 0, bi1 = 0, bi2 = 0;
-  protected float[] bo1m, bo2m, bi1m, bi2m;
+  	protected float bo1 = 0, bo2 = 0, bi1 = 0, bi2 = 0;
+  	protected float[] bo1m, bo2m, bi1m, bi2m;
 
 	protected int channels = 1;
 	protected Type type = null;
@@ -58,15 +58,6 @@ public class BiquadFilter extends FilterModel implements DataBeadReceiver {
 		this(context, LPF);
 	}
 
-	/**
-	 * Constructor for a multi-channel biquad filter UGen of specified type with
-	 * the specified number of channels. See {@link #setType(int) setType} for a
-	 * list of supported filter types.
-	 *
-	 * @param context The AudioContext.
-	 * @param channels The number of channels.
-	 * @param itype
-	 */
 	public BiquadFilter(AudioContext context, Type itype) {
 		super(context);
 		this.channels = super.getOuts();
@@ -100,6 +91,7 @@ public class BiquadFilter extends FilterModel implements DataBeadReceiver {
 	@Override
 	public void calculateBuffer() {
 		float[] bi, bo;
+		zeroOuts();
         // multi-channel version
         frequency.update();
         q.update();
@@ -109,14 +101,14 @@ public class BiquadFilter extends FilterModel implements DataBeadReceiver {
         tgain = gain.getValue(0, 0);
         vc.calcVals();
         for (int i = 0; i < channels; i++) {
-            bufOut[i][0] = (b0 * bufIn[i][0] + b1 * bi1m[i] + b2 * bi2m[i] - a1 * bo1m[i] - a2 * bo2m[i]) / a0;
+            bufOut[i][0] = gate * (b0 * bufIn[i][0] + b1 * bi1m[i] + b2 * bi2m[i] - a1 * bo1m[i] - a2 * bo2m[i]) / a0;
         }
         tfreq = frequency.getValue(0, 1);
         tq = q.getValue(0, 1);
         tgain = gain.getValue(0, 1);
         vc.calcVals();
         for (int i = 0; i < channels; i++) {
-            bufOut[i][1] = (b0 * bufIn[i][1] + b1 * bufIn[i][0] + b2 * bi1m[i] - a1 * bufOut[i][0] - a2 * bo1m[i]) / a0;
+            bufOut[i][1] = gate * (b0 * bufIn[i][1] + b1 * bufIn[i][0] + b2 * bi1m[i] - a1 * bufOut[i][0] - a2 * bo1m[i]) / a0;
         }
 
         // main loop
@@ -126,7 +118,7 @@ public class BiquadFilter extends FilterModel implements DataBeadReceiver {
             tgain = gain.getValue(0, j);
             vc.calcVals();
             for (int i = 0; i < channels; i++) {
-                bufOut[i][j] = (b0 * bufIn[i][j] + b1 * bufIn[i][j - 1] + b2 * bufIn[i][j - 2] - a1 * bufOut[i][j - 1] - a2 * bufOut[i][j - 2]) / a0;
+                bufOut[i][j] = gate * (b0 * bufIn[i][j] + b1 * bufIn[i][j - 1] + b2 * bufIn[i][j - 2] - a1 * bufOut[i][j - 1] - a2 * bufOut[i][j - 2]) / a0;
             }
 
         }

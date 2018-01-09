@@ -1,6 +1,5 @@
 package synth.ui.composition;
 
-import synth.ui.components.swing.BlankButton;
 import synth.ui.components.swing.BlankPanel;
 import synth.ui.components.swing.BlankToggleButton;
 import synth.ui.providers.*;
@@ -25,6 +24,10 @@ public class PresetPanel extends JFrame {
                     currentUI.close();
                 }
                 currentUI = new OscillatorUIProvider();
+            } else {
+                if(currentUI != null) {
+                    currentUI.close();
+                }
             }
         });
         filterButton = new BlankToggleButton("Filter");
@@ -35,6 +38,10 @@ public class PresetPanel extends JFrame {
                     currentUI.close();
                 }
                 currentUI = new FilterUIProvider();
+            } else {
+                if(currentUI != null) {
+                    currentUI.close();
+                }
             }
         });
         additivButton = new BlankToggleButton("Additiv");
@@ -45,6 +52,10 @@ public class PresetPanel extends JFrame {
                     currentUI.close();
                 }
                 currentUI = new AdditiveUIProvider();
+            } else {
+                if(currentUI != null) {
+                    currentUI.close();
+                }
             }
         });
         modulationButton = new BlankToggleButton("Modulation");
@@ -55,6 +66,10 @@ public class PresetPanel extends JFrame {
                     currentUI.close();
                 }
                 currentUI = new ModulationUIProvider();
+            } else {
+                if(currentUI != null) {
+                    currentUI.close();
+                }
             }
         });
 
@@ -68,5 +83,21 @@ public class PresetPanel extends JFrame {
         this.pack();
         this.setResizable(true);
         this.setVisible(true);
+    }
+
+    public BlankToggleButton oscButton() {
+        return oscButton;
+    }
+
+    public BlankToggleButton filterButton() {
+        return filterButton;
+    }
+
+    public BlankToggleButton additivButton() {
+        return additivButton;
+    }
+
+    public BlankToggleButton modulationButton() {
+        return modulationButton;
     }
 }
