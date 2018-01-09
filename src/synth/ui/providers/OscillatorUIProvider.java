@@ -56,6 +56,7 @@ public class OscillatorUIProvider implements Provider {
         JFrame noteTriggerFrame = new JFrame("");
         noteTriggerFrame.setContentPane(noteTriggerPane);
         noteTriggerFrame.setVisible(true);
+        noteTriggerFrame.setLocation(300, 85);
         noteTriggerFrame.pack();
         noteTriggerFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         noteTriggerFrame.addWindowListener(new WindowListener() {
@@ -99,6 +100,7 @@ public class OscillatorUIProvider implements Provider {
         this.frame = new JFrame("Oscillator");
         this.frame.setContentPane(this.ui.pane());
         this.frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        this.frame.setLocation(0, 85);
         this.frame.addWindowListener(new WindowListener() {
             @Override
             public void windowOpened(WindowEvent e) {}

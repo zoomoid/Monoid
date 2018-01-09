@@ -60,6 +60,7 @@ public class ModulationUIProvider implements Provider {
         this.frame = new JFrame("Modulation");
         this.frame.setContentPane(ui.pane());
         this.frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        this.frame.setLocation(0, 85);
         this.frame.addWindowListener(new WindowListener() {
             @Override
             public void windowOpened(WindowEvent e) {}

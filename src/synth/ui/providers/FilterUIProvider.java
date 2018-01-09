@@ -3,6 +3,7 @@ package synth.ui.providers;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.data.Pitch;
+import net.beadsproject.beads.ugens.RangeLimiter;
 import synth.Launcher;
 import synth.auxilliary.BufferDebugger;
 import synth.auxilliary.ContextProvider;
@@ -13,7 +14,6 @@ import synth.ui.FilterUI;
 import synth.ui.OscillatorUI;
 import synth.ui.components.swing.BlankPanel;
 import synth.ui.components.swing.BlankToggleButton;
-import synth.ui.composition.PresetPanel;
 
 import javax.swing.*;
 import java.awt.*;
@@ -45,6 +45,7 @@ public class FilterUIProvider implements Provider {
 
         Filter f = new Filter(ac, Filter.Type.BiquadFilter, BiquadFilter.Type.LPF, 300f, 0.76f, 0.71f);
         f.setName("Filter A");
+        f.setGain(0.6f);
 
         BufferDebugger beforeFilter = new BufferDebugger(ac);
         BufferDebugger afterFilter = new BufferDebugger(ac);
@@ -52,8 +53,10 @@ public class FilterUIProvider implements Provider {
         beforeFilter.addInput(osc);
         f.addInput(beforeFilter);
         afterFilter.addInput(f);
+        RangeLimiter limiter = new RangeLimiter(ac, 2);
+        limiter.addInput(afterFilter);
 
-        ac.out.addInput(afterFilter);
+        ac.out.addInput(limiter);
         oscUI = new OscillatorUI(osc);
         oscUI.show();
 
@@ -78,6 +81,7 @@ public class FilterUIProvider implements Provider {
         JFrame noteTriggerFrame = new JFrame("");
         noteTriggerFrame.setContentPane(noteTriggerPane);
         noteTriggerFrame.setVisible(true);
+        noteTriggerFrame.setLocation(300, 85);
         noteTriggerFrame.pack();
         noteTriggerFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         noteTriggerFrame.addWindowListener(new WindowListener() {
