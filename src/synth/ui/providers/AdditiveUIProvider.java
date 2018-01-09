@@ -1,7 +1,6 @@
 package synth.ui.providers;
 
 import net.beadsproject.beads.core.AudioContext;
-import net.beadsproject.beads.ugens.Add;
 import synth.Launcher;
 import synth.auxilliary.ContextProvider;
 import synth.ui.AdditiveUI;
@@ -97,6 +96,7 @@ public class AdditiveUIProvider implements Provider {
         this.ui = new JFrame("Additiv");
         this.ui.setContentPane(this.mainPane);
         this.ui.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        this.ui.setLocation(0, 85);
         this.ui.addWindowListener(new WindowListener() {
             @Override
             public void windowOpened(WindowEvent e) {}
