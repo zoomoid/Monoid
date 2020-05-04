@@ -5,6 +5,7 @@ import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.ugens.RangeLimiter;
 import synth.auxilliary.SignalProcessor;
 import synth.osc.BasicOscillator;
+import synth.osc.Waveform;
 import synth.ui.components.Signal;
 import synth.auxilliary.ContextProvider;
 
@@ -13,7 +14,7 @@ public class SignalTest {
     public static void main(String[] args){
         AudioContext ac = ContextProvider.ac();
 
-        BasicOscillator osc = new BasicOscillator(ac, 500, Buffer.SINE);
+        BasicOscillator osc = new BasicOscillator(ac, 500, Waveform.SINE);
 
         SignalProcessor pc = new SignalProcessor(ac);
         pc.addInput(osc);

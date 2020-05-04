@@ -1,6 +1,7 @@
 package synth.osc;
 
 import net.beadsproject.beads.data.Buffer;
+import synth.waves.TriangleBuffer;
 
 public interface WavetableOscillator {
 
@@ -8,27 +9,11 @@ public interface WavetableOscillator {
         SINE, TRIANGLE, SAW, SQUARE, NOISE, CUSTOM
     }
 
-    Buffer getWave();
+    Waveform getWave();
 
-    WavetableOscillator setWave(Buffer wave);
+    WavetableOscillator setWave(Waveform wave);
 
-    WaveType getWaveType();
+    String getWaveformName();
 
-    WavetableOscillator setWaveType(WaveType waveType);
-
-    default void determineWaveType(Buffer wave){
-        if(wave == Buffer.SINE){
-            this.setWaveType(WaveType.SINE);
-        } else if(wave == Buffer.TRIANGLE){
-            this.setWaveType(WaveType.TRIANGLE);
-        } else if(wave == Buffer.SAW) {
-            this.setWaveType(WaveType.SAW);
-        } else if(wave == Buffer.SQUARE){
-            this.setWaveType(WaveType.SQUARE);
-        } else if(wave == Buffer.NOISE){
-            this.setWaveType(WaveType.NOISE);
-        } else {
-            this.setWaveType(WaveType.CUSTOM);
-        }
-    }
+    WavetableOscillator setWaveform(Waveform waveform);
 }

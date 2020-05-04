@@ -37,7 +37,9 @@ public class OscillatorController {
         this.context = context;
         this.ac = SynthController.ac;
         oscillators = new ArrayList<>();
-        oscillators.add(new SmartOscillator(ac, 0f, Buffer.SINE, 1, 0f, 1));
+        SmartOscillator osc1 = new SmartOscillator(ac, 0f, Waveform.SINE, 1, 0f, 0f);
+        osc1.setName("Demo");
+        oscillators.add(osc1);
         limiter = new RangeLimiter(ac, 1);
         master = new Gain(ac, 1, 0.95f);
         master.addInput(limiter);

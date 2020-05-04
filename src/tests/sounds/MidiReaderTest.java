@@ -5,6 +5,7 @@ import net.beadsproject.beads.data.Buffer;
 import synth.controller.MidiOscController;
 import synth.osc.BasicOscillator;
 import synth.osc.Oscillator;
+import synth.osc.Waveform;
 
 import javax.swing.*;
 import java.io.File;
@@ -28,7 +29,7 @@ public class MidiReaderTest {
 
         File midiFile = select.getSelectedFile();
 
-        BasicOscillator osc = new BasicOscillator(ac, 220f, Buffer.SQUARE);
+        BasicOscillator osc = new BasicOscillator(ac, 220f, Waveform.SQUARE);
 
         //MidiOscController controller = new MidiOscController(osc, bach_bourree.mid, ac);
 

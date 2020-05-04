@@ -54,6 +54,16 @@ public abstract class Oscillator extends UGen implements Device {
      */
     protected float velocityFactor;
 
+    private String name;
+
+    public String getName(){
+        return this.name;
+    }
+
+    public void setName(String name){
+        this.name = name;
+    }
+
     /**
      * Creates an empty oscillator frame
      * @param ac AudioContext

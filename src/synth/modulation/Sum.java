@@ -56,7 +56,7 @@ public class Sum extends Modulator implements Modulatable {
         aLFO.update();
         anEnvelope.update();
         for(int i = 0; i < bufferSize; i++){
-            this.bufOut[0][i] = this.aStatic.getValue(0, i) + 0.5f * this.anEnvelope.getValue(0, i) + 0.5f * this.aLFO.getValue(0, i);
+            this.bufOut[0][i] = this.aStatic.getValue(0, i) * (this.anEnvelope.getModulationStrength() * this.anEnvelope.getValue(0, i) + this.aLFO.getModulationStrength() * this.aLFO.getValue(0, i));
         }
     }
 

@@ -5,6 +5,7 @@ import net.beadsproject.beads.data.Buffer;
 import synth.modulation.LFO;
 import synth.osc.BasicOscillator;
 import synth.auxilliary.ContextProvider;
+import synth.osc.Waveform;
 
 public class BasisOscillatorTest {
 
@@ -13,7 +14,7 @@ public class BasisOscillatorTest {
     public static void main(String[] args){
         AudioContext ac = ContextProvider.ac();
         BasicOscillator osc = new BasicOscillator(ac);
-        osc.setWave(Buffer.SINE);
+        osc.setWave(Waveform.SINE);
         ac.out.addInput(osc);
         ac.start();
         ac.out.setGain(0.1f);

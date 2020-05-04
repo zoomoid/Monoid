@@ -38,7 +38,7 @@ public class AdditiveOscillator extends UGen {
         this.numberOfOscs = numberOfOscs;
         this.basicFreq = basicFreq;
         for(int i = 0; i < numberOfOscs; i++) {
-            BasicOscillator curr = new BasicOscillator(ac, basicFreq, Buffer.SINE);
+            BasicOscillator curr = new BasicOscillator(ac, basicFreq, Waveform.SINE);
             this.oscillators.add(curr);
             if(i == 0) {
                 curr.start();
@@ -46,7 +46,7 @@ public class AdditiveOscillator extends UGen {
         }
     }
 
-    public AdditiveOscillator(AudioContext ac, float basicFreq, int numberOfOscs, Buffer wave) {
+    public AdditiveOscillator(AudioContext ac, float basicFreq, int numberOfOscs, Waveform wave) {
         super(ac);
         this.numberOfOscs = numberOfOscs;
         this.basicFreq = basicFreq;

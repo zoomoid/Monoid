@@ -1,12 +1,12 @@
 package synth.ui.providers;
 
 import net.beadsproject.beads.core.AudioContext;
-import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.data.Pitch;
 import synth.auxilliary.ContextProvider;
 import synth.filter.Filter;
-import synth.filter.models.BiquadFilter;
+import synth.filter.models.FilterModel;
 import synth.osc.SmartOscillator;
+import synth.osc.Waveform;
 import synth.ui.FilterUI;
 import synth.ui.OscillatorUI;
 import synth.ui.components.swing.BlankPanel;
@@ -32,10 +32,10 @@ public class FilterUIProvider implements Provider {
         osc.setBlend(2);
         osc.setSpread(0.25f);
         osc.setVoices(5);
-        osc.setWave(Buffer.SAW);
+        osc.setWave(Waveform.SAW);
         osc.setName("Oscillator A");
 
-        Filter f = new Filter(ac, Filter.Type.BiquadFilter, BiquadFilter.Type.LPF, 300f, 0.76f, 0.71f);
+        Filter f = new Filter(ac, FilterModel.Type.BiquadFilter, FilterModel.Mode.LPF, 300f, 0.76f, 0.71f);
         f.setName("Filter A");
         f.addInput(osc);
 
@@ -82,7 +82,8 @@ public class FilterUIProvider implements Provider {
         });
         this.frame.setLocation(300, 300);
         this.frame.pack();
-        this.frame.setResizable(false);
+        this.frame.setResizable(true);
+        this.frame.setVisible(true);
     }
 
     public void close(){

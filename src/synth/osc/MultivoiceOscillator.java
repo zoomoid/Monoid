@@ -3,7 +3,6 @@ package synth.osc;
 import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.data.Buffer;
-import net.beadsproject.beads.ugens.Mult;
 import synth.modulation.Modulatable;
 
 import synth.modulation.Static;
@@ -17,6 +16,7 @@ public class MultivoiceOscillator extends Oscillator {
     private float[] phase;
     /** The buffer used by all oscillators. */
     private Buffer buffer;
+    private Waveform waveform;
 
     /** The number of oscillators. */
     private int numOscillators;
@@ -30,12 +30,12 @@ public class MultivoiceOscillator extends Oscillator {
      * Instantiates a new MultivoiceOscillator.
      *
      * @param context the AudioContext.
-     * @param buffer the buffer used as a lookup table by the oscillators.
+     * @param waveform the buffer used as a lookup table by the oscillators.
      * @param numOscillators the number of oscillators.
      */
-    public MultivoiceOscillator(AudioContext context, Buffer buffer, int numOscillators) {
+    public MultivoiceOscillator(AudioContext context, Waveform waveform, int numOscillators) {
         super(context, 2);
-        this.buffer = buffer;
+        this.waveform = waveform;
         this.one_over_sr = 1f / context.getSampleRate();
         this.frequencies = new Modulatable[0];
         this.phase = new float[0];
@@ -66,9 +66,9 @@ public class MultivoiceOscillator extends Oscillator {
         return this;
     }
 
-    public void setWave(Buffer wave){
-        if(wave != null){
-            this.buffer = wave;
+    public void setWave(Waveform waveform){
+        if(waveform != null){
+            this.waveform = waveform;
         }
     }
 
@@ -82,6 +82,11 @@ public class MultivoiceOscillator extends Oscillator {
         updatePhase();
         // Update gain to evenly scale each oscillation to 1
         this.gain.setValue(1f/numOscillators);
+        if (this.numOscillators > 0) {
+            this.noteOn();
+        } else {
+            this.noteOff();
+        }
         this.update();
     }
 
@@ -153,7 +158,7 @@ public class MultivoiceOscillator extends Oscillator {
                 // step forward in phase (in [0,1])
                 float frequencySample = this.frequencies[k].getValue(0, j);
                 this.phase[k] = (float)(((phase[k] + frequencySample * one_over_sr) % 1.0f) + 1.0f) % 1.0f;
-                float sample = this.buffer.getValueFraction(this.phase[k]);
+                float sample = this.waveform.getBuffer().getValueFraction(this.phase[k]);
                 float gainSample = this.gain.getValue(0,j);
                 for(int i = 0; i < outs; i++) {
                     this.bufOut[i][j] += gainSample * sample;

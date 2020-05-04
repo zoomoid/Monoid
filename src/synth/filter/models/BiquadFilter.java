@@ -32,15 +32,11 @@ import net.beadsproject.beads.ugens.Static;
  */
 public class BiquadFilter extends FilterModel implements DataBeadReceiver {
 
-	public final static Type LPF = Type.LPF;
-
-	public final static Type HPF = Type.HPF;
-
-  protected float bo1 = 0, bo2 = 0, bi1 = 0, bi2 = 0;
-  protected float[] bo1m, bo2m, bi1m, bi2m;
+  	protected float bo1 = 0, bo2 = 0, bi1 = 0, bi2 = 0;
+ 	protected float[] bo1m, bo2m, bi1m, bi2m;
 
 	protected int channels = 1;
-	protected Type type = null;
+	protected Mode mode = null;
 
 	// for analysis
 	protected double w = 0, ampResponse = 0, phaseResponse = 0, phaseDelay = 0;
@@ -55,38 +51,52 @@ public class BiquadFilter extends FilterModel implements DataBeadReceiver {
 	 * @param channels The number of channels.
 	 */
 	public BiquadFilter(AudioContext context, int channels) {
-		this(context, LPF);
+		this(context, Mode.LPF);
 	}
 
 	/**
 	 * Constructor for a multi-channel biquad filter UGen of specified type with
-	 * the specified number of channels. See {@link #setType(int) setType} for a
-	 * list of supported filter types.
+	 * the specified number of channels. See {@link #setMode(Mode) setMode} for a
+	 * list of supported filter modes.
 	 *
 	 * @param context The AudioContext.
-	 * @param channels The number of channels.
-	 * @param itype
+	 * @param mode
 	 */
-	public BiquadFilter(AudioContext context, Type itype) {
+	public BiquadFilter(AudioContext context, Mode mode) {
 		super(context);
 		this.channels = super.getOuts();
         bi1m = new float[this.channels];
         bi2m = new float[this.channels];
         bo1m = new float[this.channels];
         bo2m = new float[this.channels];
-		setType(itype);
+		setMode(mode);
 		this.setFrequency(100).setQ(1).setGain(0);
 		this.outputInitializationRegime = OutputInitializationRegime.ZERO;
 	}
 
-	public BiquadFilter(AudioContext ac, Type type, UGen frequency, UGen q, UGen gain){
-	    this(ac, type);
+	public BiquadFilter(AudioContext ac, Mode mode, UGen frequency, UGen q, UGen gain){
+	    this(ac, mode);
 	    this.setFrequency(frequency).setQ(q).setGain(gain);
     }
 
-    public BiquadFilter(AudioContext ac, Type type, float frequency, float q, float gain){
-	    this(ac, type, new Static(ac, frequency), new Static(ac, q), new Static(ac, gain));
+    public BiquadFilter(AudioContext ac, Mode mode, float frequency, float q, float gain){
+	    this(ac, mode, new Static(ac, frequency), new Static(ac, q), new Static(ac, gain));
     }
+
+	public BiquadFilter setMode(Mode mode){
+		if(mode != null){
+			switch(mode){
+				case LPF :
+					vc = new LPFValCalculator();
+					break;
+                case HPF :
+                    vc = new HPFValCalculator();
+                    break;
+				default: break;
+			}
+		}
+		return this;
+	}
 
     /**
      * Sets the specific UGen input buffer to bypass addInput()
@@ -220,9 +230,9 @@ public class BiquadFilter extends FilterModel implements DataBeadReceiver {
 
 			o = paramBead.get("type");
 			if (o instanceof Type) {
-                setType((Type) o);
+                setType((Mode) o);
 			} else {
-				setType(Type.LPF);
+				setType(Mode.LPF);
 			}
 
 			if ((o = paramBead.get("frequency")) != null) {
@@ -279,7 +289,7 @@ public class BiquadFilter extends FilterModel implements DataBeadReceiver {
         db.put("frequency", frequency);
         db.put("q", q);
         db.put("gain", gain);
-		db.put("type", type);
+		db.put("mode", mode);
 		return db;
 	}
 
@@ -294,19 +304,19 @@ public class BiquadFilter extends FilterModel implements DataBeadReceiver {
 		db.put("frequency", frequency);
 		db.put("q", q);
 		db.put("gain", gain);
-		db.put("type", type);
+		db.put("mode", mode);
 		return db;
 	}
 
 	/**
 	 * Sets the type of filter.
-	 * @param ntype The type of filter.
+	 * @param nmode The type of filter.
 	 */
-	public BiquadFilter setType(Type ntype) {
-		if (ntype != type || vc == null) {
-			Type t = type;
-			type = ntype;
-			switch (type) {
+	public BiquadFilter setType(Mode nmode) {
+		if (nmode != mode || vc == null) {
+			Mode m = mode;
+			mode = nmode;
+			switch (mode) {
                 case LPF:
                     vc = new LPFValCalculator();
                     break;
@@ -317,7 +327,7 @@ public class BiquadFilter extends FilterModel implements DataBeadReceiver {
                     vc = new BPFValCalculator();
                     break;
                 default:
-                    type = t;
+					mode = m;
                     break;
 			}
 			vc.calcVals();
@@ -328,10 +338,10 @@ public class BiquadFilter extends FilterModel implements DataBeadReceiver {
 	/**
 	 * Gets the type of the filter.
 	 * @return The filter type.
-	 * @see #setType(Type)
+	 * @see #setMode(Mode)
 	 */
-	public Type getType() {
-		return type;
+	public Mode getMode() {
+		return mode;
 	}
 
 	/**

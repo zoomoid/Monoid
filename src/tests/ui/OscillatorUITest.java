@@ -5,6 +5,7 @@ import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.data.Pitch;
 import net.beadsproject.beads.ugens.RangeLimiter;
 import synth.osc.SmartOscillator;
+import synth.osc.Waveform;
 import synth.ui.OscillatorUI;
 import synth.auxilliary.ContextProvider;
 
@@ -17,7 +18,7 @@ public class OscillatorUITest {
         osc.setBlend(1);
         osc.setSpread(0);
         osc.setVoices(1);
-        osc.setWave(Buffer.SINE);
+        osc.setWave(Waveform.SINE);
 
         RangeLimiter l = new RangeLimiter(ac,1);
         l.addInput(osc);

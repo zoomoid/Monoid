@@ -14,6 +14,8 @@ import net.beadsproject.beads.data.BufferFactory;
  */
 public class TriangleBuffer extends BufferFactory {
 
+
+
     /* (non-Javadoc)
      * @see net.beadsproject.beads.data.BufferFactory#generateBuffer(int)
      */

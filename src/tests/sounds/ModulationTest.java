@@ -7,6 +7,7 @@ import net.beadsproject.beads.ugens.RangeLimiter;
 import synth.modulation.LFO;
 import synth.osc.BasicOscillator;
 import synth.osc.Oscillator;
+import synth.osc.Waveform;
 import synth.ui.components.Signal;
 import synth.auxilliary.ContextProvider;
 
@@ -14,7 +15,7 @@ public class ModulationTest {
     public static void main(String[] args){
         AudioContext ac = ContextProvider.ac();
 
-        Oscillator osc = new BasicOscillator(ac, 500, Buffer.SQUARE);
+        Oscillator osc = new BasicOscillator(ac, 500, Waveform.SQUARE);
         LFO volumeLFO = new LFO(ac, LFO.Type.SINE, LFO.Mode.FREE, 0.25f, 0.5f);
 
         osc.setGain(volumeLFO);

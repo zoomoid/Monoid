@@ -4,7 +4,7 @@ import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.ugens.IIRFilter;
 import net.beadsproject.beads.ugens.Static;
-import org.jetbrains.annotations.NotNull;
+import net.beadsproject.beads.ugens.BiquadFilter;
 
 public abstract class FilterModel extends IIRFilter {
 
@@ -27,7 +27,11 @@ public abstract class FilterModel extends IIRFilter {
     public static final float SQRT2 = (float) Math.sqrt(2);
     protected ValCalculator vc;
 
-    public enum Type {LPF, HPF, BPF}
+    public enum Type {BiquadFilter, MonoMoog}
+    private Type type;
+
+    public enum Mode {LPF, HPF, BPF}
+    private Mode mode;
 
     public FilterModel(AudioContext ac){
         super(ac, 2, 2);
@@ -38,7 +42,7 @@ public abstract class FilterModel extends IIRFilter {
         vc = new ValCalculator();
     }
 
-    public abstract FilterModel setType(Type type);
+    public abstract FilterModel setMode(Mode mode);
 
     protected class ValCalculator {
         public void calcVals() {
@@ -118,13 +122,23 @@ public abstract class FilterModel extends IIRFilter {
         return this;
     }
 
-    @NotNull
-    public static MonoMoog createMonoMoog(AudioContext ac, FilterModel.Type type){
-        return new MonoMoog(ac, type, 0f, 1f, 1f);
+    public Type getType(){
+        return this.type;
+    }
+    public Mode getMode(){
+        return this.mode;
     }
 
-    @NotNull
-    public static BiquadFilter createBiquadFilter(AudioContext ac, FilterModel.Type type){
-        return new BiquadFilter(ac, type, 0f, 1f, 1f);
+    public static MonoMoog createMonoMoog(AudioContext ac, FilterModel.Mode mode){
+        return new MonoMoog(ac, mode, 0f, 1f, 1f);
+    }
+
+    public static BiquadFilter createBiquadFilter(AudioContext ac, FilterModel.Mode mode){
+        BiquadFilter f = (BiquadFilter)(new BiquadFilter(ac, 2).setFrequency(0f).setQ(0f));
+        return switch (mode) {
+            case LPF -> f.setType(BiquadFilter.LP);
+            case HPF -> f.setType(BiquadFilter.HP);
+            default -> f.setType(BiquadFilter.LP);
+        };
     }
 }

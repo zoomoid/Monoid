@@ -29,13 +29,13 @@ public class PolyphonyOscillator extends UGen {
     /**
      * Creates a PolyphonyOscillator
      */
-    public PolyphonyOscillator(AudioContext ac, int numVoices, Buffer buffer, float[] frequencies, float[] gains, int[] unisonVoices, float[] unisonSpread, float[] unisonBlend){
+    public PolyphonyOscillator(AudioContext ac, int numVoices, Waveform waveform, float[] frequencies, float[] gains, int[] unisonVoices, float[] unisonSpread, float[] unisonBlend){
         super(ac);
         this.ac = ac;
         this.oscillators = new SmartOscillator[numVoices];
         this.limiter = new RangeLimiter(ac, 2);
         for(int i = 0; i < numVoices; i++){
-            oscillators[i] = new SmartOscillator(ac, frequencies[i], buffer, unisonVoices[i], unisonSpread[i], unisonBlend[i]);
+            oscillators[i] = new SmartOscillator(ac, frequencies[i], waveform, unisonVoices[i], unisonSpread[i], unisonBlend[i]);
         }
         ac.start();
     }

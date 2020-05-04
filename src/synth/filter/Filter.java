@@ -4,7 +4,6 @@ import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.ugens.Static;
 import synth.container.Device;
-import synth.filter.models.BiquadFilter;
 import synth.filter.models.FilterFactory;
 import synth.filter.models.FilterModel;
 
@@ -27,29 +26,26 @@ public class Filter extends UGen implements Device{
     /** Audio Context */
     private AudioContext context;
 
-    public enum Type {BiquadFilter, MonoMoog}
-
-    private Type type;
 
     /**
      * Blank LPF filter
      * @param ac audio context
      */
     public Filter(AudioContext ac){
-        this(ac, Type.BiquadFilter, FilterModel.Type.LPF, 20000f, 1f, 1);
+        this(ac, FilterModel.Type.BiquadFilter, FilterModel.Mode.LPF, 20000f, 1f, 1);
     }
 
     /**
      * Creates a filter with static cutoff frequency and static filter gain
      * @param ac audio context
      * @param type filter type
-     * @param filterModel filter type model
+     * @param mode filter type model
      * @param staticCutoff cutoff frequency
      * @param q filter q
      * @param staticGain filter gain
      */
-    public Filter(AudioContext ac, Filter.Type type, BiquadFilter.Type filterModel, float staticCutoff, float q, float staticGain){
-        this(ac, type, filterModel, new Static(ac, staticCutoff), new Static(ac, q), new Static(ac, staticGain));
+    public Filter(AudioContext ac, FilterModel.Type type, FilterModel.Mode mode, float staticCutoff, float q, float staticGain){
+        this(ac, type, mode, new Static(ac, staticCutoff), new Static(ac, q), new Static(ac, staticGain));
     }
 
     /**
@@ -60,22 +56,21 @@ public class Filter extends UGen implements Device{
      * @param q filter q
      * @param gain filter gain
      */
-    public Filter(AudioContext ac, Filter.Type type, FilterModel.Type filterModel, UGen cutoff, UGen q, UGen gain){
+    public Filter(AudioContext ac, FilterModel.Type type, FilterModel.Mode mode, UGen cutoff, UGen q, UGen gain){
         super(ac, 2, 2);
         this.context = ac;
 
         switch(type){
             case BiquadFilter:
-                this.filterBackend = FilterFactory.createBiquadFilter(ac, filterModel);
+                this.filterBackend = FilterFactory.createBiquadFilter(ac, mode);
                 break;
             case MonoMoog:
-                this.filterBackend = FilterFactory.createMonoMoog(ac, filterModel);
+                this.filterBackend = FilterFactory.createMonoMoog(ac, mode);
                 break;
             default:
                 break;
         }
 
-        this.type = type;
         if(cutoff != null){
             this.setCutoff(cutoff);
         } else {
@@ -121,8 +116,8 @@ public class Filter extends UGen implements Device{
      * Gets the type of the filter
      * @return type enum element
      */
-    public Type getType(){
-        return this.type;
+    public FilterModel.Type getType(){
+        return this.filterBackend.getType();
     }
     /**
      * Sets the cutoff frequency of the filter by a static value
@@ -182,9 +177,9 @@ public class Filter extends UGen implements Device{
         return this;
     }
 
-    public void setFilterType(BiquadFilter.Type newFilterType){
-        if(newFilterType != null){
-            this.filterBackend.setType(newFilterType);
+    public void setFilterMode(FilterModel.Mode newMode){
+        if(newMode != null){
+            this.filterBackend.setMode(newMode);
         }
     }
 

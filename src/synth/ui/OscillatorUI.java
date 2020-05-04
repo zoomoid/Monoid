@@ -5,10 +5,12 @@ import net.beadsproject.beads.data.Pitch;
 import synth.SynthController;
 import synth.osc.Oscillator;
 import synth.osc.UnisonOscillator;
+import synth.osc.Waveform;
 import synth.osc.WavetableOscillator;
 import synth.ui.components.swing.*;
 import synth.ui.composition.EnvelopePanel;
 import synth.ui.composition.LFOPanel;
+import synth.waves.TriangleBuffer;
 
 import javax.swing.*;
 import java.awt.*;
@@ -110,7 +112,8 @@ public class OscillatorUI extends SynthesizerUserInterfaceModule {
         unisonVoicesPane = new BlankPanel(new FlowLayout(FlowLayout.LEFT));
         modulationPanel = new BlankPanel();
         modulationPanel.setLayout(new BoxLayout(modulationPanel, BoxLayout.Y_AXIS));
-        oscillatorLabel = new BlankLabel("Oscillator " + associatedOscillator.getName());
+        String ascOscName = associatedOscillator.getName();
+        oscillatorLabel = new BlankLabel("Oscillator " + ascOscName);
         optionsButton = new BlankToggleButton("Options");
         optionsButton.pack();
         optionsButton.setFont(new Font("Fira Mono", Font.BOLD, 10));
@@ -130,10 +133,10 @@ public class OscillatorUI extends SynthesizerUserInterfaceModule {
 
         noteTriggerPane = new BlankPanel();
         BlankToggleButton noteTrigger = new BlankToggleButton("Note On");
-        noteTrigger.toggle();
+
         noteTrigger.addActionListener(e -> {
             BlankToggleButton b = ((BlankToggleButton)e.getSource());
-            if(b.isToggled()){
+            if(!b.isToggled()){
                 associatedOscillator.noteOn();
                 b.setText("Note Off");
             } else {
@@ -141,6 +144,7 @@ public class OscillatorUI extends SynthesizerUserInterfaceModule {
                 b.setText("Note On");
             }
         });
+        noteTrigger.toggle();
 
         noteTriggerPane.add(noteTrigger);
 
@@ -155,12 +159,15 @@ public class OscillatorUI extends SynthesizerUserInterfaceModule {
         frequencyKnob.addPropertyChangeListener(e -> {
             associatedOscillator.setFrequency(Pitch.mtof((float)e.getNewValue()));
         });
+        this.associatedOscillator.setFrequency(Pitch.mtof((float)frequencyKnob.getValue()));
         frequencyPane.add(frequencyKnob);
 
         gainKnob = new BlankKnob(new BlankKnob.Parameters(0,1, 0.01f, false, true), BlankKnob.MEDIUM, 1,"Gain");
         gainKnob.addPropertyChangeListener(e -> {
             associatedOscillator.setGain((float) e.getNewValue());
         });
+        this.associatedOscillator.setGain(gainKnob.getValue());
+
         gainKnob.setAlignmentX(Component.LEFT_ALIGNMENT);
         gainPane.add(gainKnob);
 
@@ -170,19 +177,19 @@ public class OscillatorUI extends SynthesizerUserInterfaceModule {
                 int value = ((WaveType)((JSpinner)e.getSource()).getValue()).getIndex();
                 switch(value){
                     case 0:
-                        ((WavetableOscillator)associatedOscillator).setWave(Buffer.SINE);
+                        ((WavetableOscillator)associatedOscillator).setWave(Waveform.SINE);
                         break;
                     case 1:
-                        ((WavetableOscillator)associatedOscillator).setWave(Buffer.TRIANGLE);
+                        ((WavetableOscillator)associatedOscillator).setWave(Waveform.TRIANGLE);
                         break;
                     case 2:
-                        ((WavetableOscillator)associatedOscillator).setWave(Buffer.SAW);
+                        ((WavetableOscillator)associatedOscillator).setWave(Waveform.SAW);
                         break;
                     case 3:
-                        ((WavetableOscillator)associatedOscillator).setWave(Buffer.SQUARE);
+                        ((WavetableOscillator)associatedOscillator).setWave(Waveform.SQUARE);
                         break;
                     case 4:
-                        ((WavetableOscillator)associatedOscillator).setWave(Buffer.NOISE);
+                        ((WavetableOscillator)associatedOscillator).setWave(Waveform.NOISE);
                         break;
                     default: break;
                 }
@@ -192,8 +199,9 @@ public class OscillatorUI extends SynthesizerUserInterfaceModule {
         }
         if(associatedOscillator instanceof UnisonOscillator){
             unisonEnableButton = new BlankToggleButton("Unison");
+            unisonEnableButton.toggle(false);
             unisonEnableButton.addActionListener(e -> {
-                if(!((BlankToggleButton)e.getSource()).isToggled()){
+                if(((BlankToggleButton)e.getSource()).isToggled()){
                     ((UnisonOscillator)associatedOscillator).setVoices(unisonVoicesSlider.getValue());
                     ((UnisonOscillator)associatedOscillator).setSpread(unisonSpreadKnob.getValue());
                     ((UnisonOscillator)associatedOscillator).setBlend(unisonBlendKnob.getValue());
@@ -332,13 +340,13 @@ public class OscillatorUI extends SynthesizerUserInterfaceModule {
         this.frequencyKnob.setValue(associatedOscillator.getFrequency().getValue());
         this.gainKnob.setValue(associatedOscillator.getGain().getValue());
         if(associatedOscillator instanceof WavetableOscillator){
-            this.wavetableSpinner.setValue(this.setWavetableType(((WavetableOscillator)associatedOscillator).getWaveType()));
+            this.wavetableSpinner.setValue(this.setWavetableType(((WavetableOscillator)associatedOscillator).getWave()));
         }
         if(associatedOscillator instanceof UnisonOscillator){
             this.unisonVoicesSlider.setValue(((UnisonOscillator) associatedOscillator).getVoices());
             this.unisonSpreadKnob.setValue(((UnisonOscillator) associatedOscillator).getSpread());
             this.unisonBlendKnob.setValue(((UnisonOscillator) associatedOscillator).getBlend());
-            this.unisonEnableButton.toggle(true);
+            this.unisonEnableButton.toggle(((UnisonOscillator) associatedOscillator).getVoices() > 1 ? true : false);
         }
     }
 
@@ -346,13 +354,13 @@ public class OscillatorUI extends SynthesizerUserInterfaceModule {
         return associatedOscillator;
     }
 
-    private WaveType setWavetableType(WavetableOscillator.WaveType waveType){
-        switch(waveType){
-            case SINE : return icons[0];
-            case TRIANGLE : return icons[1];
-            case SAW : return icons[2];
-            case SQUARE : return icons[3];
-            case NOISE : return icons[4];
+    private WaveType setWavetableType(Waveform waveform){
+        switch(waveform.getName()){
+            case "SINE" : return icons[0];
+            case "TRIANGLE" : return icons[1];
+            case "SAW" : return icons[2];
+            case "SQUARE" : return icons[3];
+            case "NOISE" : return icons[4];
             default : return icons[0];
         }
     }

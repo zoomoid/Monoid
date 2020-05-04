@@ -5,6 +5,7 @@ import net.beadsproject.beads.data.Buffer;
 import synth.modulation.LFO;
 import synth.osc.SmartOscillator;
 import synth.auxilliary.ContextProvider;
+import synth.osc.Waveform;
 
 public class SmartOscillatorTest {
 
@@ -14,7 +15,7 @@ public class SmartOscillatorTest {
     public static void main(String[] args){
         AudioContext ac = ContextProvider.ac();
         SmartOscillator osc = new SmartOscillator(ac);
-        osc.setWave(Buffer.SAW);
+        osc.setWave(Waveform.SAW);
         osc.setGain(0.5f);
         ac.out.addInput(osc);
         if(STATIC_FREQUENCY){

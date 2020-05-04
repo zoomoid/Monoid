@@ -4,7 +4,7 @@ import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.data.Pitch;
-import org.jetbrains.annotations.NotNull;
+
 import synth.modulation.*;
 
 public class SmartOscillator extends Oscillator implements UnisonOscillator, WavetableOscillator {
@@ -14,7 +14,7 @@ public class SmartOscillator extends Oscillator implements UnisonOscillator, Wav
     private float blend;
     private float spreadFunction;
 
-    private Buffer wave;
+    private Waveform wave;
 
     private MultivoiceOscillator unison;
     private BasicOscillator center;
@@ -25,7 +25,7 @@ public class SmartOscillator extends Oscillator implements UnisonOscillator, Wav
      * @param ac audio context
      */
     public SmartOscillator(AudioContext ac) {
-        this(ac, 0f, Buffer.SINE, 1, 0f, 0f);
+        this(ac, 0f, Waveform.SINE, 1, 0f, 0f);
     }
 
     /**
@@ -35,7 +35,7 @@ public class SmartOscillator extends Oscillator implements UnisonOscillator, Wav
      * @param frequency oscillator freaquency
      */
     public SmartOscillator(AudioContext ac, float frequency){
-        this(ac, frequency, Buffer.SINE, 1, 0f, 0f);
+        this(ac, frequency, Waveform.SINE, 1, 0f, 0f);
     }
 
     /**
@@ -43,7 +43,7 @@ public class SmartOscillator extends Oscillator implements UnisonOscillator, Wav
      * @param ac audio context
      * @param wave oscillator waveform
      */
-    public SmartOscillator(AudioContext ac, Buffer wave){
+    public SmartOscillator(AudioContext ac, Waveform wave){
         this(ac, 440f, wave, 1, 0f, 0f);
     }
 
@@ -53,7 +53,7 @@ public class SmartOscillator extends Oscillator implements UnisonOscillator, Wav
      * @param frequency oscillator frequency
      * @param wave oscillator waveform
      */
-    public SmartOscillator(AudioContext ac, float frequency, Buffer wave){
+    public SmartOscillator(AudioContext ac, float frequency, Waveform wave){
         this(ac, frequency, wave, 1, 0f, 0f);
     }
 
@@ -65,7 +65,7 @@ public class SmartOscillator extends Oscillator implements UnisonOscillator, Wav
      * @param voices oscillator voices
      * @param spread unison pitch spread
      */
-    public SmartOscillator(AudioContext ac, float frequency, Buffer wave, int voices, float spread){
+    public SmartOscillator(AudioContext ac, float frequency, Waveform wave, int voices, float spread){
         this(ac, frequency, wave, voices, spread, 1f);
     }
 
@@ -78,7 +78,7 @@ public class SmartOscillator extends Oscillator implements UnisonOscillator, Wav
      * @param spread pitch spread range
      * @param blend blend factor of unison to center voice
      */
-    public SmartOscillator(AudioContext ac, float frequency, Buffer wave, int voices, float spread, float blend){
+    public SmartOscillator(AudioContext ac, float frequency, Waveform wave, int voices, float spread, float blend){
         super(ac, frequency);
 
         // submodule initialization
@@ -99,7 +99,7 @@ public class SmartOscillator extends Oscillator implements UnisonOscillator, Wav
      * Gets the (serialized) buffer of wave form of this oscillator
      * @return waveform as float array
      */
-    public Buffer getWave() {
+    public Waveform getWave() {
         return wave;
     }
 
@@ -234,10 +234,9 @@ public class SmartOscillator extends Oscillator implements UnisonOscillator, Wav
      * Sets the current {@link Buffer} for the oscillator
      * @param wave waveform as buffer
      */
-    public SmartOscillator setWave(Buffer wave) {
+    public SmartOscillator setWave(Waveform wave) {
         if(wave != null){
             this.wave = wave;
-            this.determineWaveType(wave);
         }
         if(center != null && unison != null){
             this.center.setWave(wave);
@@ -315,7 +314,7 @@ public class SmartOscillator extends Oscillator implements UnisonOscillator, Wav
             r[i] = this.frequency.clone();
             float midiValue = (float)(mtStart + (i/Math.pow(this.voices, this.spreadFunction)) * 2 * this.spread);
             float frequency = Pitch.mtof(midiValue);
-            ((Sum)r[i]).setStatic(new Static(ac, frequency));
+            r[i] = new Static(ac, frequency);
         }
         return r;
     }
@@ -363,13 +362,13 @@ public class SmartOscillator extends Oscillator implements UnisonOscillator, Wav
     }
 
     @Override
-    public WaveType getWaveType() {
-        return this.waveType;
+    public String getWaveformName() {
+        return this.wave.getName();
     }
 
     @Override
-    public SmartOscillator setWaveType(WaveType waveType){
-        this.waveType = waveType;
+    public SmartOscillator setWaveform(Waveform waveform){
+        this.wave = wave;
         return this;
     }
 }

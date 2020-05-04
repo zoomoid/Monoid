@@ -5,6 +5,7 @@ import net.beadsproject.beads.data.Buffer;
 import synth.modulation.Envelope;
 import synth.modulation.Static;
 import synth.osc.BasicOscillator;
+import synth.osc.Waveform;
 import synth.ui.composition.EnvelopePanel;
 import synth.auxilliary.ContextProvider;
 
@@ -17,7 +18,7 @@ public class EnvelopePanelTest {
         AudioContext ac = ContextProvider.ac();
         ac.start();
         Envelope e = new Envelope(ac);
-        BasicOscillator osc = new BasicOscillator(ac, new Static(ac, 220f), Buffer.SAW);
+        BasicOscillator osc = new BasicOscillator(ac, new Static(ac, 220f), Waveform.SAW);
         osc.setGain(e);
         pane = new JPanel();
         p = new EnvelopePanel(e, "Basic Envelope");

@@ -4,6 +4,7 @@ import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.data.Buffer;
 import synth.osc.SmartOscillator;
 import synth.auxilliary.ContextProvider;
+import synth.osc.Waveform;
 
 public class Supersaw {
     public static void main(String[] args){
@@ -13,7 +14,7 @@ public class Supersaw {
         // set the pad specific parameters
         osc.setFrequency(110f);
         osc.setBlend(1);
-        osc.setWave(Buffer.SAW);
+        osc.setWave(Waveform.SAW);
         osc.setVoices(7);
         osc.setSpread(5f);
         osc.setGain(0.25f);

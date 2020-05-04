@@ -13,21 +13,21 @@ public class MonoMoog extends FilterModel {
 
     float f, p, ql;
 
-    public MonoMoog(AudioContext ac, Type type, float frequency, float q, float gain){
-        this(ac, type, new Static(ac, frequency), new Static(ac, q), new Static(ac, gain));
+    public MonoMoog(AudioContext ac, Mode mode, float frequency, float q, float gain){
+        this(ac, 2, mode, new Static(ac, frequency), new Static(ac, q), new Static(ac, gain));
     }
 
-    public MonoMoog(AudioContext ac, Type fType, UGen frequency, UGen q, UGen gain){
+    public MonoMoog(AudioContext ac, int channels, Mode fType, UGen frequency, UGen q, UGen gain){
         super(ac);
         this.context = ac;
         this.resonance = new Static(this.context, 1f);
-        this.setType(Type.LPF).setFrequency(frequency).setQ(q).setGain(gain);
+        this.setMode(fType).setFrequency(frequency).setQ(q).setGain(gain);
     }
 
     // TODO anything else than LPF is currently not supported
-    public MonoMoog setType(Type type){
-        if(type != null){
-            switch(type){
+    public MonoMoog setMode(Mode mode){
+        if(mode != null){
+            switch(mode){
                 case LPF :
                     vc = new LPFValCalculator();
                     break;
@@ -75,6 +75,7 @@ public class MonoMoog extends FilterModel {
             b0 = bufIn[i][j];
             bufOut[i][j] = b4;
         }
+        // Just clone the channel
         for(i = 1; i < outs; i++){
             bufOut[i] = bufOut[0];
         }

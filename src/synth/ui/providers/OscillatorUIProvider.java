@@ -5,8 +5,12 @@ import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.data.Pitch;
 import net.beadsproject.beads.ugens.RangeLimiter;
 import synth.auxilliary.ContextProvider;
+import synth.auxilliary.SignalProcessor;
 import synth.osc.SmartOscillator;
+import synth.osc.Waveform;
 import synth.ui.OscillatorUI;
+import synth.ui.components.Canvas;
+import synth.ui.components.swing.BlankPanel;
 
 import javax.swing.*;
 import java.awt.event.WindowEvent;
@@ -26,11 +30,12 @@ public class OscillatorUIProvider implements Provider {
         osc.setBlend(1);
         osc.setSpread(0);
         osc.setVoices(1);
-        osc.setWave(Buffer.SINE);
+        osc.setWave(Waveform.SINE);
+        osc.setName("Demo");
 
-        RangeLimiter l = new RangeLimiter(ac,1);
+        RangeLimiter l = new RangeLimiter(ac,2);
         l.addInput(osc);
-        ac.out.addInput(l);
+
 
         this.ui = new OscillatorUI(osc);
         ui.show();
@@ -67,6 +72,28 @@ public class OscillatorUIProvider implements Provider {
         this.frame.pack();
         this.frame.setResizable(true);
         this.frame.setVisible(true);
+
+        SignalProcessor pc = new SignalProcessor(ac);
+
+        // Patch outputs
+        pc.addInput(l);
+
+        ac.out.addInput(pc);
+
+        // Signal Device
+        BlankPanel signalPane = new BlankPanel();
+        Canvas c = new Canvas();
+        pc.bind(c);
+        signalPane.add(c);
+
+        // Signal Plot
+        JFrame signalUI = new JFrame("Signal");
+        signalUI.setContentPane(signalPane);
+        signalUI.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+        signalUI.setLocation(0,500);
+        signalUI.pack();
+        signalUI.setResizable(true);
+        signalUI.setVisible(true);
     }
 
     public void close(){

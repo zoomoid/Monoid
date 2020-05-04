@@ -104,13 +104,13 @@ public class FilterUI extends SynthesizerUserInterfaceModule {
             int value = ((FilterType)((JSpinner)e.getSource()).getValue()).getIndex();
             switch (value){
                 case 0:
-                    associatedFilter.setFilterType(FilterModel.Type.LPF);
+                    associatedFilter.setFilterMode(FilterModel.Mode.LPF);
                     break;
                 case 1:
-                    associatedFilter.setFilterType(FilterModel.Type.HPF);
+                    associatedFilter.setFilterMode(FilterModel.Mode.HPF);
                     break;
                 case 2:
-                    associatedFilter.setFilterType(FilterModel.Type.BPF);
+                    associatedFilter.setFilterMode(FilterModel.Mode.BPF);
                     break;
                 default: break;
             }

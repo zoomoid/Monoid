@@ -4,6 +4,7 @@ import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.data.Buffer;
 import synth.osc.BasicOscillator;
 import synth.osc.SmartOscillator;
+import synth.osc.Waveform;
 import synth.ui.components.swing.OscillatorToggle;
 import synth.auxilliary.ContextProvider;
 
@@ -13,8 +14,8 @@ public class OscillatorToggleTest {
 
     public static void main(String[] args){
         AudioContext ac = ContextProvider.ac();
-        SmartOscillator smartOSC = new SmartOscillator(ac, 220f, Buffer.SAW, 3, 2f, 1);
-        BasicOscillator basicOSC = new BasicOscillator(ac, 330f, Buffer.SAW);
+        SmartOscillator smartOSC = new SmartOscillator(ac, 220f, Waveform.SAW, 3, 2f, 1);
+        BasicOscillator basicOSC = new BasicOscillator(ac, 330f, Waveform.SAW);
 
         JPanel pane = new JPanel();
 

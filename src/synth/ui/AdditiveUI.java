@@ -8,6 +8,7 @@ import net.beadsproject.beads.ugens.RangeLimiter;
 import synth.auxilliary.BufferDebugger;
 import synth.osc.BasicOscillator;
 import synth.osc.Oscillator;
+import synth.osc.Waveform;
 import synth.ui.components.swing.BlankPanel;
 import synth.ui.composition.OscillatorPanel;
 
@@ -111,7 +112,7 @@ public class AdditiveUI {
      */
     private void setupOscillators(float basicFreq, int numberOfOscillators, Preset param) {
         for(int i = 0; i < numberOfOscillators; i++) {
-            BasicOscillator bscOsc = new BasicOscillator(this.ac, basicFreq, Buffer.SINE);
+            BasicOscillator bscOsc = new BasicOscillator(this.ac, basicFreq, Waveform.SINE);
             activeOscillators.add(bscOsc);
             switch(param) {
                 default: case DEFAULT:

@@ -7,6 +7,7 @@ import synth.auxilliary.ContextProvider;
 import synth.auxilliary.SignalProcessor;
 import synth.modulation.ModulationOscillator;
 import synth.osc.BasicOscillator;
+import synth.osc.Waveform;
 import synth.ui.ModulationUI;
 import synth.ui.components.Canvas;
 import synth.ui.components.swing.BlankPanel;
@@ -27,7 +28,7 @@ public class ModulationUIProvider implements Provider {
         ModulationOscillator fmModulator = new ModulationOscillator(ac, ModulationOscillator.Type.SINE, 0f, 1);
         amModulator.noteOn();
         fmModulator.noteOn();
-        BasicOscillator carrier = new BasicOscillator(ac, 0f, Buffer.SINE);
+        BasicOscillator carrier = new BasicOscillator(ac, 0f, Waveform.SINE);
 
         ModulationUI ui = new ModulationUI(carrier, amModulator, fmModulator);
         ui.show();

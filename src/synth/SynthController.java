@@ -18,7 +18,7 @@ public class SynthController {
     private final FilterController filters;
     private final EffectController effects;
     private final BusController busses;
-    public static AudioContext ac = new AudioContext(new AudioServerIO.JavaSound("Primärer Soundtreiber"), 4096, new IOAudioFormat(44100, 24, 0, 2));
+    public static AudioContext ac = new AudioContext(new AudioServerIO.JavaSound("Primärer Soundtreiber"), 4096, new IOAudioFormat(48000, 24, 0, 2));
 
     /**
      * Initializes all controllers of the synthesizer

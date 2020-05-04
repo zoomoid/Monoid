@@ -6,13 +6,14 @@ import net.beadsproject.beads.ugens.Gain;
 import synth.modulation.ModulationOscillator;
 import synth.osc.BasicOscillator;
 import synth.auxilliary.ContextProvider;
+import synth.osc.Waveform;
 
 public class FMTest {
     public static void main(String[] args){
         AudioContext ac = ContextProvider.ac();
         ac.start();
 
-        BasicOscillator carrier = new BasicOscillator(ac, 440, Buffer.SINE);
+        BasicOscillator carrier = new BasicOscillator(ac, 440, Waveform.SINE);
         ModulationOscillator modulator = new ModulationOscillator(ac, ModulationOscillator.Type.SINE, 440, 220);
         modulator.noteOn();
         modulator.setValue(1204);

@@ -9,6 +9,7 @@ import net.beadsproject.beads.ugens.RangeLimiter;
 import org.jaudiolibs.beads.AudioServerIO;
 import synth.osc.SmartOscillator;
 import synth.controller.*;
+import synth.osc.Waveform;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -34,7 +35,7 @@ public class KeyboardTest {
      */
     public KeyboardTest() {
         ac.start();
-        osc = new SmartOscillator(ac, 220f, Buffer.SAW, 1, 2f, 1f);
+        osc = new SmartOscillator(ac, 220f, Waveform.SAW, 1, 2f, 1f);
         limiter = new RangeLimiter(ac, 2);
         Panner panner = new Panner(ac, 0f);
         panner.addInput(osc);
