@@ -1,6 +1,5 @@
 package synth.ui.composition;
 
-import org.jetbrains.annotations.TestOnly;
 import synth.modulation.Envelope;
 import synth.ui.components.swing.BlankKnob;
 import synth.ui.components.swing.BlankLabel;
@@ -79,7 +78,6 @@ public class EnvelopePanel extends BlankPanel {
         }
     }
 
-    @TestOnly
     public void test(){
         assert (envelope.attack() == 5 && envelope.decay() == 0 && envelope.sustain() == 1f && envelope.release() == 20);
         this.a.setValue(200);

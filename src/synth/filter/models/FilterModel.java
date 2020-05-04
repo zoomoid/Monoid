@@ -4,7 +4,6 @@ import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.ugens.IIRFilter;
 import net.beadsproject.beads.ugens.Static;
-import org.jetbrains.annotations.NotNull;
 
 public abstract class FilterModel extends IIRFilter {
 
@@ -118,12 +117,10 @@ public abstract class FilterModel extends IIRFilter {
         return this;
     }
 
-    @NotNull
     public static MonoMoog createMonoMoog(AudioContext ac, FilterModel.Type type){
         return new MonoMoog(ac, type, 0f, 1f, 1f);
     }
 
-    @NotNull
     public static BiquadFilter createBiquadFilter(AudioContext ac, FilterModel.Type type){
         return new BiquadFilter(ac, type, 0f, 1f, 1f);
     }

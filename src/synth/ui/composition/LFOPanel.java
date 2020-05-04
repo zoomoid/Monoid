@@ -1,7 +1,6 @@
 package synth.ui.composition;
 
 import net.beadsproject.beads.data.Buffer;
-import org.jetbrains.annotations.TestOnly;
 import synth.SynthController;
 import synth.modulation.LFO;
 import synth.osc.WavetableOscillator;
@@ -132,7 +131,6 @@ public class LFOPanel extends BlankPanel {
         }
     }
 
-    @TestOnly
     public void test(){
         this.a.setValue(200);
         this.f.setValue(300);

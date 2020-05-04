@@ -4,7 +4,6 @@ import net.beadsproject.beads.core.AudioContext;
 import net.beadsproject.beads.core.UGen;
 import net.beadsproject.beads.data.Buffer;
 import net.beadsproject.beads.data.Pitch;
-import org.jetbrains.annotations.NotNull;
 import synth.modulation.*;
 
 public class SmartOscillator extends Oscillator implements UnisonOscillator, WavetableOscillator {
